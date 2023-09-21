@@ -1,0 +1,88 @@
+import ml_collections
+import dataclasses
+
+
+def get_config():
+    config = ml_collections.ConfigDict()
+
+    # Wandb logging
+    config.wandb = wandb = ml_collections.ConfigDict()
+    wandb.entity = None
+    wandb.project = "multimodal-hubble"
+    wandb.group = "proposals"
+    wandb.job_type = "training"
+    wandb.name = None
+    wandb.log_train = False
+    wandb.workdir = "./logging/"
+
+    # Text
+    config.text_config = text_config = ml_collections.ConfigDict()
+    text_config.dtype = "float32"
+    text_config.activations = ("gelu",)
+    text_config.use_bias = False
+    text_config.force_scale = False
+    text_config.attention_dropout = 0.0
+    text_config.mlp_dropout_rate = 0.0
+    text_config.unroll = 100
+    text_config.gradient_checkpointing = True
+    text_config.eos_token_id = 49407
+    text_config.vocab_size = 50000
+    text_config.hidden_size = 512
+    text_config.max_length = 300
+    text_config.num_layers = 4
+    text_config.use_rmsnorm = True
+    text_config.ln_type = "normformer"
+    text_config.num_heads = 4
+    text_config.position_embedding_type = "rotary"
+    text_config.use_causal_mask = False
+    text_config.mlp_dim = 1024
+
+    # Vision
+    config.vision_config = vision_config = ml_collections.ConfigDict()
+    vision_config.position_embedding_type = "sincos2d"
+    vision_config.dtype = "float32"
+    vision_config.activations = ("gelu",)
+    vision_config.use_bias = False
+    vision_config.force_scale = False
+    vision_config.attention_dropout = 0.0
+    vision_config.mlp_dropout_rate = 0.0
+    vision_config.use_cls_token = False
+    vision_config.unroll = 100
+    vision_config.gradient_checkpointing = True
+    vision_config.image_size = 512
+    vision_config.hidden_size = 512
+    vision_config.patch_size = 16
+    vision_config.num_layers = 5
+    vision_config.use_rmsnorm = True
+    vision_config.ln_type = "normformer"
+    vision_config.num_heads = 8
+    vision_config.use_causal_mask = False
+    vision_config.mlp_dim = 1024
+
+    # CLIP
+    config.clip = clip = ml_collections.ConfigDict()
+    clip.projection_dim = 512
+    clip.logit_scale_init_value = 2.3
+    clip.logit_bias_init_value = -10.0
+    clip.dtype = "float32"
+
+    # Training
+    config.training = training = ml_collections.ConfigDict()
+    training.half_precision = False
+    training.batch_size = 16  # Must be divisible by number of devices; this is the total batch size, not per-device
+    training.n_train_steps = 301_000
+    training.warmup_steps = 5_000
+    training.log_every_steps = 100
+    training.eval_every_steps = 5000  # training.n_train_steps + 1  # Turn off eval for now
+    training.save_every_steps = 20_000
+    training.unconditional_dropout = True  # Set to True to use unconditional dropout (randomly zero out conditioning vectors)
+    training.p_uncond = 1.0  # Fraction of conditioning vectors to zero out if unconditional_dropout is True
+
+    # Optimizer (AdamW)
+    config.optim = optim = ml_collections.ConfigDict()
+    optim.learning_rate = 3e-4
+    optim.weight_decay = 1e-4
+
+    config.seed = 52
+
+    return config

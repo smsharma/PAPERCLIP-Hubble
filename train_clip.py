@@ -12,8 +12,6 @@ import wandb
 sys.path.append("./")
 sys.path.append("../")
 
-from data.utils import make_dataloader, create_input_iter, get_abstracts_and_images
-
 from tqdm import trange
 
 import jax
@@ -23,14 +21,27 @@ import flax
 from flax.core import FrozenDict
 from flax.training import checkpoints, common_utils, train_state
 
+from transformers import AutoTokenizer
+
 import tensorflow as tf
 
-from models.models import CLIPModel
+import dataclasses
+
+from models.clip import CLIPModel
+from models.dataset_utils import make_dataloader, create_input_iter
+from models.train_utils import param_count, train_step, to_wandb_config
 
 replicate = flax.jax_utils.replicate
 unreplicate = flax.jax_utils.unreplicate
 
 logging.set_verbosity(logging.INFO)
+
+
+def tokenize_captions(captions, tokenizer):
+    captions = captions.numpy().tolist()
+    captions = [c.decode("utf-8") for c in captions]
+    captions = tokenizer(captions, padding="max_length", truncation=True, max_length=300, return_tensors="np")
+    return captions["input_ids"], captions["attention_mask"]
 
 
 def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> train_state.TrainState:
@@ -56,32 +67,38 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
 
     writer = metric_writers.create_default_writer(logdir=workdir, just_logging=jax.process_index() != 0)
 
-    abstracts, images, masks = get_abstracts_and_images(data_folder, abstracts_cycle_df)
-    train_ds = make_dataloader(abstracts, masks, images, batch_size=32, seed=42)
-    batches = create_input_iter(train_ds)
+    # Set up data
+    files = ["./data/observations.tfrecord"]
+    ds = make_dataloader(files, batch_size=config.training.batch_size, seed=config.seed)
+    # batches = create_input_iter(ds)
+    batches = iter(ds)
 
-    logging.info("Loaded the %s dataset", config.data.dataset)
+    logging.info("Loaded the dataset")
 
     ## Model configuration
 
     # Score and (optional) encoder model configs
-    score_dict = FrozenDict(config.score)
-    encoder_dict = FrozenDict(config.encoder)
-    decoder_dict = FrozenDict(config.decoder)
+    text_config = FrozenDict(config.text_config)
+    vision_config = FrozenDict(config.vision_config)
+    clip_config = FrozenDict(config.clip)
 
-    model = CLIPModel(...)
+    # Make FrozenDicts
+    text_config = FrozenDict(text_config)
+    vision_config = FrozenDict(vision_config)
+
+    model = CLIPModel(text_config=text_config, vision_config=vision_config, **clip_config)
 
     rng = jax.random.PRNGKey(config.seed)
-    rng, rng_params = jax.random.split(rng)
+    rng, _ = jax.random.split(rng)
+
+    # Tokenizer
+    tokenizer = AutoTokenizer.from_pretrained("openai/clip-vit-base-patch32")
 
     # Pass a test batch through to initialize model
-    x_batch, conditioning_batch, mask_batch = next(batches)
-    _, params = model.init_with_output(
-        {"sample": rng, "params": rng_params},
-        x_batch[0],
-        conditioning_batch[0],
-        mask_batch[0],
-    )
+    images, captions = next(batches)
+    input_ids, attention_mask = tokenize_captions(captions, tokenizer)
+
+    _, params = model.init_with_output(rng, input_ids, images, attention_mask)
 
     logging.info("Instantiated the model")
     logging.info("Number of parameters: %d", param_count(params))
@@ -96,19 +113,24 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
     )
     tx = optax.adamw(learning_rate=schedule, weight_decay=config.optim.weight_decay)
 
-    state = train_state.TrainState.create(apply_fn=vdm.apply, params=params, tx=tx)
-    pstate = replicate(state)
+    state = train_state.TrainState.create(apply_fn=model.apply, params=params, tx=tx)
 
     logging.info("Starting training...")
 
     train_metrics = []
     with trange(config.training.n_train_steps) as steps:
         for step in steps:
-            rng, *train_step_rng = jax.random.split(rng, num=jax.local_device_count() + 1)
-            train_step_rng = np.asarray(train_step_rng)
-            x, conditioning, mask = next(batches)
-            pstate, metrics = train_step(pstate, (x, conditioning, mask), train_step_rng, vdm, loss_vdm, config.training.unconditional_dropout, config.training.p_uncond)
-            steps.set_postfix(val=unreplicate(metrics["loss"]))
+            rng, _ = jax.random.split(rng)
+            images, captions = next(batches)
+            input_ids, attention_mask = tokenize_captions(captions, tokenizer)
+
+            # Convert to Jax
+            images = np.array(images, dtype=np.float32)
+            input_ids = np.array(input_ids, dtype=np.int32)
+            attention_mask = np.array(attention_mask, dtype=np.int32)
+
+            state, metrics = train_step(state, (input_ids, images, attention_mask))
+            steps.set_postfix(val=metrics["loss"])
             train_metrics.append(metrics)
 
             # Log periodically
@@ -124,10 +146,9 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
 
             # Save checkpoints periodically
             if (step % config.training.save_every_steps == 0) and (step != 0) and (jax.process_index() == 0):
-                state_ckpt = unreplicate(pstate)
                 checkpoints.save_checkpoint(
                     ckpt_dir=workdir,
-                    target=state_ckpt,
+                    target=state,
                     step=step,
                     overwrite=True,
                     keep=np.inf,
@@ -135,7 +156,7 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
 
     logging.info("All done! Have a great day.")
 
-    return unreplicate(pstate)
+    return state
 
 
 if __name__ == "__main__":
