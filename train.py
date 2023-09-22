@@ -28,7 +28,7 @@ from dm_pix import rotate
 
 from models.clip import CLIPModel
 from models.dataset_utils import make_dataloader, create_input_iter
-from models.train_utils import param_count, train_step, to_wandb_config
+from models.train_utils import param_count, train_step, eval_step, to_wandb_config
 
 replicate = flax.jax_utils.replicate
 unreplicate = flax.jax_utils.unreplicate
@@ -72,9 +72,11 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
 
     # Set up data
     files = ["./data/observations.tfrecord"]
-    ds = make_dataloader(files, batch_size=config.training.batch_size, seed=config.seed)
-    # batches = create_input_iter(ds)
-    batches = iter(ds)
+
+    train_ds = make_dataloader(files, batch_size=config.training.batch_size, seed=config.seed, split="train", shuffle=True)
+    val_ds = make_dataloader(files, batch_size=config.training.batch_size, seed=config.seed, split="val", shuffle=False)
+
+    batches = iter(train_ds)
 
     logging.info("Loaded the dataset")
 
@@ -152,6 +154,34 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
 
                 if config.wandb.log_train:
                     wandb.log({"train/step": step, **summary})
+
+            # Evaluate periodically
+            if (step % config.training.eval_every_steps == 0) and (step != 0) and (jax.process_index() == 0):
+
+                val_metrics = []
+                val_batches = iter(val_ds)
+                for batch in val_batches:
+                    images, captions = batch
+                    input_ids, attention_mask = tokenize_captions(captions, tokenizer)
+
+                    batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
+                    batch = jax.tree_map(lambda x: np.array(x, dtype=config.vision_config.dtype), batch)
+                    # batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
+
+                    metrics = eval_step(unreplicate(pstate), np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]))
+
+                    val_metrics.append(metrics)
+
+                
+                print("val_metrics", val_metrics)
+                
+                # val_metrics = common_utils.get_metrics(val_metrics)
+                summary = {f"val/{k}": v for k, v in jax.tree_map(lambda x: x.mean(), val_metrics).items()}
+
+                writer.write_scalars(step, summary)
+
+                if config.wandb.log_train:
+                    wandb.log({"val/step": step, **summary})
 
             # Save checkpoints periodically
             if (step % config.training.save_every_steps == 0) and (step != 0) and (jax.process_index() == 0):

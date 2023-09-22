@@ -26,6 +26,30 @@ def train_step(state, input_ids, images, attention_mask):
     metrics = {"loss": jax.lax.pmean(loss, "batch")}
     return new_state, metrics
 
+def eval_function(outputs):
+
+    text_embeds = outputs["text_embeds"]
+    image_embeds = outputs["image_embeds"]
+    logit_scale = outputs["logit_scale"]
+    logit_bias = outputs["logit_bias"]
+
+    bs = text_embeds.shape[0]
+
+
+# @partial(jax.pmap, axis_name="batch")
+def eval_step(state, input_ids, images, attention_mask):
+    """Train for a single step."""
+
+    def loss_fn(params):
+        outputs = state.apply_fn(params, input_ids, images, attention_mask)
+        loss = sigmoid_loss(outputs)
+        return loss
+
+    loss = loss_fn(state.params)
+    # metrics = {"loss": jax.lax.pmean(loss, "batch")}
+    metrics = {"loss": loss}
+    return metrics
+
 
 def param_count(pytree):
     """Count the number of parameters in a pytree."""

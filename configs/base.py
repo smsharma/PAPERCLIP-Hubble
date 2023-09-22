@@ -12,13 +12,13 @@ def get_config():
     wandb.group = "proposals"
     wandb.job_type = "training"
     wandb.name = None
-    wandb.log_train = False
+    wandb.log_train = True
     wandb.workdir = "./logging/"
 
     # Text
     config.text_config = text_config = ml_collections.ConfigDict()
     text_config.dtype = "float32"
-    text_config.activations = ("relu", "linear")
+    text_config.activations =  ("gelu",)
     text_config.use_bias = False
     text_config.force_scale = False
     text_config.attention_dropout = 0.0
@@ -41,7 +41,7 @@ def get_config():
     config.vision_config = vision_config = ml_collections.ConfigDict()
     vision_config.position_embedding_type = "sincos2d"
     vision_config.dtype = "float32"
-    vision_config.activations = ("relu", "linear")
+    vision_config.activations = ("gelu",)
     vision_config.use_bias = False
     vision_config.force_scale = False
     vision_config.attention_dropout = 0.0
@@ -72,17 +72,17 @@ def get_config():
     # Training
     config.training = training = ml_collections.ConfigDict()
     training.half_precision = False
-    training.batch_size = 8  # Must be divisible by number of devices; this is the total batch size, not per-device
+    training.batch_size = 32  # Must be divisible by number of devices; this is the total batch size, not per-device
     training.n_train_steps = 501_000
     training.warmup_steps = 5_000
     training.log_every_steps = 100
-    training.eval_every_steps = 5000
+    training.eval_every_steps = 500
     training.save_every_steps = 20_000
 
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
-    optim.learning_rate = 1e-4
-    optim.weight_decay = 1e-4
+    optim.learning_rate = 3e-4
+    optim.weight_decay = 1e-3
 
     config.seed = 42
 
