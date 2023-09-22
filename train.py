@@ -99,10 +99,8 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
     input_ids, attention_mask = tokenize_captions(captions, tokenizer)
 
     batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
-    # batch = jax.tree_map(lambda x: np.array(x, dtype=np.float32), batch)
-    # batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
 
-    # # Just pass one element of the batch to initialize the model
+    # Just pass one element of the batch to initialize the model
 
     _, params = model.init_with_output(rng, batch["input_ids"][:1], batch["pixel_values"][:1], batch["attention_mask"][:1])
 
@@ -132,7 +130,7 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
             input_ids, attention_mask = tokenize_captions(captions, tokenizer)
 
             batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
-            batch = jax.tree_map(lambda x: np.array(x, dtype=np.float32), batch)
+            batch = jax.tree_map(lambda x: np.array(x, dtype=config.vision_config.dtype), batch)
             batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
 
             pstate, metrics = train_step(pstate, np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]))

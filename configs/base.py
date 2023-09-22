@@ -18,7 +18,7 @@ def get_config():
     # Text
     config.text_config = text_config = ml_collections.ConfigDict()
     text_config.dtype = "float32"
-    text_config.activations = ("gelu",)
+    text_config.activations = ("relu", "linear")
     text_config.use_bias = False
     text_config.force_scale = False
     text_config.attention_dropout = 0.0
@@ -31,7 +31,7 @@ def get_config():
     text_config.max_length = 300
     text_config.num_layers = 4
     text_config.use_rmsnorm = True
-    text_config.ln_type = "normformer"
+    text_config.ln_type = "preln"
     text_config.num_heads = 4
     text_config.position_embedding_type = "rotary"
     text_config.use_causal_mask = False
@@ -41,7 +41,7 @@ def get_config():
     config.vision_config = vision_config = ml_collections.ConfigDict()
     vision_config.position_embedding_type = "sincos2d"
     vision_config.dtype = "float32"
-    vision_config.activations = ("gelu",)
+    vision_config.activations = ("relu", "linear")
     vision_config.use_bias = False
     vision_config.force_scale = False
     vision_config.attention_dropout = 0.0
@@ -54,7 +54,7 @@ def get_config():
     vision_config.patch_size = 16
     vision_config.num_layers = 4
     vision_config.use_rmsnorm = True
-    vision_config.ln_type = "normformer"
+    vision_config.ln_type = "preln"
     vision_config.num_heads = 4
     vision_config.use_causal_mask = False
     vision_config.mlp_dim = 1024
@@ -73,12 +73,12 @@ def get_config():
     training.n_train_steps = 501_000
     training.warmup_steps = 5_000
     training.log_every_steps = 100
-    training.eval_every_steps = 5000  # training.n_train_steps + 1  # Turn off eval for now
+    training.eval_every_steps = 5000
     training.save_every_steps = 20_000
 
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
-    optim.learning_rate = 3e-4
+    optim.learning_rate = 1e-4
     optim.weight_decay = 1e-4
 
     config.seed = 42
