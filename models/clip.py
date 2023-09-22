@@ -61,27 +61,6 @@ def _convert_to_activation_function(fn_or_string: Union[str, Callable]) -> Calla
     else:
         raise ValueError("don't know how to convert %s to an activation function" % (fn_or_string,))
 
-
-def _interpolate(idxs, values):
-    """
-    Interpolate values at given indices.
-
-    Args:
-        idxs: should be fractional, between 0 and 1
-        values: values to interpolate, assumed to be evenly spaced between 0 and 1
-    """
-    idxs = idxs * (values.shape[0] - 1)
-    idxs_floor = jnp.floor(idxs)
-    idxs_ceil = jnp.ceil(idxs)
-    idxs_frac = idxs - idxs_floor.astype(jnp.float32)
-    idxs_floor = idxs_floor.astype(jnp.int32)
-    idxs_ceil = idxs_ceil.astype(jnp.int32)
-    values_floor = jnp.take(values, idxs_floor, axis=0)
-    values_ceil = jnp.take(values, idxs_ceil, axis=0)
-    idxs_frac = idxs_frac[..., None]
-    return (1 - idxs_frac) * values_floor + idxs_frac * values_ceil
-
-
 # sincos2d position - Source: https://github.com/google-research/big_vision
 
 
@@ -813,7 +792,6 @@ class CLIPEncoder(nn.Module):
 
         return dict(
             last_hidden_state=hidden_states,
-            # TODO: add hidden states (for down-stream tasks)
         )
 
 
@@ -909,7 +887,6 @@ class CLIPTextTransformer(nn.Module):
         return dict(
             last_hidden_state=last_hidden_state,
             pooled_output=pooled_output,
-            # TODO: add hidden states (for down-stream tasks)
         )
 
 
@@ -936,9 +913,6 @@ class CLIPVisionTransformer(nn.Module):
     pool_type: str = "gap"  # "tok", "gap", "map" per google-research/big_vision
     unroll: int = 100  # unroll scan layers
     gradient_checkpointing: bool = True
-
-    # TODO: remove (legacy use)
-    use_cls_token: bool = False
 
     @nn.compact
     def __call__(
@@ -1047,85 +1021,8 @@ class CLIPVisionTransformer(nn.Module):
         return dict(
             last_hidden_state=last_hidden_state,
             pooled_output=pooled_output,
-            # TODO: add hidden states (for down-stream tasks)
         )
-
-
-class CLIPVisionModelForImageClassification(nn.Module):
-    vision_config: Any
-    num_labels: int
-    dtype: str = "float32"
-
-    def __post_init__(self):
-        # add default fields vision_config
-        default_fields = dataclasses.fields(CLIPVisionTransformer)
-        default_fields = {f.name: f.default for f in default_fields if f.default is not dataclasses.MISSING}
-        default_fields = {k: v for k, v in default_fields.items() if k not in ["parent", "name"]}
-        vision_config = {**default_fields, **self.vision_config}
-        if self.dtype is not None:
-            vision_config["dtype"] = self.dtype
-        self.vision_config = vision_config
-        return super().__post_init__()
-
-    @nn.compact
-    def __call__(
-        self,
-        pixel_values=None,
-        deterministic: bool = True,
-    ):
-        dtype = jnp.dtype(self.dtype)
-        outputs = CLIPVisionTransformer(
-            **self.vision_config,
-            name="vision",
-        )(
-            pixel_values=pixel_values,
-            deterministic=deterministic,
-        )
-
-        logits = nn.Dense(
-            self.num_labels,
-            dtype=dtype,
-            kernel_init=nn.with_logical_partitioning(default_kernel_init, ("embed", "classifier")),
-            bias_init=nn.with_logical_partitioning(nn.initializers.zeros, ("classifier",)),
-            name="classifier",
-        )(outputs["pooled_output"])
-
-        return dict(logits=logits)
-
-    def init_inputs(config, rng: jax.random.PRNGKey):
-        vision_config = config.vision_config
-        if isinstance(vision_config, dict):
-            vision_config = SimpleNamespace(**vision_config)
-        pixel_values = jnp.ones((1, vision_config.image_size, vision_config.image_size, 3), dtype="f4")
-        params_rng, dropout_rng = jax.random.split(rng)
-        rngs = {"params": params_rng, "dropout": dropout_rng}
-        return {"rngs": rngs, "pixel_values": pixel_values}
-
-    def init_weights(self, rng: jax.random.PRNGKey):
-        inputs = self.init_inputs(rng)
-        return self.init(**inputs)
-
-
-class CLIPTextModelForFineTuning(nn.Module):
-    text_config: Any
-    dtype: jnp.dtype = jnp.float32
-
-    @nn.compact
-    def __call__(
-        self,
-        input_ids=None,
-        attention_mask=None,
-        deterministic: bool = True,
-    ):
-        text_outputs = CLIPTextTransformer(**self.text_config, dtype=self.dtype)(
-            input_ids=input_ids,
-            attention_mask=attention_mask,
-            deterministic=deterministic,
-        )
-
-        # return penuultimate layer
-        return text_outputs["hidden_states"][-2]
-
+    
 
 class CLIPModel(nn.Module):
     text_config: Any

@@ -24,8 +24,7 @@ from flax.training import checkpoints, common_utils, train_state
 from transformers import AutoTokenizer
 
 import tensorflow as tf
-
-import dataclasses
+from dm_pix import rotate
 
 from models.clip import CLIPModel
 from models.dataset_utils import make_dataloader, create_input_iter
@@ -125,12 +124,18 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
     train_metrics = []
     with trange(config.training.n_train_steps) as steps:
         for step in steps:
-            rng, _ = jax.random.split(rng)
+            rng, rng_aug = jax.random.split(rng)
             images, captions = next(batches)
             input_ids, attention_mask = tokenize_captions(captions, tokenizer)
 
             batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
             batch = jax.tree_map(lambda x: np.array(x, dtype=config.vision_config.dtype), batch)
+
+            # Augment images
+            if config.data.augment_rotate:
+                rotation_angles = jax.random.uniform(rng_aug, shape=(batch["pixel_values"].shape[0],), minval=0., maxval=360.)
+                batch["pixel_values"] = jax.vmap(rotate)(batch["pixel_values"], rotation_angles)
+
             batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
 
             pstate, metrics = train_step(pstate, np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]))

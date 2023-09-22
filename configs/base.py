@@ -12,7 +12,7 @@ def get_config():
     wandb.group = "proposals"
     wandb.job_type = "training"
     wandb.name = None
-    wandb.log_train = True
+    wandb.log_train = False
     wandb.workdir = "./logging/"
 
     # Text
@@ -46,7 +46,6 @@ def get_config():
     vision_config.force_scale = False
     vision_config.attention_dropout = 0.0
     vision_config.mlp_dropout_rate = 0.0
-    vision_config.use_cls_token = False
     vision_config.unroll = 100
     vision_config.gradient_checkpointing = True
     vision_config.image_size = 512
@@ -66,10 +65,14 @@ def get_config():
     clip.logit_bias_init_value = -10.0
     clip.dtype = "float32"
 
+    # Data
+    config.data = data = ml_collections.ConfigDict()
+    data.augment_rotate = True
+
     # Training
     config.training = training = ml_collections.ConfigDict()
     training.half_precision = False
-    training.batch_size = 128  # Must be divisible by number of devices; this is the total batch size, not per-device
+    training.batch_size = 8  # Must be divisible by number of devices; this is the total batch size, not per-device
     training.n_train_steps = 501_000
     training.warmup_steps = 5_000
     training.log_every_steps = 100
