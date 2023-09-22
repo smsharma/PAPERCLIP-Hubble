@@ -61,6 +61,10 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
         # Recursively create workdir
         os.makedirs(workdir, exist_ok=True)
 
+    # Devices
+    num_local_devices = jax.local_device_count()
+    num_hosts = jax.process_count()
+
     # Dump a yaml config file in the output directory
     with open(os.path.join(workdir, "config.yaml"), "w") as f:
         yaml.dump(config.to_dict(), f)
@@ -82,10 +86,6 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
     vision_config = FrozenDict(config.vision_config)
     clip_config = FrozenDict(config.clip)
 
-    # Make FrozenDicts
-    text_config = FrozenDict(text_config)
-    vision_config = FrozenDict(vision_config)
-
     model = CLIPModel(text_config=text_config, vision_config=vision_config, **clip_config)
 
     rng = jax.random.PRNGKey(config.seed)
@@ -98,7 +98,13 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
     images, captions = next(batches)
     input_ids, attention_mask = tokenize_captions(captions, tokenizer)
 
-    _, params = model.init_with_output(rng, input_ids, images, attention_mask)
+    batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
+    # batch = jax.tree_map(lambda x: np.array(x, dtype=np.float32), batch)
+    # batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
+
+    # # Just pass one element of the batch to initialize the model
+
+    _, params = model.init_with_output(rng, batch["input_ids"][:1], batch["pixel_values"][:1], batch["attention_mask"][:1])
 
     logging.info("Instantiated the model")
     logging.info("Number of parameters: %d", param_count(params))
@@ -114,6 +120,7 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
     tx = optax.adamw(learning_rate=schedule, weight_decay=config.optim.weight_decay)
 
     state = train_state.TrainState.create(apply_fn=model.apply, params=params, tx=tx)
+    pstate = replicate(state)
 
     logging.info("Starting training...")
 
@@ -124,13 +131,12 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
             images, captions = next(batches)
             input_ids, attention_mask = tokenize_captions(captions, tokenizer)
 
-            # Convert to Jax
-            images = np.array(images, dtype=np.float32)
-            input_ids = np.array(input_ids, dtype=np.int32)
-            attention_mask = np.array(attention_mask, dtype=np.int32)
+            batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
+            batch = jax.tree_map(lambda x: np.array(x, dtype=np.float32), batch)
+            batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
 
-            state, metrics = train_step(state, (input_ids, images, attention_mask))
-            steps.set_postfix(val=metrics["loss"])
+            pstate, metrics = train_step(pstate, np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]))
+            steps.set_postfix(val=unreplicate(metrics["loss"]))
             train_metrics.append(metrics)
 
             # Log periodically
@@ -146,9 +152,10 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
 
             # Save checkpoints periodically
             if (step % config.training.save_every_steps == 0) and (step != 0) and (jax.process_index() == 0):
+                state_ckpt = unreplicate(pstate)
                 checkpoints.save_checkpoint(
                     ckpt_dir=workdir,
-                    target=state,
+                    target=state_ckpt,
                     step=step,
                     overwrite=True,
                     keep=np.inf,
@@ -156,7 +163,7 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
 
     logging.info("All done! Have a great day.")
 
-    return state
+    return unreplicate(pstate)
 
 
 if __name__ == "__main__":

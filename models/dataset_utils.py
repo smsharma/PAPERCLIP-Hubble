@@ -35,7 +35,16 @@ def make_dataloader(files, batch_size, seed, shuffle=True):
     ds = tf.data.TFRecordDataset(files)
     ds = ds.map(parse_function)
     ds = ds.map(_normalize)
+    ds = ds.cache()
+    ds = ds.repeat()
+
+    # batch_dims = [jax.local_device_count(), batch_size // jax.device_count()]
+
+    # for _batch_size in reversed(batch_dims):
+    #     ds = ds.batch(_batch_size, drop_remainder=False)
+
     ds = ds.batch(batch_size, drop_remainder=False)
+
     return ds
 
 

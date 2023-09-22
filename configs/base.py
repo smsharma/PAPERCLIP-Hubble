@@ -12,7 +12,7 @@ def get_config():
     wandb.group = "proposals"
     wandb.job_type = "training"
     wandb.name = None
-    wandb.log_train = False
+    wandb.log_train = True
     wandb.workdir = "./logging/"
 
     # Text
@@ -52,10 +52,10 @@ def get_config():
     vision_config.image_size = 512
     vision_config.hidden_size = 512
     vision_config.patch_size = 16
-    vision_config.num_layers = 5
+    vision_config.num_layers = 4
     vision_config.use_rmsnorm = True
     vision_config.ln_type = "normformer"
-    vision_config.num_heads = 8
+    vision_config.num_heads = 4
     vision_config.use_causal_mask = False
     vision_config.mlp_dim = 1024
 
@@ -69,20 +69,18 @@ def get_config():
     # Training
     config.training = training = ml_collections.ConfigDict()
     training.half_precision = False
-    training.batch_size = 16  # Must be divisible by number of devices; this is the total batch size, not per-device
-    training.n_train_steps = 301_000
+    training.batch_size = 128  # Must be divisible by number of devices; this is the total batch size, not per-device
+    training.n_train_steps = 501_000
     training.warmup_steps = 5_000
     training.log_every_steps = 100
     training.eval_every_steps = 5000  # training.n_train_steps + 1  # Turn off eval for now
     training.save_every_steps = 20_000
-    training.unconditional_dropout = True  # Set to True to use unconditional dropout (randomly zero out conditioning vectors)
-    training.p_uncond = 1.0  # Fraction of conditioning vectors to zero out if unconditional_dropout is True
 
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
     optim.learning_rate = 3e-4
     optim.weight_decay = 1e-4
 
-    config.seed = 52
+    config.seed = 42
 
     return config

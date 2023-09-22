@@ -2,7 +2,6 @@ import jax
 import jax.numpy as np
 import flax
 from ml_collections import ConfigDict
-import jax.numpy as jnp
 
 import sys
 
@@ -12,11 +11,9 @@ from models.losses import sigmoid_loss
 from functools import partial
 
 
-@jax.jit
-def train_step(state, batch):
+@partial(jax.pmap, axis_name="batch")
+def train_step(state, input_ids, images, attention_mask):
     """Train for a single step."""
-
-    input_ids, images, attention_mask = batch
 
     def loss_fn(params):
         outputs = state.apply_fn(params, input_ids, images, attention_mask)
@@ -24,8 +21,9 @@ def train_step(state, batch):
         return loss
 
     loss, grads = jax.value_and_grad(loss_fn)(state.params)
+    grads = jax.lax.pmean(grads, "batch")
     new_state = state.apply_gradients(grads=grads)
-    metrics = {"loss": jnp.mean(loss)}
+    metrics = {"loss": jax.lax.pmean(loss, "batch")}
     return new_state, metrics
 
 
