@@ -135,7 +135,7 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
 
             # Augment images
             if config.data.augment_rotate:
-                rotation_angles = jax.random.uniform(rng_aug, shape=(batch["pixel_values"].shape[0],), minval=0., maxval=360.)
+                rotation_angles = jax.random.uniform(rng_aug, shape=(batch["pixel_values"].shape[0],), minval=0.0, maxval=360.0)
                 batch["pixel_values"] = jax.vmap(rotate)(batch["pixel_values"], rotation_angles)
 
             batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
@@ -157,7 +157,6 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
 
             # Evaluate periodically
             if (step % config.training.eval_every_steps == 0) and (step != 0) and (jax.process_index() == 0):
-
                 val_metrics = []
                 val_batches = iter(val_ds)
                 for batch in val_batches:
@@ -172,9 +171,8 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
 
                     val_metrics.append(metrics)
 
-                
                 print("val_metrics", val_metrics)
-                
+
                 # val_metrics = common_utils.get_metrics(val_metrics)
                 summary = {f"val/{k}": v for k, v in jax.tree_map(lambda x: x.mean(), val_metrics).items()}
 
