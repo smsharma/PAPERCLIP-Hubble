@@ -4,9 +4,9 @@
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4GB
-#SBATCH --time=04:00:00
+#SBATCH --time=08:00:00
 #SBATCH --account=iaifi_lab
-#SBATCH --array=0-7%10 # Creates 8 jobs (32 cycles / 4 cycles per job), with at most 10 running simultaneously.
+#SBATCH --array=0-15%20 # Creates 8 jobs (32 cycles / 2 cycles per job), with at most 20 running simultaneously.
 
 export TF_CPP_MIN_LOG_LEVEL="2"
 
@@ -20,9 +20,9 @@ mamba activate jax
 cd /n/holystore01/LABS/iaifi_lab/Users/smsharma/multimodal-data/
 
 # Calculate cycle_min and cycle_max for each array job
-CYCLE_PER_JOB=4
+CYCLE_PER_JOB=2
 CYCLE_MIN=$(( SLURM_ARRAY_TASK_ID * CYCLE_PER_JOB ))
 CYCLE_MAX=$(( (SLURM_ARRAY_TASK_ID + 1) * CYCLE_PER_JOB - 1 ))
 
 # Download
-python -u download.py --max_resolution 512 --cycle_min $CYCLE_MIN --cycle_max $CYCLE_MAX --n_max_images 20 --seed 42 --data_dir "./data/observations/"
+python -u download_data.py --max_resolution 512 --cycle_min $CYCLE_MIN --cycle_max $CYCLE_MAX --n_max_images 20 --seed 42 --data_dir "./data/"
