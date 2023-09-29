@@ -1,7 +1,7 @@
 import tensorflow as tf
 import jax
 import flax
-
+from absl import logging
 
 # Parse function
 def parse_function(example):
@@ -36,6 +36,10 @@ def make_dataloader(files, batch_size, seed, train_fraction=0.8, split="train", 
 
     # Count total examples 
     num_total = sum(1 for _ in ds)
+
+    # Log number of examples
+    logging.info(f"Using {num_total} examples in dataset")
+
     num_train = int(train_fraction * num_total)
 
     if split == 'train':

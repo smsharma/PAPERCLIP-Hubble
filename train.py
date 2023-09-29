@@ -135,7 +135,7 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
 
             # Augment images
             if config.data.augment_rotate:
-                rotation_angles = jax.random.uniform(rng_aug, shape=(batch["pixel_values"].shape[0],), minval=0.0, maxval=360.0)
+                rotation_angles = jax.random.uniform(rng_aug, shape=(batch["pixel_values"].shape[0],), minval=0.0, maxval=np.pi)  # Angles in radians
                 batch["pixel_values"] = jax.vmap(rotate)(batch["pixel_values"], rotation_angles)
 
             batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
