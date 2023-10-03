@@ -7,7 +7,7 @@ import sys
 
 sys.path.append("../")
 from models.losses import sigmoid_loss
-from models.eval import retrieval_eval_metric
+from models.eval_utils import retrieval_eval_metric
 
 from functools import partial
 
@@ -17,7 +17,10 @@ def train_step(state, input_ids, images, attention_mask):
     """Train for a single step."""
 
     def loss_fn(params):
-        outputs = state.apply_fn(params, input_ids, images, attention_mask)
+        outputs = state.apply_fn(input_ids=input_ids, pixel_values=images, attention_mask=attention_mask, params=params)
+        outputs['logit_scale'] = params['logit_scale']
+        outputs['logit_bias'] = params.get('logit_bias', 0.)
+
         loss = sigmoid_loss(outputs)
         return loss
 
@@ -32,7 +35,10 @@ def eval_step(state, input_ids, images, attention_mask):
     """Eval step."""
 
     def loss_fn(params):
-        outputs = state.apply_fn(params, input_ids, images, attention_mask)
+        outputs = state.apply_fn(input_ids=input_ids, pixel_values=images, attention_mask=attention_mask, params=params)
+        outputs['logit_scale'] = params['logit_scale']
+        outputs['logit_bias'] = params.get('logit_bias', 0.)
+
         loss = sigmoid_loss(outputs)
         retrieval_metrics = retrieval_eval_metric(outputs)
         return loss, retrieval_metrics

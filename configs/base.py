@@ -64,10 +64,12 @@ def get_config():
     clip.logit_scale_init_value = 1.0
     clip.logit_bias_init_value = -10.0
     clip.dtype = "bfloat16"
+    clip.use_pretrained = True
+    clip.pretrained_model_name = "openai/clip-vit-base-patch32"
 
     # Data
     config.data = data = ml_collections.ConfigDict()
-    data.augment_rotate = True
+    data.augment_rotate = False
 
     # Training
     config.training = training = ml_collections.ConfigDict()
@@ -82,7 +84,7 @@ def get_config():
 
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
-    optim.learning_rate = 1e-4
+    optim.learning_rate = 5e-5
     optim.weight_decay = 1e-3
 
     # Seed

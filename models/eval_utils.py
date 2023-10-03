@@ -8,8 +8,6 @@ def retrieval_eval_metric(outputs, k=[1, 5, 10]):
     # Get outputs
     text_embeds = outputs["text_embeds"]
     image_embeds = outputs["image_embeds"]
-    logit_scale = outputs["logit_scale"]
-    logit_bias = outputs["logit_bias"]
 
     # Get shapes
     bs = text_embeds.shape[0]
@@ -20,7 +18,7 @@ def retrieval_eval_metric(outputs, k=[1, 5, 10]):
     all_image_embeds = jax.lax.all_gather(image_embeds, axis_name="batch").reshape(-1, image_embeds.shape[-1])
 
     # Compute the full matrix of logitseval
-    all_logits = np.matmul(all_text_embeds, all_image_embeds.T) * logit_scale + logit_bias
+    all_logits = np.matmul(all_text_embeds, all_image_embeds.T)
 
     # Compute the global top-k indices for the maximum k value
     max_k = max(k)

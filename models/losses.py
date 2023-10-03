@@ -21,7 +21,7 @@ def sigmoid_loss(outputs):
     text_embeds = outputs["text_embeds"]
     image_embeds = outputs["image_embeds"]
     logit_scale = outputs["logit_scale"]
-    logit_bias = outputs["logit_bias"]
+    logit_bias = outputs.get("logit_bias", 0.)
 
     # Number of chunks
     axis_size = jax.lax.psum(1, axis_name="batch")

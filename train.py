@@ -21,7 +21,7 @@ import flax
 from flax.core import FrozenDict
 from flax.training import checkpoints, common_utils, train_state
 
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, AutoProcessor, FlaxCLIPModel
 
 import tensorflow as tf
 from dm_pix import rotate
@@ -90,23 +90,26 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
     vision_config = FrozenDict(config.vision_config)
     clip_config = FrozenDict(config.clip)
 
-    model = CLIPModel(text_config=text_config, vision_config=vision_config, **clip_config)
+    # Use pre-trained model or train from scratch
+    if config.clip.use_pretrained:
+        model = FlaxCLIPModel.from_pretrained(config.clip.pretrained_model_name, dtype=config.clip.dtype)
+        processor = AutoProcessor.from_pretrained(config.clip.pretrained_model_name)
+    else:
+        model = CLIPModel(text_config=text_config, vision_config=vision_config, **clip_config)
+        tokenizer = AutoTokenizer.from_pretrained(config.clip.pretrained_model_name)
 
     rng = jax.random.PRNGKey(config.seed)
-    rng, _ = jax.random.split(rng)
+    rng, _ = jax.random.split(rng)    
 
-    # Tokenizer
-    tokenizer = AutoTokenizer.from_pretrained("openai/clip-vit-base-patch32")
+    if not config.clip.use_pretrained:
+        # Pass a test batch through to initialize model
+        images, captions = next(batches)
+        input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length)
+        batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
 
-    # Pass a test batch through to initialize model
-    images, captions = next(batches)
-    input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length)
-
-    batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
-
-    # Just pass one element of the batch to initialize the model
-
-    _, params = model.init_with_output(rng, batch["input_ids"][:1], batch["pixel_values"][:1], batch["attention_mask"][:1])
+        _, params = model.init_with_output(rng, batch["input_ids"][:1], batch["pixel_values"][:1], batch["attention_mask"][:1])
+    else:
+        params = FrozenDict(model.params)
 
     logging.info("Instantiated the model")
     logging.info("Number of parameters: %d", param_count(params))
@@ -121,7 +124,11 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
     )
     tx = optax.adamw(learning_rate=schedule, weight_decay=config.optim.weight_decay)
 
-    state = train_state.TrainState.create(apply_fn=model.apply, params=params, tx=tx)
+    if config.clip.use_pretrained:
+        state = train_state.TrainState.create(apply_fn=model.__call__, params=params, tx=tx)
+    else:
+        state = train_state.TrainState.create(apply_fn=model.apply, params=params, tx=tx)
+
     pstate = replicate(state)
 
     logging.info("Starting training...")
@@ -131,10 +138,18 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
         for step in steps:
             rng, rng_aug = jax.random.split(rng)
             images, captions = next(batches)
-            input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length)
 
-            batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
-            batch = jax.tree_map(lambda x: np.array(x, dtype=config.vision_config.dtype), batch)
+            if config.clip.use_pretrained:
+                captions = captions.numpy().tolist()
+                captions = [c.decode("utf-8") for c in captions]
+                images *= 255.
+                inputs = processor(text=captions, images=images,  return_tensors="np", padding="max_length", truncation=True, max_length=77)
+                batch = inputs.data
+            else:
+                input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length)
+                batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
+
+            batch = jax.tree_map(lambda x: np.array(x, dtype=config.clip.dtype), batch)
 
             # Augment images
             if config.data.augment_rotate:
@@ -169,7 +184,7 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
                     input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length)
 
                     batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
-                    batch = jax.tree_map(lambda x: np.array(x, dtype=config.vision_config.dtype), batch)
+                    batch = jax.tree_map(lambda x: np.array(x, dtype=config.clip.dtype), batch)
                     batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
 
                     metrics = eval_step(pstate, np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]))
