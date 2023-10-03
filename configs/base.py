@@ -61,7 +61,7 @@ def get_config():
     # CLIP
     config.clip = clip = ml_collections.ConfigDict()
     clip.projection_dim = 512
-    clip.logit_scale_init_value = 0.5
+    clip.logit_scale_init_value = 1.0
     clip.logit_bias_init_value = -10.0
     clip.dtype = "bfloat16"
 
@@ -72,8 +72,8 @@ def get_config():
     # Training
     config.training = training = ml_collections.ConfigDict()
     training.half_precision = False
-    training.train_fraction = 0.9
-    training.batch_size = 64  # Must be divisible by number of devices; this is the total batch size, not per-device
+    training.train_fraction = 0.95
+    training.batch_size = 32  # Must be divisible by number of devices; this is the total batch size, not per-device
     training.n_train_steps = 501_000
     training.warmup_steps = 5_000
     training.log_every_steps = 100

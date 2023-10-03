@@ -7,7 +7,7 @@ import sys
 
 sys.path.append("../")
 from models.losses import sigmoid_loss
-from models.eval import retrieval_metrics
+from models.eval import retrieval_eval_metric
 
 from functools import partial
 
@@ -29,20 +29,21 @@ def train_step(state, input_ids, images, attention_mask):
 
 @partial(jax.pmap, axis_name="batch")
 def eval_step(state, input_ids, images, attention_mask):
-    """Train for a single step."""
+    """Eval step."""
 
     def loss_fn(params):
         outputs = state.apply_fn(params, input_ids, images, attention_mask)
         loss = sigmoid_loss(outputs)
-        return loss
+        retrieval_metrics = retrieval_eval_metric(outputs)
+        return loss, retrieval_metrics
 
-    loss = loss_fn(state.params)
+    loss, retrieval_metrics = loss_fn(state.params)
+    
     metrics = {"loss": jax.lax.pmean(loss, "batch")}
     for key, value in retrieval_metrics.items():
         metrics[key] = jax.lax.pmean(value, "batch")
 
     return metrics
-
 def param_count(pytree):
     """Count the number of parameters in a pytree."""
     return sum(x.size for x in jax.tree_util.tree_leaves(pytree))
