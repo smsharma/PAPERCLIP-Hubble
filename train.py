@@ -164,7 +164,7 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
                 val_batches = iter(val_ds)
 
                 # Validate on 10 batches
-                for _ in 10:
+                for _ in range(10):
                     images, captions = next(val_batches)
                     input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length)
 

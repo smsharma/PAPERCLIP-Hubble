@@ -22,6 +22,7 @@ def sigmoid_loss(outputs):
     logit_scale = outputs["logit_scale"]
     logit_bias = outputs["logit_bias"]
 
+    # Number of chunks
     axis_size = jax.lax.psum(1, axis_name="batch")
 
     # Calculate local device loss
