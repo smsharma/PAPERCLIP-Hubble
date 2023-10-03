@@ -7,6 +7,7 @@ import sys
 
 sys.path.append("../")
 from models.losses import sigmoid_loss
+from models.eval import retrieval_metrics
 
 from functools import partial
 
@@ -37,8 +38,10 @@ def eval_step(state, input_ids, images, attention_mask):
 
     loss = loss_fn(state.params)
     metrics = {"loss": jax.lax.pmean(loss, "batch")}
-    return metrics
+    for key, value in retrieval_metrics.items():
+        metrics[key] = jax.lax.pmean(value, "batch")
 
+    return metrics
 
 def param_count(pytree):
     """Count the number of parameters in a pytree."""

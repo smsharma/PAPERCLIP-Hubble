@@ -12,6 +12,7 @@ def mini_batch_sigmoid_loss(text_embeds, image_embeds, logit_scale, logit_bias, 
     else:
         labels = 2 * np.eye(bs) - np.ones((bs, bs))
     logits = np.matmul(text_embeds, image_embeds.T) * logit_scale + logit_bias
+    
     # Increase precision for large batches
     logits = logits.astype(np.float64)
     return -np.mean(jax.nn.log_sigmoid(labels * logits))

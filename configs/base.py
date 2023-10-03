@@ -40,7 +40,7 @@ def get_config():
     # Vision
     config.vision_config = vision_config = ml_collections.ConfigDict()
     vision_config.position_embedding_type = "sincos2d"
-    vision_config.dtype = "float32"
+    vision_config.dtype = "bfloat16"
     vision_config.activations = ("gelu",)
     vision_config.use_bias = False
     vision_config.force_scale = False
@@ -49,7 +49,7 @@ def get_config():
     vision_config.unroll = 100
     vision_config.gradient_checkpointing = True
     vision_config.image_size = 512
-    vision_config.hidden_size = 256
+    vision_config.hidden_size = 512
     vision_config.patch_size = 32
     vision_config.num_layers = 4
     vision_config.use_rmsnorm = True
@@ -61,19 +61,19 @@ def get_config():
     # CLIP
     config.clip = clip = ml_collections.ConfigDict()
     clip.projection_dim = 512
-    clip.logit_scale_init_value = 1.0
+    clip.logit_scale_init_value = 0.5
     clip.logit_bias_init_value = -10.0
     clip.dtype = "bfloat16"
 
     # Data
     config.data = data = ml_collections.ConfigDict()
-    data.augment_rotate = False
+    data.augment_rotate = True
 
     # Training
     config.training = training = ml_collections.ConfigDict()
     training.half_precision = False
     training.train_fraction = 0.9
-    training.batch_size = 32  # Must be divisible by number of devices; this is the total batch size, not per-device
+    training.batch_size = 64  # Must be divisible by number of devices; this is the total batch size, not per-device
     training.n_train_steps = 501_000
     training.warmup_steps = 5_000
     training.log_every_steps = 100
