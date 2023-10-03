@@ -49,8 +49,8 @@ def get_config():
     vision_config.unroll = 100
     vision_config.gradient_checkpointing = True
     vision_config.image_size = 512
-    vision_config.hidden_size = 512
-    vision_config.patch_size = 16
+    vision_config.hidden_size = 256
+    vision_config.patch_size = 32
     vision_config.num_layers = 4
     vision_config.use_rmsnorm = True
     vision_config.ln_type = "preln"
