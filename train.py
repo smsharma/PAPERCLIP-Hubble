@@ -36,10 +36,10 @@ unreplicate = flax.jax_utils.unreplicate
 logging.set_verbosity(logging.INFO)
 
 
-def tokenize_captions(captions, tokenizer):
+def tokenize_captions(captions, tokenizer, max_length):
     captions = captions.numpy().tolist()
     captions = [c.decode("utf-8") for c in captions]
-    captions = tokenizer(captions, padding="max_length", truncation=True, max_length=300, return_tensors="np")
+    captions = tokenizer(captions, padding="max_length", truncation=True, max_length=max_length, return_tensors="np")
     return captions["input_ids"], captions["attention_mask"]
 
 
@@ -71,10 +71,13 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
     writer = metric_writers.create_default_writer(logdir=workdir, just_logging=jax.process_index() != 0)
 
     # Set up data
-    files = ["./data/observations.tfrecord"]
 
-    train_ds = make_dataloader(files, batch_size=config.training.batch_size, seed=config.seed, split="train", shuffle=True)
-    val_ds = make_dataloader(files, batch_size=config.training.batch_size, seed=config.seed, split="val", shuffle=False)
+    # Find all TFRecord files in ./data/tfrecords
+    files = tf.io.gfile.glob("./data/tfrecords/*.tfrecord")
+    # files = ["./data/observations.tfrecord"]
+
+    train_ds = make_dataloader(files, batch_size=config.training.batch_size, seed=config.seed, train_fraction=config.training.train_fraction, split="train", shuffle=True)
+    val_ds = make_dataloader(files, batch_size=config.training.batch_size, seed=config.seed, train_fraction=config.training.train_fraction, split="val", shuffle=False)
 
     batches = iter(train_ds)
 
@@ -97,7 +100,7 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
 
     # Pass a test batch through to initialize model
     images, captions = next(batches)
-    input_ids, attention_mask = tokenize_captions(captions, tokenizer)
+    input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length)
 
     batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
 
@@ -128,7 +131,7 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
         for step in steps:
             rng, rng_aug = jax.random.split(rng)
             images, captions = next(batches)
-            input_ids, attention_mask = tokenize_captions(captions, tokenizer)
+            input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length)
 
             batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
             batch = jax.tree_map(lambda x: np.array(x, dtype=config.vision_config.dtype), batch)
@@ -159,21 +162,20 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
             if (step % config.training.eval_every_steps == 0) and (step != 0) and (jax.process_index() == 0):
                 val_metrics = []
                 val_batches = iter(val_ds)
-                for batch in val_batches:
-                    images, captions = batch
-                    input_ids, attention_mask = tokenize_captions(captions, tokenizer)
+
+                # Validate on 10 batches
+                for _ in 10:
+                    images, captions = next(val_batches)
+                    input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length)
 
                     batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
                     batch = jax.tree_map(lambda x: np.array(x, dtype=config.vision_config.dtype), batch)
-                    # batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
+                    batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
 
-                    metrics = eval_step(unreplicate(pstate), np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]))
-
+                    metrics = eval_step(pstate, np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]))
                     val_metrics.append(metrics)
 
-                print("val_metrics", val_metrics)
-
-                # val_metrics = common_utils.get_metrics(val_metrics)
+                val_metrics = common_utils.get_metrics(val_metrics)
                 summary = {f"val/{k}": v for k, v in jax.tree_map(lambda x: x.mean(), val_metrics).items()}
 
                 writer.write_scalars(step, summary)

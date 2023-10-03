@@ -17,7 +17,7 @@ def get_config():
 
     # Text
     config.text_config = text_config = ml_collections.ConfigDict()
-    text_config.dtype = "float32"
+    text_config.dtype = "bfloat16"
     text_config.activations =  ("gelu",)
     text_config.use_bias = False
     text_config.force_scale = False
@@ -28,7 +28,7 @@ def get_config():
     text_config.eos_token_id = 49407
     text_config.vocab_size = 50000
     text_config.hidden_size = 512
-    text_config.max_length = 300
+    text_config.max_length = 100
     text_config.num_layers = 4
     text_config.use_rmsnorm = True
     text_config.ln_type = "preln"
@@ -60,23 +60,24 @@ def get_config():
 
     # CLIP
     config.clip = clip = ml_collections.ConfigDict()
-    clip.projection_dim = 512
+    clip.projection_dim = 256
     clip.logit_scale_init_value = 2.3
     clip.logit_bias_init_value = -10.0
-    clip.dtype = "float32"
+    clip.dtype = "bfloat16"
 
     # Data
     config.data = data = ml_collections.ConfigDict()
-    data.augment_rotate = True
+    data.augment_rotate = False
 
     # Training
     config.training = training = ml_collections.ConfigDict()
     training.half_precision = False
+    training.train_fraction = 0.9
     training.batch_size = 32  # Must be divisible by number of devices; this is the total batch size, not per-device
     training.n_train_steps = 501_000
     training.warmup_steps = 5_000
     training.log_every_steps = 100
-    training.eval_every_steps = 500
+    training.eval_every_steps = 200
     training.save_every_steps = 20_000
 
     # Optimizer (AdamW)
@@ -84,6 +85,7 @@ def get_config():
     optim.learning_rate = 3e-4
     optim.weight_decay = 1e-3
 
+    # Seed
     config.seed = 42
 
     return config
