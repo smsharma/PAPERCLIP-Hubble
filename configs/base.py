@@ -28,11 +28,11 @@ def get_config():
     text_config.eos_token_id = 49407
     text_config.vocab_size = 50000
     text_config.hidden_size = 512
-    text_config.max_length = 100
-    text_config.num_layers = 4
+    text_config.max_length = 300
+    text_config.num_layers = 5
     text_config.use_rmsnorm = True
     text_config.ln_type = "preln"
-    text_config.num_heads = 4
+    text_config.num_heads = 8
     text_config.position_embedding_type = "rotary"
     text_config.use_causal_mask = False
     text_config.mlp_dim = 1024
@@ -60,8 +60,8 @@ def get_config():
 
     # CLIP
     config.clip = clip = ml_collections.ConfigDict()
-    clip.projection_dim = 256
-    clip.logit_scale_init_value = 2.3
+    clip.projection_dim = 512
+    clip.logit_scale_init_value = 1.0
     clip.logit_bias_init_value = -10.0
     clip.dtype = "bfloat16"
 
@@ -82,7 +82,7 @@ def get_config():
 
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
-    optim.learning_rate = 3e-4
+    optim.learning_rate = 1e-4
     optim.weight_decay = 1e-3
 
     # Seed
