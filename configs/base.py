@@ -17,7 +17,7 @@ def get_config():
 
     # Text
     config.text_config = text_config = ml_collections.ConfigDict()
-    text_config.dtype = "bfloat16"
+    text_config.dtype = "float32"
     text_config.activations =  ("gelu",)
     text_config.use_bias = False
     text_config.force_scale = False
@@ -40,7 +40,7 @@ def get_config():
     # Vision
     config.vision_config = vision_config = ml_collections.ConfigDict()
     vision_config.position_embedding_type = "sincos2d"
-    vision_config.dtype = "bfloat16"
+    vision_config.dtype = "float32"
     vision_config.activations = ("gelu",)
     vision_config.use_bias = False
     vision_config.force_scale = False
@@ -63,13 +63,13 @@ def get_config():
     clip.projection_dim = 512
     clip.logit_scale_init_value = 1.0
     clip.logit_bias_init_value = -10.0
-    clip.dtype = "bfloat16"
+    clip.dtype = "float32"
     clip.use_pretrained = True
     clip.pretrained_model_name = "openai/clip-vit-base-patch32"
 
     # Data
     config.data = data = ml_collections.ConfigDict()
-    data.augment_rotate = False
+    data.augment_rotate = True
 
     # Training
     config.training = training = ml_collections.ConfigDict()
@@ -84,7 +84,7 @@ def get_config():
 
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
-    optim.learning_rate = 5e-5
+    optim.learning_rate = 1e-4
     optim.weight_decay = 1e-3
 
     # Seed

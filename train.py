@@ -143,7 +143,7 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
                 captions = captions.numpy().tolist()
                 captions = [c.decode("utf-8") for c in captions]
                 images *= 255.
-                inputs = processor(text=captions, images=images,  return_tensors="np", padding="max_length", truncation=True, max_length=77)
+                inputs = processor(text=captions, images=images,  return_tensors="np", padding="max_length", truncation=True, max_length=model.config.text_config.max_length)
                 batch = inputs.data
             else:
                 input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length)
@@ -181,9 +181,17 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
                 # Validate on 10 batches
                 for _ in range(10):
                     images, captions = next(val_batches)
-                    input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length)
+                        
+                    if config.clip.use_pretrained:
+                        captions = captions.numpy().tolist()
+                        captions = [c.decode("utf-8") for c in captions]
+                        images *= 255.
+                        inputs = processor(text=captions, images=images,  return_tensors="np", padding="max_length", truncation=True, max_length=model.config.text_config.max_length)
+                        batch = inputs.data
+                    else:
+                        input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length)
+                        batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
 
-                    batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
                     batch = jax.tree_map(lambda x: np.array(x, dtype=config.clip.dtype), batch)
                     batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
 
