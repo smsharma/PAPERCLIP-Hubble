@@ -65,7 +65,7 @@ def get_config():
     clip.logit_bias_init_value = -10.0
     clip.dtype = "float32"
     clip.use_pretrained = True
-    clip.pretrained_model_name = "openai/clip-vit-base-patch32"
+    clip.pretrained_model_name = "openai/clip-vit-base-patch16"
 
     # Data
     config.data = data = ml_collections.ConfigDict()
@@ -76,7 +76,7 @@ def get_config():
     training.half_precision = False
     training.train_fraction = 0.95
     training.batch_size = 32  # Must be divisible by number of devices; this is the total batch size, not per-device
-    training.n_train_steps = 501_000
+    training.n_train_steps = 101_000
     training.warmup_steps = 5_000
     training.log_every_steps = 100
     training.eval_every_steps = 200
@@ -84,8 +84,8 @@ def get_config():
 
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
-    optim.learning_rate = 1e-4
-    optim.weight_decay = 1e-3
+    optim.learning_rate = 5e-5
+    optim.weight_decay = 1e-4
 
     # Seed
     config.seed = 42
