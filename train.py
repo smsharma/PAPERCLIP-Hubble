@@ -128,7 +128,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
     # Log info about augmentations
     logging.info(f"Augment crop: {config.data.augment_crop}")
     logging.info(f"Augment rotate: {config.data.augment_rotate}")
-    logging.info(f"Subsample text: {config.data.augment_subsample_text}. Max length: {max_length_words}")
+    logging.info(f"Subsample text: {config.data.augment_subsample_text}. Max length: {max_length_words} words")
 
     logging.info("Starting training...")
 

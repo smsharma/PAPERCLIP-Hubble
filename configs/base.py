@@ -12,7 +12,7 @@ def get_config():
     wandb.group = "proposals"
     wandb.job_type = "training"
     wandb.name = None
-    wandb.log_train = False
+    wandb.log_train = True
     wandb.workdir = "./logging/"
 
     # Text
@@ -70,7 +70,7 @@ def get_config():
     # Data
     config.data = data = ml_collections.ConfigDict()
     data.augment_rotate = True
-    data.augment_crop = True
+    data.augment_crop = False
     data.augment_subsample_text = True
     data.max_length_words = 77
 
