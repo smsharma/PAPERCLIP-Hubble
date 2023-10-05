@@ -70,7 +70,7 @@ def get_config():
     # Data
     config.data = data = ml_collections.ConfigDict()
     data.augment_rotate = True
-    data.augment_crop = False
+    data.augment_crop = True
     data.augment_subsample_text = True
     data.max_length_words = 77
 

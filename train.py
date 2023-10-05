@@ -1,6 +1,7 @@
 import sys
 import os
 import yaml
+from functools import partial
 
 sys.path.append("./")
 sys.path.append("../")
@@ -91,6 +92,9 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
     # Potentially randomly sample a subset of the text for training
     max_length_words = config.data.max_length_words if config.data.augment_subsample_text else None
 
+    # Rotation angles in rad
+    rot_angles_90 = np.array([0.0, np.pi/2, np.pi, 3 * np.pi/2])
+
     # Initialize model if not using pre-trained; otherwise, use pre-trained weights
     if not config.clip.use_pretrained:
 
@@ -139,6 +143,12 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
             images, captions = next(batches)
             images = np.array(images)
 
+            # Augment images through random rotations
+            if config.data.augment_rotate:
+                rng_aug, _ = jax.random.split(rng_aug)
+                rotation_angles = jax.random.choice(rng_aug, rot_angles_90, shape=(images.shape[0],))
+                images = jax.vmap(partial(rotate, mode='constant', cval=1.))(images, rotation_angles)
+
             # Augment images through random crops
             # Otherwise, they'll be downsampled to the vision model's image size
             if config.data.augment_crop:
@@ -146,18 +156,13 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
                 images = jax.vmap(random_crop, in_axes=(None,0,None))(rng_aug, images, (model.config.vision_config.image_size, model.config.vision_config.image_size, 3))
 
             if config.clip.use_pretrained:
+                # NOTE: Image arrays should be ints in the range [0, 255]
                 captions = process_truncate_captions(captions, rng_aug, max_length_words=max_length_words)
                 inputs = processor(text=captions, images=images * 255.,  return_tensors="np", padding="max_length", truncation=True, max_length=model.config.text_config.max_length)
                 batch = inputs.data
             else:
                 input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length, max_length_words, rng_aug)
                 batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
-
-            # Augment images through random rotations
-            if config.data.augment_rotate:
-                rng_aug, _ = jax.random.split(rng_aug)
-                rotation_angles = jax.random.uniform(rng_aug, shape=(batch["pixel_values"].shape[0],), minval=0.0, maxval=np.pi)  # Angles in radians
-                batch["pixel_values"] = jax.vmap(rotate)(batch["pixel_values"], rotation_angles)
 
             batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
             batch = jax.tree_map(lambda x: np.array(x, dtype=config.clip.dtype), batch)
@@ -189,13 +194,18 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
                     images, captions = next(val_batches)
                     images = np.array(images)
                         
+                    # Augment images through random rotations
+                    if config.data.augment_rotate:
+                        rotation_angles = jax.random.choice(rng_eval, rot_angles_90, shape=(images.shape[0],))  # Angles in radians
+                        images = jax.vmap(partial(rotate, mode='constant', cval=1.))(images, rotation_angles)
+                        
                     # Augment images through random crops
                     # Otherwise, they'll be downsampled to the vision model's image size
                     if config.data.augment_crop:
-                        rng_aug, _ = jax.random.split(rng_aug)
-                        images = jax.vmap(random_crop, in_axes=(None,0,None))(rng_aug, images, (model.config.vision_config.image_size, model.config.vision_config.image_size, 3))
+                        images = jax.vmap(random_crop, in_axes=(None,0,None))(rng_eval, images, (model.config.vision_config.image_size, model.config.vision_config.image_size, 3))
 
                     if config.clip.use_pretrained:
+                        # NOTE: Image arrays should be ints in the range [0, 255]
                         captions = process_truncate_captions(captions, rng_eval, max_length_words=max_length_words)
                         inputs = processor(text=captions, images=images * 255.,  return_tensors="np", padding="max_length", truncation=True, max_length=model.config.text_config.max_length)
                         batch = inputs.data
@@ -203,10 +213,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
                         input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length, max_length_words, rng_eval)
                         batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
 
-                    # Augment images through random rotations
-                    if config.data.augment_rotate:
-                        rotation_angles = jax.random.uniform(rng_eval, shape=(batch["pixel_values"].shape[0],), minval=0.0, maxval=np.pi)  # Angles in radians
-                        batch["pixel_values"] = jax.vmap(rotate)(batch["pixel_values"], rotation_angles)
+                    
 
                     batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
                     batch = jax.tree_map(lambda x: np.array(x, dtype=config.clip.dtype), batch)
