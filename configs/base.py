@@ -12,7 +12,7 @@ def get_config():
     wandb.group = "proposals"
     wandb.job_type = "training"
     wandb.name = None
-    wandb.log_train = True
+    wandb.log_train = False
     wandb.workdir = "./logging/"
 
     # Text
@@ -70,6 +70,9 @@ def get_config():
     # Data
     config.data = data = ml_collections.ConfigDict()
     data.augment_rotate = True
+    data.augment_crop = True
+    data.augment_subsample_text = True
+    data.max_length_words = 77
 
     # Training
     config.training = training = ml_collections.ConfigDict()
@@ -84,7 +87,7 @@ def get_config():
 
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
-    optim.learning_rate = 5e-5
+    optim.learning_rate = 1e-4
     optim.weight_decay = 1e-4
 
     # Seed

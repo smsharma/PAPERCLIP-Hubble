@@ -2,17 +2,14 @@ import sys
 import os
 import yaml
 
-from absl import flags, logging
-from absl import logging
-import ml_collections
-from ml_collections import config_flags
-from clu import metric_writers
-import wandb
-
 sys.path.append("./")
 sys.path.append("../")
 
-from tqdm import trange
+from absl import flags, logging
+from absl import logging
+from ml_collections import config_flags, ConfigDict
+from clu import metric_writers
+import wandb
 
 import jax
 import jax.numpy as np
@@ -20,30 +17,23 @@ import optax
 import flax
 from flax.core import FrozenDict
 from flax.training import checkpoints, common_utils, train_state
+import tensorflow as tf
+from dm_pix import rotate, random_crop
+from tqdm import trange
 
 from transformers import AutoTokenizer, AutoProcessor, FlaxCLIPModel
 
-import tensorflow as tf
-from dm_pix import rotate
-
 from models.clip import CLIPModel
-from models.dataset_utils import make_dataloader, create_input_iter
+from models.dataset_utils import make_dataloader
 from models.train_utils import param_count, train_step, eval_step, to_wandb_config
+from models.text_utils import process_truncate_captions, tokenize_captions
 
 replicate = flax.jax_utils.replicate
 unreplicate = flax.jax_utils.unreplicate
 
 logging.set_verbosity(logging.INFO)
 
-
-def tokenize_captions(captions, tokenizer, max_length):
-    captions = captions.numpy().tolist()
-    captions = [c.decode("utf-8") for c in captions]
-    captions = tokenizer(captions, padding="max_length", truncation=True, max_length=max_length, return_tensors="np")
-    return captions["input_ids"], captions["attention_mask"]
-
-
-def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> train_state.TrainState:
+def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainState:
     # Set up wandb run
     if config.wandb.log_train and jax.process_index() == 0:
         wandb_config = to_wandb_config(config)
@@ -74,7 +64,6 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
 
     # Find all TFRecord files in ./data/tfrecords
     files = tf.io.gfile.glob("./data/tfrecords/*.tfrecord")
-    # files = ["./data/observations.tfrecord"]
 
     train_ds = make_dataloader(files, batch_size=config.training.batch_size, seed=config.seed, train_fraction=config.training.train_fraction, split="train", shuffle=True)
     val_ds = make_dataloader(files, batch_size=config.training.batch_size, seed=config.seed, train_fraction=config.training.train_fraction, split="val", shuffle=False)
@@ -83,9 +72,7 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
 
     logging.info("Loaded the dataset")
 
-    ## Model configuration
-
-    # Score and (optional) encoder model configs
+    # Model configs
     text_config = FrozenDict(config.text_config)
     vision_config = FrozenDict(config.vision_config)
     clip_config = FrozenDict(config.clip)
@@ -99,23 +86,33 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
         tokenizer = AutoTokenizer.from_pretrained(config.clip.pretrained_model_name)
 
     rng = jax.random.PRNGKey(config.seed)
-    rng, _ = jax.random.split(rng)    
+    rng, rng_aug = jax.random.split(rng)
+    
+    # Potentially randomly sample a subset of the text for training
+    max_length_words = config.data.max_length_words if config.data.augment_subsample_text else None
 
+    # Initialize model if not using pre-trained; otherwise, use pre-trained weights
     if not config.clip.use_pretrained:
+
         # Pass a test batch through to initialize model
         images, captions = next(batches)
-        input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length)
+        input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length, max_length_words, rng_aug)
         batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
 
         _, params = model.init_with_output(rng, batch["input_ids"][:1], batch["pixel_values"][:1], batch["attention_mask"][:1])
     else:
         params = FrozenDict(model.params)
+    
+    if config.clip.use_pretrained:
+        logging.info(f"Loaded pretrained model {config.clip.pretrained_model_name}")
+    else:
+        logging.info("Loaded model for training from scratch")
 
-    logging.info("Instantiated the model")
-    logging.info("Number of parameters: %d", param_count(params))
+    logging.info(f"Number of parameters: {param_count(params)}")
 
     ## Training config and loop
 
+    # Optimizer
     schedule = optax.warmup_cosine_decay_schedule(
         init_value=0.0,
         peak_value=config.optim.learning_rate,
@@ -124,12 +121,14 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
     )
     tx = optax.adamw(learning_rate=schedule, weight_decay=config.optim.weight_decay)
 
-    if config.clip.use_pretrained:
-        state = train_state.TrainState.create(apply_fn=model.__call__, params=params, tx=tx)
-    else:
-        state = train_state.TrainState.create(apply_fn=model.apply, params=params, tx=tx)
-
+    # State
+    state = train_state.TrainState.create(apply_fn=model.__call__ if config.clip.use_pretrained else model.apply, params=params, tx=tx)
     pstate = replicate(state)
+
+    # Log info about augmentations
+    logging.info(f"Augment crop: {config.data.augment_crop}")
+    logging.info(f"Augment rotate: {config.data.augment_rotate}")
+    logging.info(f"Subsample text: {config.data.augment_subsample_text}. Max length: {max_length_words}")
 
     logging.info("Starting training...")
 
@@ -138,25 +137,30 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
         for step in steps:
             rng, rng_aug = jax.random.split(rng)
             images, captions = next(batches)
+            images = np.array(images)
+
+            # Augment images through random crops
+            # Otherwise, they'll be downsampled to the vision model's image size
+            if config.data.augment_crop:
+                rng_aug, _ = jax.random.split(rng_aug)
+                images = jax.vmap(random_crop, in_axes=(None,0,None))(rng_aug, images, (model.config.vision_config.image_size, model.config.vision_config.image_size, 3))
 
             if config.clip.use_pretrained:
-                captions = captions.numpy().tolist()
-                captions = [c.decode("utf-8") for c in captions]
-                images *= 255.
-                inputs = processor(text=captions, images=images,  return_tensors="np", padding="max_length", truncation=True, max_length=model.config.text_config.max_length)
+                captions = process_truncate_captions(captions, rng_aug, max_length_words=max_length_words)
+                inputs = processor(text=captions, images=images * 255.,  return_tensors="np", padding="max_length", truncation=True, max_length=model.config.text_config.max_length)
                 batch = inputs.data
             else:
-                input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length)
+                input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length, max_length_words, rng_aug)
                 batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
 
-            batch = jax.tree_map(lambda x: np.array(x, dtype=config.clip.dtype), batch)
-
-            # Augment images
+            # Augment images through random rotations
             if config.data.augment_rotate:
+                rng_aug, _ = jax.random.split(rng_aug)
                 rotation_angles = jax.random.uniform(rng_aug, shape=(batch["pixel_values"].shape[0],), minval=0.0, maxval=np.pi)  # Angles in radians
                 batch["pixel_values"] = jax.vmap(rotate)(batch["pixel_values"], rotation_angles)
 
             batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
+            batch = jax.tree_map(lambda x: np.array(x, dtype=config.clip.dtype), batch)
 
             pstate, metrics = train_step(pstate, np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]))
             steps.set_postfix(val=unreplicate(metrics["loss"]))
@@ -173,6 +177,8 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
                 if config.wandb.log_train:
                     wandb.log({"train/step": step, **summary})
 
+            rng_eval = jax.random.PRNGKey(config.seed)
+
             # Evaluate periodically
             if (step % config.training.eval_every_steps == 0) and (step != 0) and (jax.process_index() == 0):
                 val_metrics = []
@@ -181,19 +187,29 @@ def train(config: ml_collections.ConfigDict, workdir: str = "./logging/") -> tra
                 # Validate on 10 batches
                 for _ in range(10):
                     images, captions = next(val_batches)
+                    images = np.array(images)
                         
+                    # Augment images through random crops
+                    # Otherwise, they'll be downsampled to the vision model's image size
+                    if config.data.augment_crop:
+                        rng_aug, _ = jax.random.split(rng_aug)
+                        images = jax.vmap(random_crop, in_axes=(None,0,None))(rng_aug, images, (model.config.vision_config.image_size, model.config.vision_config.image_size, 3))
+
                     if config.clip.use_pretrained:
-                        captions = captions.numpy().tolist()
-                        captions = [c.decode("utf-8") for c in captions]
-                        images *= 255.
-                        inputs = processor(text=captions, images=images,  return_tensors="np", padding="max_length", truncation=True, max_length=model.config.text_config.max_length)
+                        captions = process_truncate_captions(captions, rng_eval, max_length_words=max_length_words)
+                        inputs = processor(text=captions, images=images * 255.,  return_tensors="np", padding="max_length", truncation=True, max_length=model.config.text_config.max_length)
                         batch = inputs.data
                     else:
-                        input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length)
+                        input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length, max_length_words, rng_eval)
                         batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
 
-                    batch = jax.tree_map(lambda x: np.array(x, dtype=config.clip.dtype), batch)
+                    # Augment images through random rotations
+                    if config.data.augment_rotate:
+                        rotation_angles = jax.random.uniform(rng_eval, shape=(batch["pixel_values"].shape[0],), minval=0.0, maxval=np.pi)  # Angles in radians
+                        batch["pixel_values"] = jax.vmap(rotate)(batch["pixel_values"], rotation_angles)
+
                     batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
+                    batch = jax.tree_map(lambda x: np.array(x, dtype=config.clip.dtype), batch)
 
                     metrics = eval_step(pstate, np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]))
                     val_metrics.append(metrics)
