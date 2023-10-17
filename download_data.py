@@ -12,7 +12,9 @@ def download(
     n_max_images: int = 10,
     seed: int = 42,
     data_dir: str = "./data/",
+    observations_dir: str = "observations_v1",
     filename: str = "abstracts.cat",
+    exclude_color: bool = False,
 ):
     abstracts_df = read_abstracts_file(f"{data_dir}/{filename}")
 
@@ -36,7 +38,7 @@ def download(
     logging.info(f"Number of abstracts by Cycle: {abstracts_cycle_df.groupby('Cycle').size()}")
 
     for proposal_id in tqdm(abstract_ids):
-        download_data(proposal_id=proposal_id, n_max_images=n_max_images, max_resolution=max_resolution, seed=seed, data_dir=f"{data_dir}/observations/")
+        download_data(proposal_id=proposal_id, n_max_images=n_max_images, max_resolution=max_resolution, seed=seed, data_dir=f"{data_dir}/{observations_dir}/", exclude_color=exclude_color)
 
 
 if __name__ == "__main__":
@@ -47,6 +49,8 @@ if __name__ == "__main__":
     parser.add_argument("--n_max_images", type=int, default=10, help="Maximum number of images to download.")
     parser.add_argument("--seed", type=int, default=42, help="Seed for any random operation.")
     parser.add_argument("--data_dir", type=str, default="./data/", help="Directory to save the downloaded data.")
+    parser.add_argument("--observations_dir", type=str, default="observations_v2", help="Observations dir within the `data_dir`.")
+    parser.add_argument("--exclude_color", action="store_true", help="Exclude images with `color` in the filename.")
 
     args = parser.parse_args()
 
@@ -57,4 +61,6 @@ if __name__ == "__main__":
         n_max_images=args.n_max_images,
         seed=args.seed,
         data_dir=args.data_dir,
+        observations_dir=args.observations_dir,
+        exclude_color=args.exclude_color,
     )

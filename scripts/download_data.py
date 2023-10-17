@@ -25,7 +25,7 @@ def downsample_image(image_path, max_size):
         img.save(image_path)
 
 
-def download_data(proposal_id, n_max_images, max_resolution, seed, data_dir="../data"):
+def download_data(proposal_id, n_max_images, max_resolution, seed, data_dir="../data", exclude_color=False):
     download_dir = f"{data_dir}/proposal_{proposal_id}"
 
     # Query
@@ -46,8 +46,12 @@ def download_data(proposal_id, n_max_images, max_resolution, seed, data_dir="../
 
     # Only total preview image
     match = "total"
-    # Exclude images with "color" in the filename
-    exclude = "color"
+
+    # Potentially xclude images with "color" in the filename
+    if exclude_color:
+        exclude = "color"
+    else:
+        exclude = "dont_exclude_anything"  # Dummy
 
     match_mask = [match in row["productFilename"] for row in products]
     exclude_mask = [exclude not in row["productFilename"] for row in products]
