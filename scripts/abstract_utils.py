@@ -2,6 +2,8 @@ import pandas as pd
 
 
 def read_abstracts_file(filename):
+    """ Read and parse the abstracts.cat file.
+    """
     abstracts = []
     abstract = {}
     last_prop = None

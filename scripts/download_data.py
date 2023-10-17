@@ -26,9 +26,19 @@ def downsample_image(image_path, max_size):
 
 
 def download_data(proposal_id, n_max_images, max_resolution, seed, data_dir="../data", exclude_color=False):
+    """Download data from MAST.
+
+    Args:
+        proposal_id (int): Hubble proposal ID.
+        n_max_images (int): Maximum number of images per proposal (selected randomly).
+        max_resolution (int): Maximum resolution for the downloaded images.
+        seed (int): RNG seed for taking a random sample of images up to n_max_images.
+        data_dir (str, optional): Directory where data will be downloaded to. Defaults to "../data".
+        exclude_color (bool, optional): Whether to exclude color images. Defaults to False.
+    """
     download_dir = f"{data_dir}/proposal_{proposal_id}"
 
-    # Query
+    # Query MAST for observations
     obs_table = Observations.query_criteria(
         obs_collection="HST",
         proposal_id=[f"{proposal_id}"],
@@ -47,12 +57,13 @@ def download_data(proposal_id, n_max_images, max_resolution, seed, data_dir="../
     # Only total preview image
     match = "total"
 
-    # Potentially xclude images with "color" in the filename
+    # Potentially exclude images with "color" in the filename
     if exclude_color:
         exclude = "color"
     else:
         exclude = "dont_exclude_anything"  # Dummy
 
+    # Filter for total preview images and potentially exclude color
     match_mask = [match in row["productFilename"] for row in products]
     exclude_mask = [exclude not in row["productFilename"] for row in products]
 
@@ -63,7 +74,7 @@ def download_data(proposal_id, n_max_images, max_resolution, seed, data_dir="../
         print(f"No images found for proposal {proposal_id}")
         return
 
-    # Randomly select up to 20 images
+    # Randomly select up to n_max_images images
     products = products[mask][np.random.RandomState(seed=seed).choice(np.arange(len(products[mask])), n_max_images)]
 
     # Download
