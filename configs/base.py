@@ -73,6 +73,7 @@ def get_config():
     data.augment_crop = False
     data.augment_subsample_text = False
     data.max_length_words = 77
+    data.tfrecords_dir = "tfrecords_v2"
 
     # Training
     config.training = training = ml_collections.ConfigDict()

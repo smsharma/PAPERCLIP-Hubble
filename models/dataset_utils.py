@@ -31,7 +31,7 @@ def _normalize(image, abstract):
     return image, abstract
 
 
-def make_dataloader(files, batch_size, seed, train_fraction=0.8, split="train", shuffle=True):
+def make_dataloader(files, batch_size, seed, split='train', shuffle=True):
     ds = tf.data.TFRecordDataset(files)
 
     # Count total examples 
@@ -39,15 +39,6 @@ def make_dataloader(files, batch_size, seed, train_fraction=0.8, split="train", 
 
     # Log number of examples
     logging.info(f"Using {num_total} examples in dataset")
-
-    num_train = int(train_fraction * num_total)
-
-    if split == 'train':
-        ds = ds.take(num_train)
-    elif split == 'val':
-        ds = ds.skip(num_train)
-    else:
-        raise ValueError(f"Invalid split {split}")
 
     ds = ds.map(parse_function)
     ds = ds.map(_normalize)
@@ -61,6 +52,7 @@ def make_dataloader(files, batch_size, seed, train_fraction=0.8, split="train", 
     # Shuffle and batch
     if shuffle:
         ds = ds.shuffle(10000, seed=seed)
+        
     ds = ds.batch(batch_size, drop_remainder=False)
 
     return ds
