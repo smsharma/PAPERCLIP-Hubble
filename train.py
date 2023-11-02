@@ -63,12 +63,20 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     # Set up data
 
-    # Find all TFRecord files and make datasets
-    files_train = tf.io.gfile.glob(f"./data/{config.data.tfrecords_dir}/*train*.tfrecord")
-    train_ds = make_dataloader(files_train, batch_size=config.training.batch_size, seed=config.seed, split='train', shuffle=True)
+    # # Find all TFRecord files and make datasets
+    # # files_train = tf.io.gfile.glob(f"./data/{config.data.tfrecords_dir}/*train*.tfrecord")
+    # files_train = tf.io.gfile.glob(f"./data/{config.data.tfrecords_dir}/*.tfrecord")
+    # train_ds = make_dataloader(files_train, batch_size=config.training.batch_size, seed=config.seed, split='train', shuffle=True)
 
-    files_val = tf.io.gfile.glob(f"./data/{config.data.tfrecords_dir}/*val*.tfrecord")
-    val_ds = make_dataloader(files_val, batch_size=100, seed=config.seed, split='val', shuffle=False)
+    # # files_val = tf.io.gfile.glob(f"./data/{config.data.tfrecords_dir}/*val*.tfrecord")
+    # files_val = tf.io.gfile.glob(f"./data/{config.data.tfrecords_dir}/*.tfrecord")
+    # val_ds = make_dataloader(files_val, batch_size=100, seed=config.seed, split='val', shuffle=False)
+
+    # Find all TFRecord files in ./data/tfrecords
+    files = tf.io.gfile.glob(f"./data/{config.data.tfrecords_dir}/*.tfrecord")
+
+    train_ds = make_dataloader(files, batch_size=config.training.batch_size, seed=config.seed, train_fraction=config.training.train_fraction, split="train", shuffle=True)
+    val_ds = make_dataloader(files, batch_size=config.training.batch_size, seed=config.seed, train_fraction=config.training.train_fraction, split="val", shuffle=False)
 
     batches = iter(train_ds)
 
@@ -164,7 +172,13 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
             else:
                 input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length, max_length_words, rng_aug)
                 batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
+            
+            # Optionally shuffle "pixel_values" within batch
+            if config.data.shuffle_within_batch:
+                logging.info(f"Shuffling images within batch")
+                batch["pixel_values"] = jax.random.permutation(rng, batch["pixel_values"], axis=0)
 
+            # Split batch across devices
             batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
             batch = jax.tree_map(lambda x: np.array(x, dtype=config.clip.dtype), batch)
 
@@ -214,8 +228,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
                         input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length, max_length_words, rng_eval)
                         batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
 
-                    
-
+                    # Split batch across devices
                     batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
                     batch = jax.tree_map(lambda x: np.array(x, dtype=config.clip.dtype), batch)
 

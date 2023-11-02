@@ -70,10 +70,11 @@ def get_config():
     # Data
     config.data = data = ml_collections.ConfigDict()
     data.augment_rotate = True
-    data.augment_crop = False
-    data.augment_subsample_text = False
+    data.augment_crop = True
+    data.augment_subsample_text = True
     data.max_length_words = 77
-    data.tfrecords_dir = "tfrecords_v2"
+    data.tfrecords_dir = "tfrecords_v1"
+    data.shuffle_within_batch = True
 
     # Training
     config.training = training = ml_collections.ConfigDict()
