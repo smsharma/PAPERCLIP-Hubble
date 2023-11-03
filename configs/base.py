@@ -12,7 +12,7 @@ def get_config():
     wandb.group = "proposals"
     wandb.job_type = "training"
     wandb.name = None
-    wandb.log_train = True
+    wandb.log_train = False
     wandb.workdir = "./logging/"
 
     # Text
@@ -73,16 +73,16 @@ def get_config():
     data.augment_crop = True
     data.augment_subsample_text = True
     data.max_length_words = 77
-    data.tfrecords_dir = "tfrecords_v1"
-    data.shuffle_within_batch = True
+    data.tfrecords_dir = "tfrecords_v2"
+    data.shuffle_within_batch = False
 
     # Training
     config.training = training = ml_collections.ConfigDict()
     training.half_precision = False
     training.train_fraction = 0.95
-    training.batch_size = 32  # Must be divisible by number of devices; this is the total batch size, not per-device
+    training.batch_size = 16  # Must be divisible by number of devices; this is the total batch size, not per-device
     training.n_train_steps = 101_000
-    training.warmup_steps = 5_000
+    training.warmup_steps = 1_000
     training.log_every_steps = 100
     training.eval_every_steps = 200
     training.save_every_steps = 20_000
@@ -90,7 +90,7 @@ def get_config():
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
     optim.learning_rate = 1e-4
-    optim.weight_decay = 1e-4
+    optim.weight_decay = 1e-3
 
     # Seed
     config.seed = 42

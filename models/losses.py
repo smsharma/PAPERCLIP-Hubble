@@ -7,9 +7,9 @@ jax.config.update("jax_enable_x64", True)
 def mini_batch_sigmoid_loss(text_embeds, image_embeds, logit_scale, logit_bias, negative_samples):
     """Positive samples are on the diagonal"""
     bs = text_embeds.shape[0]
-    if negative_samples:
+    if negative_samples:  # All negative samples 
         labels = -np.ones((bs, bs))
-    else:
+    else:  # Positive samples are on the diagonal
         labels = 2 * np.eye(bs) - np.ones((bs, bs))
     logits = np.matmul(text_embeds, image_embeds.T) * logit_scale + logit_bias
     
@@ -18,12 +18,17 @@ def mini_batch_sigmoid_loss(text_embeds, image_embeds, logit_scale, logit_bias, 
     return -np.mean(jax.nn.log_sigmoid(labels * logits))
 
 def sigmoid_loss(outputs):
+    """ SigLIP loss (https://arxiv.org/abs/2303.15343); 
+        Adapted from https://github.com/borisdayma/clip-jax/blob/main/training/train.py
+    """
+
+    # Get outputs
     text_embeds = outputs["text_embeds"]
     image_embeds = outputs["image_embeds"]
     logit_scale = outputs["logit_scale"]
     logit_bias = outputs.get("logit_bias", 0.)
 
-    # Number of chunks
+    # Number of chunks (devices)
     axis_size = jax.lax.psum(1, axis_name="batch")
 
     # Calculate local device loss
