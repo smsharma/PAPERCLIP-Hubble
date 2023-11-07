@@ -63,20 +63,12 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     # Set up data
 
-    # # Find all TFRecord files and make datasets
-    # # files_train = tf.io.gfile.glob(f"./data/{config.data.tfrecords_dir}/*train*.tfrecord")
-    # files_train = tf.io.gfile.glob(f"./data/{config.data.tfrecords_dir}/*.tfrecord")
-    # train_ds = make_dataloader(files_train, batch_size=config.training.batch_size, seed=config.seed, split='train', shuffle=True)
+    # Find all TFRecord files and make datasets
+    files_train = tf.io.gfile.glob(f"./data/{config.data.tfrecords_dir}/*train*.tfrecord")
+    train_ds = make_dataloader(files_train, batch_size=config.training.batch_size, seed=config.seed, split='train', shuffle=True)
 
-    # # files_val = tf.io.gfile.glob(f"./data/{config.data.tfrecords_dir}/*val*.tfrecord")
-    # files_val = tf.io.gfile.glob(f"./data/{config.data.tfrecords_dir}/*.tfrecord")
-    # val_ds = make_dataloader(files_val, batch_size=100, seed=config.seed, split='val', shuffle=False)
-
-    # Find all TFRecord files in ./data/tfrecords
-    files = tf.io.gfile.glob(f"./data/{config.data.tfrecords_dir}/*.tfrecord")
-
-    train_ds = make_dataloader(files, batch_size=config.training.batch_size, seed=config.seed, train_fraction=config.training.train_fraction, split="train", shuffle=True)
-    val_ds = make_dataloader(files, batch_size=config.training.batch_size, seed=config.seed, train_fraction=config.training.train_fraction, split="val", shuffle=False)
+    files_val = tf.io.gfile.glob(f"./data/{config.data.tfrecords_dir}/*val*.tfrecord")
+    val_ds = make_dataloader(files_val, batch_size=100, seed=config.seed, split='val', shuffle=False)
 
     batches = iter(train_ds)
 
