@@ -80,7 +80,7 @@ def get_config():
     config.training = training = ml_collections.ConfigDict()
     training.half_precision = False
     training.train_fraction = 0.95
-    training.batch_size = 32  # Must be divisible by number of devices; this is the total batch size, not per-device
+    training.batch_size = 64  # Must be divisible by number of devices; this is the total batch size, not per-device
     training.n_train_steps = 101_000
     training.warmup_steps = 5_000
     training.log_every_steps = 100
@@ -89,7 +89,7 @@ def get_config():
 
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
-    optim.learning_rate = 1e-4
+    optim.learning_rate = 1e-5
     optim.weight_decay = 1e-3
 
     # Seed
