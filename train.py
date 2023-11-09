@@ -192,7 +192,8 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
             rng_eval = jax.random.PRNGKey(config.seed)
 
             # Evaluate periodically
-            if (step % config.training.eval_every_steps == 0) and (step != 0) and (jax.process_index() == 0):
+            # Evaluate before starting, hence no `and (step != 0)`
+            if (step % config.training.eval_every_steps == 0) and (jax.process_index() == 0):
                 val_metrics = []
                 val_batches = iter(val_ds)
 
