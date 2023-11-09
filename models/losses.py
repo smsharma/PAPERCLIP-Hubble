@@ -23,37 +23,82 @@ def sigmoid_loss(outputs):
     """
 
     # Get outputs
-    text_embeds = outputs["text_embeds"]
-    image_embeds = outputs["image_embeds"]
-    logit_scale = outputs["logit_scale"]
+    ztxt = outputs["text_embeds"]
+    zimg = outputs["image_embeds"]
+    logit_scale = outputs["logit_scale"]  # Same as temperature
     logit_bias = outputs.get("logit_bias", 0.)
 
     # Number of chunks (devices)
     axis_size = jax.lax.psum(1, axis_name="batch")
 
     # Calculate local device loss
-    loss = mini_batch_sigmoid_loss(text_embeds, image_embeds, logit_scale, logit_bias, negative_samples=False)
+    loss = mini_batch_sigmoid_loss(ztxt, zimg, logit_scale, logit_bias, negative_samples=False)
 
     # Add negative losses
     def add_negative_loss(i, carrys):
-        cumul_loss, image_embeds = carrys
+        cumul_loss, zimg = carrys
         
         # Shift image_embeds
-        image_embeds = jax.lax.ppermute(
-            image_embeds, axis_name="batch", perm=[(j, (j - 1) % axis_size) for j in range(axis_size)]
+        zimg = jax.lax.ppermute(
+            zimg, axis_name="batch", perm=[(j, (j - 1) % axis_size) for j in range(axis_size)]
         )
         # Add loss (all negative samples)
         cumul_loss += mini_batch_sigmoid_loss(
-            text_embeds, image_embeds, logit_scale, logit_bias, negative_samples=True
+            ztxt, zimg, logit_scale, logit_bias, negative_samples=True
         )
         
-        return cumul_loss, image_embeds
+        return cumul_loss, zimg
 
-    loss, _ = jax.lax.fori_loop(0, axis_size - 1, add_negative_loss, (loss, image_embeds))
+    loss, _ = jax.lax.fori_loop(0, axis_size - 1, add_negative_loss, (loss, zimg))
     loss = loss / axis_size
 
     loss = loss.reshape((-1,))
 
     # Average loss across devices
     loss = np.mean(loss)
+    return loss
+
+def all_gather(z, roll=False, only_others=False):
+    """All gather and flatten first two dims."""
+
+    def gather_flat(x):
+        x = jax.lax.all_gather(x, "batch")
+        if roll or only_others:
+            # Each device moves "its" chunk to the beginning. Simplies loss/acc calcs.
+            x = np.roll(x, -jax.lax.axis_index("batch"), axis=0)
+            if only_others:
+                x = x[1:]
+        return np.concatenate(x, 0)  # Fold in "device" and "batch" dims.
+
+    return jax.tree_map(gather_flat, z)
+
+
+def softmax_loss(outputs):
+    """Softmax loss following the CLIP paper. Factorized to reduce memory cost.
+        Adapted from `big_vision` repo https://github.com/google-research/big_vision/blob/main/big_vision/trainers/proj/image_text/contrastive.py
+    """
+
+    # Get outputs
+    zimg = outputs["image_embeds"]
+    ztxt = outputs["text_embeds"]
+    logit_scale = outputs["logit_scale"]  # Same as temperature
+    logit_bias = outputs.get("logit_bias", 0.)
+
+    def unidirectional_loss(z1, z2, logit_scale, logit_bias):
+        """ Compute the unidirectional z1 -> z2 contrastive loss between two sets of embeddings.
+        """        
+        z2 = all_gather(z2, roll=True)
+        logits = np.dot(z1, z2.T) * logit_scale + logit_bias
+
+        # Softmax across the larger gathered axis, taking advantage of the
+        # fact that positives are known to be on the diagonal.
+        loss = -(np.diag(logits) - jax.scipy.special.logsumexp(logits, axis=-1))
+        return loss.mean()
+
+    loss = 0.
+    for row, col in [(zimg, ztxt), (ztxt, zimg)]:
+        loss_dir = unidirectional_loss(row, col, logit_scale, logit_bias)
+        loss += 0.5 * loss_dir
+
+    loss = jax.lax.pmean(loss, "batch")
     return loss
