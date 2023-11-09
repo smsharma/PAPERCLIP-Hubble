@@ -68,7 +68,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
     train_ds = make_dataloader(files_train, batch_size=config.training.batch_size, seed=config.seed, split='train', shuffle=True)
 
     files_val = tf.io.gfile.glob(f"./data/{config.data.tfrecords_dir}/*val*.tfrecord")
-    val_ds = make_dataloader(files_val, batch_size=100, seed=config.seed, split='val', shuffle=False)
+    val_ds = make_dataloader(files_val, batch_size=config.training.batch_size_val, seed=config.seed, split='val', shuffle=False)
 
     batches = iter(train_ds)
 
@@ -174,7 +174,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
             batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
             batch = jax.tree_map(lambda x: np.array(x, dtype=config.clip.dtype), batch)
 
-            pstate, metrics = train_step(pstate, np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]))
+            pstate, metrics = train_step(pstate, np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]), config.training.loss_type)
             steps.set_postfix(val=unreplicate(metrics["loss"]))
             train_metrics.append(metrics)
 
@@ -224,7 +224,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
                     batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
                     batch = jax.tree_map(lambda x: np.array(x, dtype=config.clip.dtype), batch)
 
-                    metrics = eval_step(pstate, np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]))
+                    metrics = eval_step(pstate, np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]), config.training.loss_type)
                     val_metrics.append(metrics)
 
                 val_metrics = common_utils.get_metrics(val_metrics)

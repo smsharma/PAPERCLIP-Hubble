@@ -6,14 +6,14 @@ from ml_collections import ConfigDict
 import sys
 
 sys.path.append("../")
-from models.losses import sigmoid_loss
+from models.losses import sigmoid_loss, softmax_loss
 from models.eval_utils import retrieval_eval_metric
 
 from functools import partial
 
 
-@partial(jax.pmap, axis_name="batch")
-def train_step(state, input_ids, images, attention_mask):
+@partial(jax.pmap, axis_name="batch", static_broadcasted_argnums=(4,))
+def train_step(state, input_ids, images, attention_mask, loss_type="sigmoid"):
     """Train for a single step."""
 
     def loss_fn(params):
@@ -21,7 +21,13 @@ def train_step(state, input_ids, images, attention_mask):
         outputs['logit_scale'] = params['logit_scale']
         outputs['logit_bias'] = params.get('logit_bias', 0.)
 
-        loss = sigmoid_loss(outputs)
+        if loss_type == "sigmoid":
+            loss = sigmoid_loss(outputs)
+        elif loss_type == "softmax":
+            loss = softmax_loss(outputs)
+        else:
+            raise ValueError(f"Invalid loss type: {loss_type}")
+        
         return loss
 
     loss, grads = jax.value_and_grad(loss_fn)(state.params)
@@ -30,8 +36,8 @@ def train_step(state, input_ids, images, attention_mask):
     metrics = {"loss": jax.lax.pmean(loss, "batch")}
     return new_state, metrics
 
-@partial(jax.pmap, axis_name="batch")
-def eval_step(state, input_ids, images, attention_mask):
+@partial(jax.pmap, axis_name="batch", static_broadcasted_argnums=(4,))
+def eval_step(state, input_ids, images, attention_mask, loss_type="sigmoid"):
     """Eval step."""
 
     def loss_fn(params):
@@ -39,7 +45,13 @@ def eval_step(state, input_ids, images, attention_mask):
         outputs['logit_scale'] = params['logit_scale']
         outputs['logit_bias'] = params.get('logit_bias', 0.)
 
-        loss = sigmoid_loss(outputs)
+        if loss_type == "sigmoid":
+            loss = sigmoid_loss(outputs)
+        elif loss_type == "softmax":
+            loss = softmax_loss(outputs)
+        else:
+            raise ValueError(f"Invalid loss type: {loss_type}")
+
         retrieval_metrics = retrieval_eval_metric(outputs)
         return loss, retrieval_metrics
 

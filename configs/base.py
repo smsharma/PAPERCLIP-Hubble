@@ -12,7 +12,7 @@ def get_config():
     wandb.group = "proposals"
     wandb.job_type = "training"
     wandb.name = None
-    wandb.log_train = True
+    wandb.log_train = False
     wandb.workdir = "./logging/"
 
     # Text
@@ -80,16 +80,18 @@ def get_config():
     config.training = training = ml_collections.ConfigDict()
     training.half_precision = False
     training.train_fraction = 0.95
-    training.batch_size = 64  # Must be divisible by number of devices; this is the total batch size, not per-device
+    training.batch_size = 32  # Must be divisible by number of devices; this is the total batch size, not per-device
+    training.batch_size_val = 100
     training.n_train_steps = 101_000
     training.warmup_steps = 5_000
     training.log_every_steps = 100
     training.eval_every_steps = 200
     training.save_every_steps = 10_000
+    training.loss_type = "softmax"  # "sigmoid" or "softmax"
 
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
-    optim.learning_rate = 1e-5
+    optim.learning_rate = 1e-4
     optim.weight_decay = 1e-3
 
     # Seed
