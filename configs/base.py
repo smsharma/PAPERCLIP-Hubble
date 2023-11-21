@@ -74,7 +74,7 @@ def get_config():
     data.augment_subsample_text = True
     data.max_length_words = 77
     data.tfrecords_dir = "tfrecords_v3"
-    data.shuffle_within_batch = False
+    data.shuffle_within_batch = True
 
     # Training
     config.training = training = ml_collections.ConfigDict()
@@ -87,12 +87,12 @@ def get_config():
     training.log_every_steps = 100
     training.eval_every_steps = 200
     training.save_every_steps = 10_000
-    training.loss_type = "sigmoid"  # "sigmoid" or "softmax"
+    training.loss_type = "softmax"  # "sigmoid" or "softmax"
     training.n_eval_batches = 10  # How many batches to use for evaluation
 
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
-    optim.learning_rate = 1e-4
+    optim.learning_rate = 1e-5
     optim.weight_decay = 1e-3
 
     # Seed

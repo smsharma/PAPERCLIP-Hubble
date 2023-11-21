@@ -4,9 +4,9 @@
 #SBATCH --nodes=1
 #SBATCH --mem=200GB
 #SBATCH --time=48:00:00
-#SBATCH --gres=gpu:4
+#SBATCH --gres=gpu:nvidia_a100-sxm4-40gb:4
 #SBATCH --account=iaifi_lab
-#SBATCH -p iaifi_gpu
+#SBATCH -p gpu_requeue
 
 export TF_CPP_MIN_LOG_LEVEL="2"
 
