@@ -1,8 +1,13 @@
-\begin{thebibliography}{0}
+\begin{thebibliography}{1}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Hinton et~al.(2006)Hinton, Osindero, and Teh]{Hinton06}
+Geoffrey~E. Hinton, Simon Osindero, and Yee~Whye Teh.
+\newblock A fast learning algorithm for deep belief nets.
+\newblock \emph{Neural Computation}, 18:\penalty0 1527--1554, 2006.
 
 \end{thebibliography}
