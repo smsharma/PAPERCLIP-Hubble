@@ -1,6 +1,6 @@
 
 \documentclass[10pt]{article} % For LaTeX2e
-\usepackage{tmlr}
+\usepackage[preprint]{tmlr}
 % If accepted, instead use the following line for the camera-ready submission:
 %\usepackage[accepted]{tmlr}
 % To de-anonymize and remove mentions to TMLR (for example for posting to preprint servers), instead use the following:
@@ -11,26 +11,27 @@
 
 \usepackage{hyperref}
 \usepackage{url}
+\usepackage{graphicx}
 
-
-\title{Learning associations between astronomical data and natural language with multi-modal models}
+\title{\textsc{HubbleCLIP}: Learning associations between astronomical data and natural language with multi-modal models}
 
 % Authors must not appear in the submitted version. They should be hidden
 % as long as the tmlr package is used without the [accepted] or [preprint] options.
 % Non-anonymous submissions will be rejected without review.
 
-\author{\name Kyunghyun Cho \email kyunghyun.cho@nyu.edu \\
-      \addr Department of Computer Science\\
-      University of New York
+\author{\name Siddharth Mishra-Sharma \email smsharma@mit.edu \\
+      \addr The NSF AI Institute for Artificial Intelligence and Fundamental Interactions\\
+      Center for Theoretical Physics, Massachusetts Institute of Technology, Cambridge, MA 02139, USA \\
+      Department of Physics, Harvard University, Cambridge, MA 02138, USA
       \AND
-      \name Raia Hadsell \email raia@google.com \\
-      \addr DeepMind
+      \name Yiding Song \email ydsong@mit.edu \\
+      \addr The NSF AI Institute for Artificial Intelligence and Fundamental Interactions\\
+      Department of Physics, Massachusetts Institute of Technology, Cambridge, MA 02139, USA \\
       \AND
-      \name Hugo Larochelle \email hugolarochelle@google.com\\
-      \addr Mila, Universit\'e de Montr\'eal \\
-      Google Research\\
-      CIFAR Fellow}
-
+      \name Jesse Thaler \email jthaler@mit.edu \\
+      \addr The NSF AI Institute for Artificial Intelligence and Fundamental Interactions\\
+      Center for Theoretical Physics, Massachusetts Institute of Technology, Cambridge, MA 02139, USA \\
+}
 % The \author macro works with any number of authors. Use \AND 
 % to separate the names and addresses of multiple authors.
 
@@ -52,6 +53,61 @@ Abstract
 \end{abstract}
 
 \section{Introduction}
+\label{sec:intro}
+
+\section{Dataset and Processing}
+\label{sec:dataset}
+
+\section{Methodology}
+\label{sec:methodology}
+
+\subsection{Language-Image Pre-training}
+\label{sec:pretraining}
+
+\subsection{Pre-trained CLIP Model}
+\label{sec:clip}
+
+\subsection{Fine-tuning Objectives}
+\label{sec:finetuning}
+
+\section{Results and Discussion}
+\label{sec:results}
+
+\subsection{Fine-tuned Retrieval Accuracy}
+\label{sec:retrieval_acc}
+
+\subsection{`Zero-shot' Hypothesis and Object Retrieval}
+\label{sec:zero_shot}
+
+\subsection{Text-to-Image Retrieval}
+\label{sec:tti}
+
+
+\cite{Hinton06}
+
+\begin{figure*}[!h]
+\includegraphics[width=0.95\textwidth]{plots/retrieval_acc.pdf}
+\caption{Retrieval accuracy}
+\label{fig:retrieval_acc}
+\end{figure*}
+
+\begin{figure*}[!h]
+\includegraphics[width=0.95\textwidth]{plots/itt.pdf}
+\caption{Retrieval accuracy}
+\label{fig:itt}
+\end{figure*}
+
+\begin{figure*}[!h]
+\includegraphics[width=0.95\textwidth]{plots/tti_base.pdf}
+\caption{Retrieval accuracy}
+\label{fig:tti}
+\end{figure*}
+
+\begin{figure*}[!h]
+\includegraphics[width=0.95\textwidth]{plots/tti.pdf}
+\caption{Retrieval accuracy}
+\label{fig:tti_base}
+\end{figure*}
 
 \subsubsection*{Broader Impact Statement}
 In this optional section, TMLR encourages authors to discuss possible repercussions of their work,
