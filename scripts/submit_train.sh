@@ -4,7 +4,7 @@
 #SBATCH --nodes=1
 #SBATCH --mem=200GB
 #SBATCH --time=48:00:00
-#SBATCH --gres=gpu:nvidia_a100-sxm4-40gb:4
+#SBATCH --gres=gpu:nvidia_a100-sxm4-80gb:4
 #SBATCH --account=iaifi_lab
 #SBATCH -p gpu_requeue
 

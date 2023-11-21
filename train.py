@@ -135,6 +135,9 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
     logging.info(f"Augment rotate: {config.data.augment_rotate}")
     logging.info(f"Subsample text: {config.data.augment_subsample_text}. Max length: {max_length_words} words")
 
+    if config.data.shuffle_within_batch:
+        logging.info(f"Shuffling images within batch")
+
     logging.info("Starting training...")
 
     train_metrics = []
@@ -167,7 +170,6 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
             
             # Optionally shuffle "pixel_values" within batch
             if config.data.shuffle_within_batch:
-                logging.info(f"Shuffling images within batch")
                 batch["pixel_values"] = jax.random.permutation(rng, batch["pixel_values"], axis=0)
 
             # Split batch across devices
