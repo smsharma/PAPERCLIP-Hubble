@@ -194,11 +194,15 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
             # Evaluate periodically
             # Evaluate before starting, hence no `and (step != 0)`
             if (step % config.training.eval_every_steps == 0) and (jax.process_index() == 0):
+
+                # Log step at which evaluating 
+                logging.info(f"Evaluating at step {step}")
+                
                 val_metrics = []
                 val_batches = iter(val_ds)
 
                 # Validate on 10 batches
-                for _ in range(10):
+                for _ in range(config.training.n_eval_batches):
                     images, captions = next(val_batches)
                     images = np.array(images)
                         

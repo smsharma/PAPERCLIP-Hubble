@@ -87,7 +87,8 @@ def get_config():
     training.log_every_steps = 100
     training.eval_every_steps = 200
     training.save_every_steps = 10_000
-    training.loss_type = "softmax"  # "sigmoid" or "softmax"
+    training.loss_type = "sigmoid"  # "sigmoid" or "softmax"
+    training.n_eval_batches = 10  # How many batches to use for evaluation
 
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
