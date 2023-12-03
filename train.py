@@ -114,6 +114,9 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     # Optionally, randomly initialize the vision and/or text models
     if config.clip.random_init_vision or config.clip.random_init_text:
+
+        if not config.clip.use_pretrained:
+            raise ValueError("Can only randomly initialize vision and text models if using a pretrained model")
         
         # Get randomly-initialized params
         params_init = model.module.init(rng, input_ids=np.zeros((1, model.config.text_config.max_length)), 
@@ -133,13 +136,17 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
             logging.info("Randomly initialized text model")
 
-
     logging.info(f"Number of parameters: {param_count(params)}")
+
+    # Optionally convert type, for pretrained model
+    if config.clip.dtype == "bfloat16":
+        model.params = model.to_bf16(model.params)
+        logging.info("Converted model to bfloat16")
 
     ## Training config and loop
 
     # Optimizer and schedule
-    
+
     if config.optim.schedule == "linear":
         schedule = optax.linear_schedule(
             init_value=0.0,

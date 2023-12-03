@@ -63,7 +63,7 @@ def get_config():
     clip.projection_dim = 512
     clip.logit_scale_init_value = 1.0
     clip.logit_bias_init_value = -10.0
-    clip.dtype = "float32"
+    clip.dtype = "bfloat16"
     clip.use_pretrained = True
     clip.pretrained_model_name = "openai/clip-vit-base-patch16"
     clip.random_init_vision = True
