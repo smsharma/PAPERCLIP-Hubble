@@ -13,7 +13,7 @@ def get_config():
     wandb.job_type = "training"
     wandb.name = None
     wandb.log_train = True
-    wandb.workdir = "./logging/"
+    wandb.workdir = "/n/holystore01/LABS/iaifi_lab/Users/smsharma/multimodal-data/logging/"
 
     # Text
     config.text_config = text_config = ml_collections.ConfigDict()
@@ -88,13 +88,14 @@ def get_config():
     training.warmup_steps = 1000
     training.log_every_steps = 100
     training.eval_every_steps = 200
-    training.save_every_steps = 1000
     training.loss_type = "softmax"  # "sigmoid" or "softmax"
     training.n_eval_batches = 10  # How many batches to use for evaluation
+    training.ckpt_best_metric = "top_10_accuracy"
+    training.ckpt_keep_top_n = 3
 
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
-    optim.schedule = "linear"
+    optim.schedule = "constant"
     optim.learning_rate = 1e-4
     optim.weight_decay = 1e-3
 

@@ -62,6 +62,7 @@ def eval_step(state, input_ids, images, attention_mask, loss_type="sigmoid"):
         metrics[key] = jax.lax.pmean(value, "batch")
 
     return metrics
+
 def param_count(pytree):
     """Count the number of parameters in a pytree."""
     return sum(x.size for x in jax.tree_util.tree_leaves(pytree))

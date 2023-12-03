@@ -16,8 +16,10 @@ import jax
 import jax.numpy as np
 import optax
 import flax
+import orbax
 from flax.core import FrozenDict
-from flax.training import checkpoints, common_utils, train_state
+from flax.training import common_utils, train_state, orbax_utils
+
 import tensorflow as tf
 from dm_pix import rotate, random_crop
 from tqdm import trange
@@ -139,15 +141,21 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
     logging.info(f"Number of parameters: {param_count(params)}")
 
     # Optionally convert type, for pretrained model
-    if config.clip.dtype == "bfloat16":
+    if config.clip.dtype == "bfloat16" and config.clip.use_pretrained:
         model.params = model.to_bf16(model.params)
         logging.info("Converted model to bfloat16")
 
     ## Training config and loop
+    
+    best_fn = lambda metrics: metrics[f"{config.training.ckpt_best_metric}"]
+
+    # At the top level
+    mgr_options = orbax.checkpoint.CheckpointManagerOptions(create=True, step_prefix='step', max_to_keep=config.training.ckpt_keep_top_n, best_fn=best_fn, best_mode='max')
+    ckpt_mgr = orbax.checkpoint.CheckpointManager(f"{workdir}/ckpts/", orbax.checkpoint.Checkpointer(orbax.checkpoint.PyTreeCheckpointHandler()), mgr_options)
 
     # Optimizer and schedule
 
-    if config.optim.schedule == "linear":
+    if config.optim.schedule == "constant":
         schedule = optax.linear_schedule(
             init_value=0.0,
             end_value=config.optim.learning_rate,
@@ -273,24 +281,23 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
                     metrics = eval_step(pstate, np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]), config.training.loss_type)
                     val_metrics.append(metrics)
 
+                def serialize_metrics(metrics):
+                    """Convert all values in the metrics dictionary to Python standard types."""
+                    return {k: float(v) if isinstance(v, (np.float32, np.float64)) else v for k, v in metrics.items()}
+
                 val_metrics = common_utils.get_metrics(val_metrics)
                 summary = {f"val/{k}": v for k, v in jax.tree_map(lambda x: x.mean(), val_metrics).items()}
+                summary = serialize_metrics(summary)
 
                 writer.write_scalars(step, summary)
 
                 if config.wandb.log_train:
                     wandb.log({"val/step": step, **summary})
 
-            # Save checkpoints periodically
-            if (step % config.training.save_every_steps == 0) and (step != 0) and (jax.process_index() == 0):
+                # Save checkpoints periodically
                 state_ckpt = unreplicate(pstate)
-                checkpoints.save_checkpoint(
-                    ckpt_dir=workdir,
-                    target=state_ckpt,
-                    step=step,
-                    overwrite=True,
-                    keep=np.inf,
-                )
+                save_args = orbax_utils.save_args_from_target(state_ckpt)
+                ckpt_mgr.save(step, state_ckpt, save_kwargs={'save_args': save_args}, metrics=summary)
 
     logging.info("All done! Have a great day.")
 

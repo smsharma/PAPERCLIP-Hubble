@@ -1,7 +1,7 @@
 import jax
 import jax.numpy as np
 
-def retrieval_eval_metric(outputs, k=[1, 5, 10]):
+def retrieval_eval_metric(outputs, k=[1, 5, 10, 20]):
     """ Compute the top-k retrieval accuracy.
     """
 
