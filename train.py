@@ -96,6 +96,8 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
     # Rotation angles in rad
     rot_angles_90 = np.array([0.0, np.pi/2, np.pi, 3 * np.pi/2])
 
+    
+
     # Initialize model if not using pre-trained; otherwise, use pre-trained weights
     if not config.clip.use_pretrained:
 
@@ -105,13 +107,32 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
         batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
 
         _, params = model.init_with_output(rng, batch["input_ids"][:1], batch["pixel_values"][:1], batch["attention_mask"][:1])
+        logging.info("Loaded model for training from scratch")
     else:
         params = FrozenDict(model.params)
-    
-    if config.clip.use_pretrained:
-        logging.info(f"Loaded pretrained model {config.clip.pretrained_model_name}")
-    else:
-        logging.info("Loaded model for training from scratch")
+        logging.info(f"Loaded pretrained model {config.clip.pretrained_model_name}")        
+
+    # Optionally, randomly initialize the vision and/or text models
+    if config.clip.random_init_vision or config.clip.random_init_text:
+        
+        # Get randomly-initialized params
+        params_init = model.module.init(rng, input_ids=np.zeros((1, model.config.text_config.max_length)), 
+                        attention_mask=np.zeros((1, model.config.text_config.max_length)),
+                        pixel_values=np.zeros((1, model.config.vision_config.image_size, model.config.vision_config.image_size, 3)),
+                        position_ids=np.zeros((1, model.config.text_config.max_length)))
+        
+        if config.clip.random_init_vision:
+            model.params['vision_model'] = params_init['params']['vision_model']
+            model.params['visual_projection'] = params_init['params']['visual_projection']
+
+            logging.info("Randomly initialized vision model")
+        
+        if config.clip.random_init_text:
+            model.params['text_model'] = params_init['params']['text_model']
+            model.params['text_projection'] = params_init['params']['text_projection']
+
+            logging.info("Randomly initialized text model")
+
 
     logging.info(f"Number of parameters: {param_count(params)}")
 
