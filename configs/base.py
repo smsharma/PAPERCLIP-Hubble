@@ -94,6 +94,7 @@ def get_config():
 
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
+    optim.schedule = "linear"
     optim.learning_rate = 1e-4
     optim.weight_decay = 1e-3
 

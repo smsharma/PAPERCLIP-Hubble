@@ -138,13 +138,24 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     ## Training config and loop
 
-    # Optimizer
-    schedule = optax.warmup_cosine_decay_schedule(
-        init_value=0.0,
-        peak_value=config.optim.learning_rate,
-        warmup_steps=config.training.warmup_steps,
-        decay_steps=config.training.n_train_steps,
-    )
+    # Optimizer and schedule
+    
+    if config.optim.schedule == "linear":
+        schedule = optax.linear_schedule(
+            init_value=0.0,
+            end_value=config.optim.learning_rate,
+            transition_steps=config.training.warmup_steps,
+        )
+    elif config.optim.schedule == "cosine":
+        schedule = optax.warmup_cosine_decay_schedule(
+            init_value=0.0,
+            peak_value=config.optim.learning_rate,
+            warmup_steps=config.training.warmup_steps,
+            decay_steps=config.training.n_train_steps,
+        )
+    else:
+        raise ValueError(f"Invalid schedule: {config.optim.schedule}")
+    
     tx = optax.adamw(learning_rate=schedule, weight_decay=config.optim.weight_decay)
 
     # State
