@@ -12,7 +12,7 @@ def get_config():
     wandb.group = "proposals"
     wandb.job_type = "training"
     wandb.name = None
-    wandb.log_train = False
+    wandb.log_train = True
     wandb.workdir = "./logging/"
 
     # Text
@@ -63,11 +63,11 @@ def get_config():
     clip.projection_dim = 512
     clip.logit_scale_init_value = 1.0
     clip.logit_bias_init_value = -10.0
-    clip.dtype = "bfloat16"
+    clip.dtype = "float32"
     clip.use_pretrained = True
     clip.pretrained_model_name = "openai/clip-vit-base-patch16"
-    clip.random_init_vision = True
-    clip.random_init_text = True
+    clip.random_init_vision = False
+    clip.random_init_text = False
 
     # Data
     config.data = data = ml_collections.ConfigDict()
@@ -84,11 +84,11 @@ def get_config():
     training.train_fraction = 0.95
     training.batch_size = 32  # Must be divisible by number of devices; this is the total batch size, not per-device
     training.batch_size_val = 100
-    training.n_train_steps = 101_000
-    training.warmup_steps = 5_000
+    training.n_train_steps = 20_001
+    training.warmup_steps = 1000
     training.log_every_steps = 100
     training.eval_every_steps = 200
-    training.save_every_steps = 10_000
+    training.save_every_steps = 1000
     training.loss_type = "softmax"  # "sigmoid" or "softmax"
     training.n_eval_batches = 10  # How many batches to use for evaluation
 
