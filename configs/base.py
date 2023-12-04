@@ -12,7 +12,7 @@ def get_config():
     wandb.group = "proposals"
     wandb.job_type = "training"
     wandb.name = None
-    wandb.log_train = False
+    wandb.log_train = True
     wandb.workdir = "/n/holystore01/LABS/iaifi_lab/Users/smsharma/multimodal-data/logging/"
 
     # Text
@@ -65,15 +65,15 @@ def get_config():
     clip.logit_bias_init_value = 0.
     clip.dtype = "float32"
 
-    clip.use_pretrained = False
+    clip.use_pretrained = True
     clip.pretrained_model_name = "openai/clip-vit-base-patch16"
     clip.random_init_vision = True
-    clip.random_init_text = True
+    clip.random_init_text = False
 
     # Data
     config.data = data = ml_collections.ConfigDict()
-    data.augment_rotate = False
-    data.augment_crop = False
+    data.augment_rotate = True
+    data.augment_crop = True
     data.augment_subsample_text = True
     data.max_length_words = 77
     data.tfrecords_dir = "tfrecords_v3"
@@ -97,7 +97,7 @@ def get_config():
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
     optim.schedule = "cosine"
-    optim.learning_rate = 1e-4
+    optim.learning_rate = 1e-5
     optim.weight_decay = 1e-3
 
     # Seed

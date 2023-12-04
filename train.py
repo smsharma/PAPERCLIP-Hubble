@@ -110,29 +110,30 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
         _, params = model.init_with_output(rng, batch["input_ids"][:1], batch["pixel_values"][:1], batch["attention_mask"][:1])
         logging.info("Loaded model for training from scratch")
     else:
+
+        # Optionally, randomly initialize the vision and/or text models
+        if (config.clip.random_init_vision or config.clip.random_init_text):
+            
+            # Get randomly-initialized params
+            params_init = model.module.init(rng, input_ids=np.zeros((1, model.config.text_config.max_length)), 
+                            attention_mask=np.zeros((1, model.config.text_config.max_length)),
+                            pixel_values=np.zeros((1, model.config.vision_config.image_size, model.config.vision_config.image_size, 3)),
+                            position_ids=np.zeros((1, model.config.text_config.max_length)))
+            
+            if config.clip.random_init_vision:
+                model.params['vision_model'] = params_init['params']['vision_model']
+                model.params['visual_projection'] = params_init['params']['visual_projection']
+
+                logging.info("Randomly initialized vision model")
+            
+            if config.clip.random_init_text:
+                model.params['text_model'] = params_init['params']['text_model']
+                model.params['text_projection'] = params_init['params']['text_projection']
+
+                logging.info("Randomly initialized text model")
+
         params = FrozenDict(model.params)
-        logging.info(f"Loaded pretrained model {config.clip.pretrained_model_name}")        
-
-    # Optionally, randomly initialize the vision and/or text models
-    if (config.clip.random_init_vision or config.clip.random_init_text) and config.clip.use_pretrained:
-        
-        # Get randomly-initialized params
-        params_init = model.module.init(rng, input_ids=np.zeros((1, model.config.text_config.max_length)), 
-                        attention_mask=np.zeros((1, model.config.text_config.max_length)),
-                        pixel_values=np.zeros((1, model.config.vision_config.image_size, model.config.vision_config.image_size, 3)),
-                        position_ids=np.zeros((1, model.config.text_config.max_length)))
-        
-        if config.clip.random_init_vision:
-            model.params['vision_model'] = params_init['params']['vision_model']
-            model.params['visual_projection'] = params_init['params']['visual_projection']
-
-            logging.info("Randomly initialized vision model")
-        
-        if config.clip.random_init_text:
-            model.params['text_model'] = params_init['params']['text_model']
-            model.params['text_projection'] = params_init['params']['text_projection']
-
-            logging.info("Randomly initialized text model")
+        logging.info(f"Loaded pretrained model {config.clip.pretrained_model_name}")
 
     logging.info(f"Number of parameters: {param_count(params)}")
 
