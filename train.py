@@ -86,7 +86,8 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
         model = FlaxCLIPModel.from_pretrained(config.clip.pretrained_model_name, dtype=config.clip.dtype)
         processor = AutoProcessor.from_pretrained(config.clip.pretrained_model_name)
     else:
-        model = CLIPModel(text_config=text_config, vision_config=vision_config, **clip_config)
+        clip_config_dict = {"projection_dim": config.clip.projection_dim, "logit_scale_init_value": config.clip.logit_scale_init_value, "logit_bias_init_value": config.clip.logit_bias_init_value, "dtype": config.clip.dtype}
+        model = CLIPModel(text_config=text_config, vision_config=vision_config, **clip_config_dict)
         tokenizer = AutoTokenizer.from_pretrained(config.clip.pretrained_model_name)
 
     rng = jax.random.PRNGKey(config.seed)
@@ -97,8 +98,6 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     # Rotation angles in rad
     rot_angles_90 = np.array([0.0, np.pi/2, np.pi, 3 * np.pi/2])
-
-    
 
     # Initialize model if not using pre-trained; otherwise, use pre-trained weights
     if not config.clip.use_pretrained:
@@ -115,10 +114,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
         logging.info(f"Loaded pretrained model {config.clip.pretrained_model_name}")        
 
     # Optionally, randomly initialize the vision and/or text models
-    if config.clip.random_init_vision or config.clip.random_init_text:
-
-        if not config.clip.use_pretrained:
-            raise ValueError("Can only randomly initialize vision and text models if using a pretrained model")
+    if (config.clip.random_init_vision or config.clip.random_init_text) and config.clip.use_pretrained:
         
         # Get randomly-initialized params
         params_init = model.module.init(rng, input_ids=np.zeros((1, model.config.text_config.max_length)), 
@@ -147,7 +143,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     ## Training config and loop
     
-    best_fn = lambda metrics: metrics[f"{config.training.ckpt_best_metric}"]
+    best_fn = lambda metrics: metrics[f"val/{config.training.ckpt_best_metric}"]
 
     # At the top level
     mgr_options = orbax.checkpoint.CheckpointManagerOptions(create=True, step_prefix='step', max_to_keep=config.training.ckpt_keep_top_n, best_fn=best_fn, best_mode='max')
@@ -282,7 +278,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
                     val_metrics.append(metrics)
 
                 def serialize_metrics(metrics):
-                    """Convert all values in the metrics dictionary to Python standard types."""
+                    """Convert all values in the metrics dict to Python standard types."""
                     return {k: float(v) if isinstance(v, (np.float32, np.float64)) else v for k, v in metrics.items()}
 
                 val_metrics = common_utils.get_metrics(val_metrics)
