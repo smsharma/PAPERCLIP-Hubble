@@ -67,8 +67,8 @@ def get_config():
 
     clip.use_pretrained = True
     clip.pretrained_model_name = "openai/clip-vit-base-patch16"
-    clip.random_init_vision = True
-    clip.random_init_text = False
+    clip.random_init_vision = False
+    clip.random_init_text = True
 
     # Data
     config.data = data = ml_collections.ConfigDict()
