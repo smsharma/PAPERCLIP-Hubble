@@ -83,7 +83,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     # Use pre-trained model or train from scratch
     if config.clip.use_pretrained:
-        model = FlaxCLIPModel.from_pretrained(config.clip.pretrained_model_name, dtype=config.clip.dtype, from_pt=True)
+        model = FlaxCLIPModel.from_pretrained(config.clip.pretrained_model_name, dtype=config.clip.dtype)
         processor = AutoProcessor.from_pretrained(config.clip.pretrained_model_name)
     else:
         clip_config_dict = {"projection_dim": config.clip.projection_dim, "logit_scale_init_value": config.clip.logit_scale_init_value, "logit_bias_init_value": config.clip.logit_bias_init_value, "dtype": config.clip.dtype}
