@@ -133,11 +133,17 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     ## Training config and loop
     
-    best_fn = lambda metrics: metrics[f"val/{config.training.ckpt_best_metric}"]
+    
 
     # At the top level
-    mgr_options = orbax.checkpoint.CheckpointManagerOptions(create=True, step_prefix='step', max_to_keep=config.training.ckpt_keep_top_n, best_fn=best_fn, best_mode='max')
-    ckpt_mgr = orbax.checkpoint.CheckpointManager(f"{workdir}/ckpts/", orbax.checkpoint.Checkpointer(orbax.checkpoint.PyTreeCheckpointHandler()), mgr_options)
+
+    ckpt_mgrs = []
+    for metric, best_mode in zip(config.training.ckpt_best_metric, config.training.ckpt_best_metric_best_mode):
+        best_fn = lambda metrics: metrics[f"val/{metric}"]
+        
+        mgr_options = orbax.checkpoint.CheckpointManagerOptions(create=True, step_prefix=f'step_{metric}', max_to_keep=config.training.ckpt_keep_top_n, best_fn=best_fn, best_mode=best_mode)
+
+        ckpt_mgrs.append(orbax.checkpoint.CheckpointManager(f"{workdir}/ckpts/", orbax.checkpoint.Checkpointer(orbax.checkpoint.PyTreeCheckpointHandler()), mgr_options))
 
     # Optimizer and schedule
 
@@ -281,7 +287,9 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
                 # Save checkpoints periodically
                 state_ckpt = unreplicate(pstate)
                 save_args = orbax_utils.save_args_from_target(state_ckpt)
-                ckpt_mgr.save(step, state_ckpt, save_kwargs={'save_args': save_args}, metrics=summary)
+
+                for ckpt_mgr in ckpt_mgrs:
+                    ckpt_mgr.save(step, state_ckpt, save_kwargs={'save_args': save_args}, metrics=summary)
 
     logging.info("All done! Have a great day.")
 
