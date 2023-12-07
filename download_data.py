@@ -1,7 +1,7 @@
 import argparse
 from tqdm import tqdm
-from scripts.abstract_utils import read_abstracts_file
-from scripts.download_data import download_data
+from utils.abstract_utils import read_abstracts_file
+from utils.download_data import download_data
 from absl import logging
 
 
