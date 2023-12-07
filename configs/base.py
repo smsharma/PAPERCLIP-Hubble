@@ -66,9 +66,10 @@ def get_config():
     clip.dtype = "float32"
 
     clip.use_pretrained = True
-    clip.pretrained_model_name = "openai/clip-vit-base-patch16"
+    # clip.pretrained_model_name = "openai/clip-vit-large-patch14"
+    clip.pretrained_model_name = "laion/CLIP-ViT-H-14-laion2B-s32B-b79K"
     clip.random_init_vision = False
-    clip.random_init_text = True
+    clip.random_init_text = False
 
     # Data
     config.data = data = ml_collections.ConfigDict()
