@@ -11,14 +11,15 @@ def get_config():
     wandb.group = "proposals"
     wandb.job_type = "training"
     wandb.name = None
-    wandb.log_train = False
+    wandb.log_train = True
     wandb.workdir = "/n/holystore01/LABS/iaifi_lab/Users/smsharma/multimodal-data/logging/"
 
     # CLIP
     config.clip = clip = ml_collections.ConfigDict()
     clip.dtype = "float32"
     clip.use_pretrained = True
-    clip.pretrained_model_name ="openai/clip-vit-base-patch16"  # "openai/clip-vit-large-patch14"
+    # clip.pretrained_model_name = "openai/clip-vit-base-patch16" 
+    clip.pretrained_model_name = "openai/clip-vit-large-patch14"
     clip.random_init_vision = False
     clip.random_init_text = False
 
