@@ -63,10 +63,10 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
     # Set up data
 
     # Find all TFRecord files and make datasets
-    files_train = tf.io.gfile.glob(f"./data/{config.data.tfrecords_dir}/*train*.tfrecord")
+    files_train = tf.io.gfile.glob(f"{config.data.data_dir}/{config.data.tfrecords_dir}/*train*.tfrecord")
     train_ds = make_dataloader(files_train, batch_size=config.training.batch_size, seed=config.seed, split='train', shuffle=True)
 
-    files_val = tf.io.gfile.glob(f"./data/{config.data.tfrecords_dir}/*val*.tfrecord")
+    files_val = tf.io.gfile.glob(f"{config.data.data_dir}/{config.data.tfrecords_dir}/*val*.tfrecord")
     val_ds = make_dataloader(files_val, batch_size=config.training.batch_size_val, seed=config.seed, split='val', shuffle=False)
 
     batches = iter(train_ds)
@@ -133,9 +133,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     ## Training config and loop
     
-    
-
-    # At the top level
+    # Create checkpoint managers, potentially based on multiple metrics
 
     ckpt_mgrs = []
     for metric, best_mode in zip(config.training.ckpt_best_metric, config.training.ckpt_best_metric_best_mode):

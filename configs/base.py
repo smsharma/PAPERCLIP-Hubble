@@ -30,6 +30,7 @@ def get_config():
     data.max_length_words = 77
     data.tfrecords_dir = "tfrecords_v3"
     data.shuffle_within_batch = False
+    data.data_dir = "/n/holyscratch01/iaifi_lab/smsharma/hubble_data/"
 
     # Training
     config.training = training = ml_collections.ConfigDict()
