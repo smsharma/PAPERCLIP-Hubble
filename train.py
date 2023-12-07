@@ -24,12 +24,11 @@ import tensorflow as tf
 from dm_pix import rotate, random_crop
 from tqdm import trange
 
-from transformers import AutoTokenizer, AutoProcessor, FlaxCLIPModel
+from transformers import AutoProcessor, FlaxCLIPModel
 
-from models.clip import CLIPModel
 from models.dataset_utils import make_dataloader
 from models.train_utils import param_count, train_step, eval_step, to_wandb_config
-from models.text_utils import process_truncate_captions, tokenize_captions
+from models.text_utils import process_truncate_captions
 
 replicate = flax.jax_utils.replicate
 unreplicate = flax.jax_utils.unreplicate
@@ -86,9 +85,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
         model = FlaxCLIPModel.from_pretrained(config.clip.pretrained_model_name, dtype=config.clip.dtype)
         processor = AutoProcessor.from_pretrained(config.clip.pretrained_model_name)
     else:
-        clip_config_dict = {"projection_dim": config.clip.projection_dim, "logit_scale_init_value": config.clip.logit_scale_init_value, "logit_bias_init_value": config.clip.logit_bias_init_value, "dtype": config.clip.dtype}
-        model = CLIPModel(text_config=text_config, vision_config=vision_config, **clip_config_dict)
-        tokenizer = AutoTokenizer.from_pretrained(config.clip.pretrained_model_name)
+        raise NotImplementedError
 
     rng = jax.random.PRNGKey(config.seed)
     rng, rng_aug = jax.random.split(rng)
@@ -99,18 +96,8 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
     # Rotation angles in rad
     rot_angles_90 = np.array([0.0, np.pi/2, np.pi, 3 * np.pi/2])
 
-    # Initialize model if not using pre-trained; otherwise, use pre-trained weights
-    if not config.clip.use_pretrained:
-
-        # Pass a test batch through to initialize model
-        images, captions = next(batches)
-        input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length, max_length_words, rng_aug)
-        batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
-
-        _, params = model.init_with_output(rng, batch["input_ids"][:1], batch["pixel_values"][:1], batch["attention_mask"][:1])
-        logging.info("Loaded model for training from scratch")
-    else:
-
+    # Pre-trained model or train from scratch
+    if config.clip.use_pretrained:
         # Optionally, randomly initialize the vision and/or text models
         if (config.clip.random_init_vision or config.clip.random_init_text):
             
@@ -135,10 +122,13 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
         params = FrozenDict(model.params)
         logging.info(f"Loaded pretrained model {config.clip.pretrained_model_name}")
 
+    else:
+        raise NotImplementedError
+
     logging.info(f"Number of parameters: {param_count(params)}")
 
-    # Optionally convert type, for pretrained model
-    if config.clip.dtype == "bfloat16" and config.clip.use_pretrained:
+    # Optionally convert type
+    if config.clip.dtype == "bfloat16":
         model.params = model.to_bf16(model.params)
         logging.info("Converted model to bfloat16")
 
@@ -209,8 +199,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
                 inputs = processor(text=captions, images=images * 255.,  return_tensors="np", padding="max_length", truncation=True, max_length=model.config.text_config.max_length)
                 batch = inputs.data
             else:
-                input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length, max_length_words, rng_aug)
-                batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
+                raise NotImplementedError
             
             # Optionally shuffle "pixel_values" within batch
             if config.data.shuffle_within_batch:
@@ -268,8 +257,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
                         inputs = processor(text=captions, images=images * 255.,  return_tensors="np", padding="max_length", truncation=True, max_length=model.config.text_config.max_length)
                         batch = inputs.data
                     else:
-                        input_ids, attention_mask = tokenize_captions(captions, tokenizer, config.text_config.max_length, max_length_words, rng_eval)
-                        batch = {"pixel_values": images, "input_ids": input_ids, "attention_mask": attention_mask}
+                        raise NotImplementedError
 
                     # Split batch across devices
                     batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
