@@ -7,7 +7,6 @@ sys.path.append("./")
 sys.path.append("../")
 
 from absl import flags, logging
-from absl import logging
 from ml_collections import config_flags, ConfigDict
 from clu import metric_writers
 import wandb
@@ -16,19 +15,18 @@ import jax
 import jax.numpy as np
 import optax
 import flax
-import orbax
 from flax.core import FrozenDict
 from flax.training import common_utils, train_state, orbax_utils
-
-import tensorflow as tf
+import orbax
 from dm_pix import rotate, random_crop
+import tensorflow as tf
 from tqdm import trange
 
 from transformers import AutoProcessor, FlaxCLIPModel
 
-from models.dataset_utils import make_dataloader
+from utils.dataset_utils import make_dataloader
+from utils.text_utils import process_truncate_captions
 from models.train_utils import param_count, train_step, eval_step, to_wandb_config
-from models.text_utils import process_truncate_captions
 
 replicate = flax.jax_utils.replicate
 unreplicate = flax.jax_utils.unreplicate
