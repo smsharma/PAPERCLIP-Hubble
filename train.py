@@ -73,10 +73,11 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     logging.info("Loaded the dataset")
 
-    # Model configs
-    text_config = FrozenDict(config.text_config)
-    vision_config = FrozenDict(config.vision_config)
-    clip_config = FrozenDict(config.clip)
+    # # Model configs
+    # # NOTE: From legacy code; not used currently, but potentially if options are fed to create custom CLIP model
+    # text_config = FrozenDict(config.text_config)
+    # vision_config = FrozenDict(config.vision_config)
+    # clip_config = FrozenDict(config.clip)
 
     # Use pre-trained model or train from scratch
     if config.clip.use_pretrained:
