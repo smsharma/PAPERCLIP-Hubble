@@ -18,8 +18,8 @@ def get_config():
     config.clip = clip = ml_collections.ConfigDict()
     clip.dtype = "float32"
     clip.use_pretrained = True
-    # clip.pretrained_model_name = "openai/clip-vit-base-patch16" 
-    clip.pretrained_model_name = "openai/clip-vit-large-patch14"
+    clip.pretrained_model_name = "openai/clip-vit-base-patch16" 
+    # clip.pretrained_model_name = "openai/clip-vit-large-patch14"
     clip.random_init_vision = False
     clip.random_init_text = False
 
@@ -27,9 +27,10 @@ def get_config():
     config.data = data = ml_collections.ConfigDict()
     data.augment_rotate = True
     data.augment_crop = True
-    data.augment_subsample_text = True
+    data.augment_subsample_text = False
     data.max_length_words = 77
-    data.tfrecords_dir = "tfrecords_v3"
+    data.tfrecords_dir = "tfrecords_v4"
+    data.caption_type = "summary"  # "abstract" or "summary"
     data.shuffle_within_batch = False
     data.data_dir = "/n/holyscratch01/iaifi_lab/smsharma/hubble_data/"
 

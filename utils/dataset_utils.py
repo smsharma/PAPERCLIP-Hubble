@@ -1,13 +1,16 @@
+from functools import partial
+
 import tensorflow as tf
 import jax
 import flax
 from absl import logging
 
 # Parse function
-def parse_function(example):
+def parse_function(example, caption_type="abstract"):
     features = {
         "image": tf.io.FixedLenFeature([], tf.string),
         "abstract": tf.io.FixedLenFeature([], tf.string),
+        "summary": tf.io.FixedLenFeature([], tf.string),
         "image_height": tf.io.FixedLenFeature([], tf.int64),
         "image_width": tf.io.FixedLenFeature([], tf.int64),
     }
@@ -15,7 +18,7 @@ def parse_function(example):
     parsed_features = tf.io.parse_single_example(example, features)
 
     image = parsed_features["image"]
-    caption = parsed_features["abstract"]
+    caption = parsed_features[caption_type]
     image_height = parsed_features["image_height"]
     image_width = parsed_features["image_width"]
 
@@ -31,7 +34,7 @@ def _normalize(image, abstract):
     return image, abstract
 
 
-def make_dataloader(files, batch_size, seed, split="train", shuffle=True):
+def make_dataloader(files, batch_size, seed, split="train", shuffle=True, caption_type="abstract"):
     ds = tf.data.TFRecordDataset(files)
 
     # Count total examples 
@@ -39,8 +42,8 @@ def make_dataloader(files, batch_size, seed, split="train", shuffle=True):
 
     # Log number of examples
     logging.info(f"Using {num_total} examples in dataset with split {split}")
-
-    ds = ds.map(parse_function)
+    
+    ds = ds.map(partial(parse_function, caption_type=caption_type))
     ds = ds.map(_normalize)
     ds = ds.cache()
 

@@ -18,7 +18,7 @@ import flax
 from flax.core import FrozenDict
 from flax.training import common_utils, train_state, orbax_utils
 import orbax
-from dm_pix import rotate, random_crop
+from dm_pix import rotate, random_crop, random_flip_up_down, random_flip_left_right
 import tensorflow as tf
 from tqdm import trange
 
@@ -64,17 +64,17 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     # Find all TFRecord files and make datasets
     files_train = tf.io.gfile.glob(f"{config.data.data_dir}/{config.data.tfrecords_dir}/*train*.tfrecord")
-    train_ds = make_dataloader(files_train, batch_size=config.training.batch_size, seed=config.seed, split='train', shuffle=True)
+    train_ds = make_dataloader(files_train, batch_size=config.training.batch_size, seed=config.seed, split='train', caption_type=config.data.caption_type, shuffle=True)
 
     files_val = tf.io.gfile.glob(f"{config.data.data_dir}/{config.data.tfrecords_dir}/*val*.tfrecord")
-    val_ds = make_dataloader(files_val, batch_size=config.training.batch_size_val, seed=config.seed, split='val', shuffle=False)
+    val_ds = make_dataloader(files_val, batch_size=config.training.batch_size_val, seed=config.seed, split='val', caption_type=config.data.caption_type, shuffle=False)
 
     batches = iter(train_ds)
 
     logging.info("Loaded the dataset")
 
     # # Model configs
-    # # NOTE: From legacy code; not used currently, but potentially if options are fed to create custom CLIP model
+    # # NOTE: From legacy code; not used currently, but potentially useful if options are fed to create custom CLIP model
     # text_config = FrozenDict(config.text_config)
     # vision_config = FrozenDict(config.vision_config)
     # clip_config = FrozenDict(config.clip)
@@ -184,11 +184,20 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
             images, captions = next(batches)
             images = np.array(images)
 
-            # Augment images through random rotations
+            # Augment images through random rotations and flips
             if config.data.augment_rotate:
+
+                # Rotations
                 rng_aug, _ = jax.random.split(rng_aug)
                 rotation_angles = jax.random.choice(rng_aug, rot_angles_90, shape=(images.shape[0],))
                 images = jax.vmap(partial(rotate, mode='constant', cval=1.))(images, rotation_angles)
+
+                # Flips
+                rng_aug, _ = jax.random.split(rng_aug)
+                images = jax.vmap(partial(random_flip_up_down, key=rng_aug))(image=images)
+
+                rng_aug, _ = jax.random.split(rng_aug)
+                images = jax.vmap(partial(random_flip_left_right, key=rng_aug))(image=images)
 
             # Augment images through random crops
             # Otherwise, they'll be downsampled to the vision model's image size
@@ -244,11 +253,20 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
                     images, captions = next(val_batches)
                     images = np.array(images)
                         
-                    # Augment images through random rotations
+                    # Augment images through random rotations and flips
                     if config.data.augment_rotate:
+
+                        # Rotations
                         rotation_angles = jax.random.choice(rng_eval, rot_angles_90, shape=(images.shape[0],))  # Angles in radians
                         images = jax.vmap(partial(rotate, mode='constant', cval=1.))(images, rotation_angles)
                         
+                        # Flips
+                        rng_aug, _ = jax.random.split(rng_aug)
+                        images = jax.vmap(partial(random_flip_up_down, key=rng_aug))(image=images)
+
+                        rng_aug, _ = jax.random.split(rng_aug)
+                        images = jax.vmap(partial(random_flip_left_right, key=rng_aug))(image=images)
+
                     # Augment images through random crops
                     # Otherwise, they'll be downsampled to the vision model's image size
                     if config.data.augment_crop:

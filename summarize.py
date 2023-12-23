@@ -87,7 +87,7 @@ def download(
     df.to_csv(f"{data_dir}/{save_filename}.csv", index=False)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Download Data Based on Command Line Arguments")
+    parser = argparse.ArgumentParser(description="Summarize abstracts.")
     parser.add_argument("--data_dir", type=str, default="./data/", help="Directory to save the downloaded data.")
     parser.add_argument("--observations_dir", type=str, default="observations_v2", help="Observations dir within the `data_dir`.")
     parser.add_argument("--n_max_abstracts", type=int, default=9999999, help="Maximum number of abstracts to summarize.")
