@@ -9,11 +9,27 @@
 % Optional math commands from https://github.com/goodfeli/dlbook_notation.
 \input{math_commands.tex}
 
-\usepackage{hyperref}
 \usepackage{url}
 \usepackage{graphicx}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{lipsum}
 
-\title{\textsc{HubbleCLIP}: Learning associations between astronomical observations and natural language with multi-modal models}
+\definecolor{xlinkcolor}{rgb}{0.7752941176470588, 0.22078431372549023, 0.2262745098039215}
+
+\usepackage[
+pdfnewwindow=true,      % links in new window
+colorlinks=true,    % false: boxed links; true: colored links
+linkcolor=xlinkcolor,     % color of internal links
+citecolor=xlinkcolor,     % color of links to bibliography
+filecolor=xlinkcolor,  % color of file links
+urlcolor=xlinkcolor,      % color of external links
+final=true,
+]{hyperref}
+
+
+
+\title{\textsc{HubbleCLIP}: Associating Astronomical Observations and Natural Language with Multi-modal Models}
 
 % Authors must not appear in the submitted version. They should be hidden
 % as long as the tmlr package is used without the [accepted] or [preprint] options.
@@ -42,6 +58,8 @@
 \def\year{YYYY} % Insert correct year for camera-ready version
 \def\openreview{\url{https://openreview.net/forum?id=XXXX}} % Insert correct link to OpenReview for camera-ready version
 
+\newcommand{\datafolder}[1]{\def\thedatafolder{#1}}
+
 
 \begin{document}
 
@@ -49,14 +67,19 @@
 \maketitle
 
 \begin{abstract}
-Abstract
+We present a multi-modal model which associates astronomical observations imaged by the \emph{Hubble} Space Telescope (HST) with natural language. The model is fine-tuned from a base CLIP model using summarized proposal abstracts corresponding to HST observations. We show that the model embodies a meaningful joint representation between observations and text through experiments targeting observation retrieval (i.e., retrieving most relevant set of observations using natural language queries) and description retrieval (i.e., querying the most relevant natural language descriptions using observations). The model demonstrates the potential for using generalist rather than task-specific models for astrophysics research, in particular by leveraging text as an interface.
 \end{abstract}
 
 \section{Introduction}
 \label{sec:intro}
 
+\lipsum[1-2]
+
 \section{Dataset and Processing}
 \label{sec:dataset}
+
+\subsection{Summarization via guided generation}
+\label{sec:summarization}
 
 \section{Methodology}
 \label{sec:methodology}
@@ -84,6 +107,37 @@ Abstract
 
 
 \cite{Hinton06}
+
+\datafolder{./plots/data/} % Set your folder path here
+
+\begin{table}[h!]
+      \centering
+      \begin{tabular}{m{0.21\textwidth} p{1.9cm} p{1.9cm} m{8cm}}
+          \toprule
+          \centering \bfseries Image & \centering \bfseries Obs. cycle & \centering \bfseries Prop. ID & \centering \bfseries Summarized abstract \tabularnewline
+          \midrule
+          \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_0.pdf} & \centering \input{\thedatafolder/cycle_0.txt} & \centering \input{\thedatafolder/id_0.txt} &  {\scriptsize \input{\thedatafolder/sum_0.txt}} \tabularnewline
+          \midrule
+          \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_1.pdf} & \centering \input{\thedatafolder/cycle_1.txt} & \centering \input{\thedatafolder/id_1.txt} &  {\scriptsize \input{\thedatafolder/sum_1.txt}} \tabularnewline
+          \midrule
+          \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_2.pdf} & \centering \input{\thedatafolder/cycle_2.txt} & \centering \input{\thedatafolder/id_2.txt} &  {\scriptsize \input{\thedatafolder/sum_2.txt}} \tabularnewline
+          \midrule
+          \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_3.pdf} & \centering \input{\thedatafolder/cycle_3.txt} & \centering \input{\thedatafolder/id_3.txt} &  {\scriptsize \input{\thedatafolder/sum_3.txt}} \tabularnewline
+          \bottomrule
+      \end{tabular}
+      \caption{Data overview}
+  \end{table}
+  
+  
+  
+  
+    
+
+% \begin{figure*}[!h]
+% \includegraphics[width=0.95\textwidth]{example-image-a}
+% \caption{Overview of dataset}
+% \label{fig:dataset}
+% \end{figure*}
 
 \begin{figure*}[!h]
 \includegraphics[width=0.95\textwidth]{plots/retrieval_acc.pdf}
