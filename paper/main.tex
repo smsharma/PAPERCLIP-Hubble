@@ -29,7 +29,7 @@ final=true,
 
 
 
-\title{\textsc{HubbleCLIP}: Associating Astronomical Observations and Natural Language with Multi-modal Models}
+\title{\textsc{HubbleCLIP}: Associating Astronomical Observations and Natural Language with Multi-Modal Models}
 
 % Authors must not appear in the submitted version. They should be hidden
 % as long as the tmlr package is used without the [accepted] or [preprint] options.
@@ -73,7 +73,15 @@ We present a multi-modal model which associates astronomical observations imaged
 \section{Introduction}
 \label{sec:intro}
 
-\lipsum[1-2]
+Machine learning (ML) is starting to have a significant impact on the sciences, with astrophysics being no exception. Machine learning methods have demonstrated promise when applied to every part of the astrophysics pipeline, from instrument design, to data acquisition, to its analysis. Until recently, most applications of ML within astrophysics have focused on replacing or augmenting traditional techniques with ML counterparts in order to improve performance on specific tasks.
+
+The \emph{Foundation Model} paradigm, in contrast, seeks to develop generalist models which can be deployed on a wide range of tasks. The paradigm has been highly successful in domains like computer vision and natural language processing, as demonstrated by the widespread adoption of tools like CLIP, ChatGPT, Dall-E, and Stable Diffusion. These models are typically pre-trained on massive amounts of unlabeled data using self-supervised learning techniques, enabling them to learn powerful representations which can be optionally fine-tuned to address domain-specific tasks. At the heart of the paradigm lies the triumph of scale -- scaling up model size, dataset size, and compute. However, foundation models can often be fine-tuned using only small amounts of domain-specific data, increasing their usefulness when applied to those specific domains.
+
+There is considerable interest in developing custom foundation models for the sciences, with astrophysics being ripe for such an effort due to several reasons. The first is the availability of large amounts of publicly-available data as a contingency of publicy-funded data-taking efforts. The second is the multi-modality inherent astrophysical observations, with different types of data (e.g., images, spectra, light curves, textual descriptions) often available for each observation. This multi-modality was recently exploited to train \textsc{AstroCLIP} -- a joint representation between multi-band images and optical spectra from the Dark Energy Spectroscopic Instrument (DESI). \textsc{AstroLLaMA} is another recent effort to fine-tune a publicly-available model (Llama-2) on astrophysics-specific textual data from the arXiv.
+
+The success of the foundation model paradigm partly relies on the ability to leverage text as a \emph{universal interface}. In this work, we take this outlook and train a joint representation between observations taken by the \emph{Hubble} Space Telescope (HST) and natural language. We do so by using the associations between observation proposals and corresponding downstream observations. We show that fine-tuning a CLIP (Contrastive Language-Image Pre-training) model on this data enables learning meaningful joint representations.
+
+The paper is organized as follows. In Sec.~\ref{sec:dataset}, we describe the dataset used in this work, including its curation and processing. In Sec.~\ref{sec:methodology}, we describe the methodology used to train and evaluate the model. In Sec.~\ref{sec:results}, we present the results of our experiments on image and text retrieval tasks. We discuss future prospects and conclude in Sec.~\ref{sec:conclusion}.
 
 \section{Dataset and Processing}
 \label{sec:dataset}
@@ -105,8 +113,18 @@ We present a multi-modal model which associates astronomical observations imaged
 \subsection{Text-to-Image Retrieval}
 \label{sec:tti}
 
+\section{Conclusion}
+\label{sec:conclusion}
+
 
 \cite{Hinton06}
+
+% \begin{figure*}[!h]
+% \includegraphics[width=0.95\textwidth]{example-image-a}
+% \caption{Overview of dataset}
+% \label{fig:dataset}
+% \end{figure*}
+
 
 \datafolder{./plots/data/} % Set your folder path here
 
@@ -128,16 +146,13 @@ We present a multi-modal model which associates astronomical observations imaged
       \caption{Data overview}
   \end{table}
   
-  
-  
-  
-    
 
-% \begin{figure*}[!h]
-% \includegraphics[width=0.95\textwidth]{example-image-a}
-% \caption{Overview of dataset}
-% \label{fig:dataset}
-% \end{figure*}
+\begin{figure*}[!h]
+      \includegraphics[width=0.95\textwidth]{plots/val_metrics.pdf}
+      \caption{Retrieval accuracy}
+      \label{fig:retrieval_acc}
+      \end{figure*}
+      
 
 \begin{figure*}[!h]
 \includegraphics[width=0.95\textwidth]{plots/retrieval_acc.pdf}
