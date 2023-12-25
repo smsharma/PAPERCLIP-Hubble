@@ -1,6 +1,5 @@
 import outlines
 import outlines.models as models
-import outlines.text as text
 
 from pydantic import BaseModel, Field, constr, conlist
 from enum import Enum
@@ -9,7 +8,7 @@ class ConstrainedResponseHST(BaseModel):
     objects_and_phenomena: str
     science_use_cases: str
 
-@text.prompt
+@outlines.prompt
 def prompt_fn(abstract):
      """<|im_start|>system
 You are an expert astrophysicist, with broad expertise across observational and theoretical astrophysics.

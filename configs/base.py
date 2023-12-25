@@ -21,7 +21,7 @@ def get_config():
     clip.pretrained_model_name = "openai/clip-vit-base-patch16" 
     # clip.pretrained_model_name = "openai/clip-vit-large-patch14"
     clip.random_init_vision = False
-    clip.random_init_text = True
+    clip.random_init_text = False
 
     # Data
     config.data = data = ml_collections.ConfigDict()
@@ -53,7 +53,7 @@ def get_config():
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
     optim.schedule = "cosine"
-    optim.learning_rate = 1e-5
+    optim.learning_rate = 1e-6
     optim.weight_decay = 1e-3
 
     # Seed

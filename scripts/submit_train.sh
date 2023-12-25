@@ -7,7 +7,7 @@
 # #SBATCH --gres=gpu:nvidia_a100-sxm4-80gb:4
 #SBATCH --gres=gpu:4
 #SBATCH --account=iaifi_lab
-#SBATCH -p iaifi_gpu_priority
+#SBATCH -p iaifi_gpu
 
 export TF_CPP_MIN_LOG_LEVEL="2"
 
