@@ -28,7 +28,8 @@ def get_config():
     # Data
     config.data = data = ml_collections.ConfigDict()
     data.augment_rotate = True
-    data.augment_crop = True
+    data.augment_rotate_type = "discrete"  # "continuous" rotation angles or "discrete" 90-deg flips
+    data.augment_crop = False
     data.augment_subsample_text = False
     data.max_length_words = 77
     data.tfrecords_dir = "tfrecords_v4"

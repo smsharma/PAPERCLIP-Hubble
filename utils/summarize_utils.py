@@ -10,6 +10,7 @@ class ConstrainedResponseHST(BaseModel):
 
 @outlines.prompt
 def prompt_fn(abstract):
+     # TODO: Add start and end tags as options
      """<|im_start|>system
 You are an expert astrophysicist, with broad expertise across observational and theoretical astrophysics.
 You are able to extract core information from astrophysical texts.
