@@ -17,6 +17,7 @@ import optax
 import flax
 from flax.core import FrozenDict
 from flax.training import common_utils, train_state, orbax_utils
+from flax import traverse_util
 import orbax
 from dm_pix import rotate, random_crop, random_flip_up_down, random_flip_left_right
 import tensorflow as tf
@@ -27,6 +28,7 @@ from transformers import AutoProcessor, FlaxCLIPModel
 from utils.dataset_utils import make_dataloader
 from utils.text_utils import process_truncate_captions
 from models.train_utils import param_count, train_step, eval_step, to_wandb_config
+from models.clip_transfer import FlaxCLIPModelTransfer
 
 replicate = flax.jax_utils.replicate
 unreplicate = flax.jax_utils.unreplicate
@@ -104,32 +106,44 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
             params_init = model.module.init(rng, input_ids=np.zeros((1, model.config.text_config.max_length)), 
                             attention_mask=np.zeros((1, model.config.text_config.max_length)),
                             pixel_values=np.zeros((1, model.config.vision_config.image_size, model.config.vision_config.image_size, 3)),
-                            position_ids=np.zeros((1, model.config.text_config.max_length)))
+                            position_ids=np.zeros((1, model.config.text_config.max_length)))['params']
             
             if config.clip.random_init_vision:
-                model.params['vision_model'] = params_init['params']['vision_model']
-                model.params['visual_projection'] = params_init['params']['visual_projection']
+                model.params['vision_model'] = params_init['vision_model']
+                model.params['visual_projection'] = params_init['visual_projection']
 
                 logging.info("Randomly initialized vision model")
             
             if config.clip.random_init_text:
-                model.params['text_model'] = params_init['params']['text_model']
-                model.params['text_projection'] = params_init['params']['text_projection']
+                model.params['text_model'] = params_init['text_model']
+                model.params['text_projection'] = params_init['text_projection']
 
                 logging.info("Randomly initialized text model")
 
-        params = FrozenDict(model.params)
         logging.info(f"Loaded pretrained model {config.clip.pretrained_model_name}")
 
     else:
         raise NotImplementedError
 
-    logging.info(f"Number of parameters: {param_count(params)}")
+    if config.clip.transfer_head:
+
+        model_transfer = FlaxCLIPModelTransfer(config=model.config, dtype=config.clip.dtype, d_head=config.clip.d_transfer_head)
+        
+        # Transfer text and vision backbones
+        model_transfer.params['text_model']['text_backbone'] = model.params['text_model']
+        model_transfer.params['vision_model']['vision_backbone'] = model.params['vision_model']
+
+        # Complete transfer
+        model = model_transfer
+        logging.info(f"Transferred pretrained model {config.clip.pretrained_model_name} with {config.clip.d_transfer_head}-dim head")
 
     # Optionally convert type
     if config.clip.dtype == "bfloat16":
         model.params = model.to_bf16(model.params)
         logging.info("Converted model to bfloat16")
+
+    logging.info(f"Number of parameters: {param_count(model.params)}")
+    params = model.params  # FrozenDict(model.params)
 
     ## Training config and loop
     
@@ -161,10 +175,17 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
     else:
         raise ValueError(f"Invalid schedule: {config.optim.schedule}")
     
-    tx = optax.adamw(learning_rate=schedule, weight_decay=config.optim.weight_decay)
+    if config.clip.transfer_head:
+        # Partition optimizer into trainable and frozen
+        partition_optimizers = {'trainable': optax.adamw(learning_rate=schedule, weight_decay=config.optim.weight_decay), 'frozen': optax.set_to_zero()}
+        param_partitions = traverse_util.path_aware_map(lambda path, v: 'frozen' if (('vision_backbone' in path) or ('text_backbone' in path)) else 'trainable', params)
+
+        tx = optax.multi_transform(partition_optimizers, param_partitions)
+    else:
+        tx = optax.adamw(learning_rate=schedule, weight_decay=config.optim.weight_decay)
 
     # State
-    state = train_state.TrainState.create(apply_fn=model.__call__ if config.clip.use_pretrained else model.apply, params=params, tx=tx)
+    state = train_state.TrainState.create(apply_fn=model.__call__ if (config.clip.use_pretrained) else model.apply, params=params, tx=tx)
     pstate = replicate(state)
 
     # Log info about augmentations
