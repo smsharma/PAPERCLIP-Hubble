@@ -48,7 +48,7 @@ Follow these instructions exactly:
 - The total length of text should not exceed 80 words.
 - Present your lists in a comma-separated format; no dashed or numbered lists.
 
-Example output: {'objects_and_phenomena':'spiral galaxies, galaxy clusters, supernova remnants’, 'science_use_cases':'model galactic structure and evolution, characterize dark matter distribution in clusters, analyze expansion rates of supernova remnants'}
+Example output: {'objects_and_phenomena':'spiral galaxies, galaxy clusters, supernova remnants', 'science_use_cases':'model galactic structure and evolution, characterize dark matter distribution in clusters, analyze expansion rates of supernova remnants'}
 
 Answer in JSON format. The JSON should be a dictionary with keys "objects_and_phenomena" and "science_use_cases".
 
