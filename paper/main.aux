@@ -16,44 +16,60 @@
 \gdef\HyperFirstAtBeginDocument#1{#1}
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{lanusse2023astroclip}
+\citation{nguyen2023astrollama}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
 \newlabel{sec:intro}{{1}{1}{Introduction}{section.1}{}}
-\citation{Hinton06}
+\citation{radford2021learning}
+\citation{cepeda2023geoclip}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Dataset Construction}{2}{section.2}\protected@file@percent }
+\newlabel{sec:dataset}{{2}{2}{Dataset Construction}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Data Selection and Pre-Processing}{2}{subsection.2.1}\protected@file@percent }
+\citation{willard2023efficient}
+\citation{willard2023efficient}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Summarization via Guided Generation}{3}{subsection.2.2}\protected@file@percent }
+\newlabel{sec:summarization}{{2.2}{3}{Summarization via Guided Generation}{subsection.2.2}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Examples of images and corresponding captions, constructed using the LLM-extracted summaries. The CLIP model is fine-tuned on these text-image associations.}}{4}{table.1}\protected@file@percent }
+\newlabel{tab:dataset}{{1}{4}{Examples of images and corresponding captions, constructed using the LLM-extracted summaries. The CLIP model is fine-tuned on these text-image associations}{table.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Examples of the beginning of raw proposal abstracts (second column) and LLM (\textsc  {Mixtral-8x7B})-extracted summaries (rightmost two columns), separately extracting objects and phenomena as well as potential downstream science use cases. The LLM-extracted summaries are used for associating text with observations.}}{5}{table.2}\protected@file@percent }
+\newlabel{tab:datasetsumm}{{2}{5}{Examples of the beginning of raw proposal abstracts (second column) and LLM (\textsc {Mixtral-8x7B})-extracted summaries (rightmost two columns), separately extracting objects and phenomena as well as potential downstream science use cases. The LLM-extracted summaries are used for associating text with observations}{table.2}{}}
+\citation{radford2021learning}
+\citation{oord2018representation}
+\citation{radford2021learning}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Methodology}{6}{section.3}\protected@file@percent }
+\newlabel{sec:methodology}{{3}{6}{Methodology}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Language-Image Pre-training}{6}{subsection.3.1}\protected@file@percent }
+\newlabel{sec:pretraining}{{3.1}{6}{Language-Image Pre-training}{subsection.3.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Fine-tuning Procedure}{6}{subsection.3.2}\protected@file@percent }
+\newlabel{sec:finetuning}{{3.2}{6}{Fine-tuning Procedure}{subsection.3.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Results and Discussion}{6}{section.4}\protected@file@percent }
+\newlabel{sec:results}{{4}{6}{Results and Discussion}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Fine-tuned Retrieval Accuracy}{6}{subsection.4.1}\protected@file@percent }
+\newlabel{sec:retrieval_acc}{{4.1}{6}{Fine-tuned Retrieval Accuracy}{subsection.4.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}`Zero-shot' Hypothesis and Object Retrieval}{6}{subsection.4.2}\protected@file@percent }
+\newlabel{sec:zero_shot}{{4.2}{6}{`Zero-shot' Hypothesis and Object Retrieval}{subsection.4.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Text-to-Image Retrieval}{6}{subsection.4.3}\protected@file@percent }
+\newlabel{sec:tti}{{4.3}{6}{Text-to-Image Retrieval}{subsection.4.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Outlook and Conclusions}{6}{section.5}\protected@file@percent }
+\newlabel{sec:conclusion}{{5}{6}{Outlook and Conclusions}{section.5}{}}
 \bibdata{main}
-\bibcite{Hinton06}{{1}{2006}{{Hinton et~al.}}{{Hinton, Osindero, and Teh}}}
-\@writefile{toc}{\contentsline {section}{\numberline {2}Dataset and Processing}{2}{section.2}\protected@file@percent }
-\newlabel{sec:dataset}{{2}{2}{Dataset and Processing}{section.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Summarization via guided generation}{2}{subsection.2.1}\protected@file@percent }
-\newlabel{sec:summarization}{{2.1}{2}{Summarization via guided generation}{subsection.2.1}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {3}Methodology}{2}{section.3}\protected@file@percent }
-\newlabel{sec:methodology}{{3}{2}{Methodology}{section.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Language-Image Pre-training}{2}{subsection.3.1}\protected@file@percent }
-\newlabel{sec:pretraining}{{3.1}{2}{Language-Image Pre-training}{subsection.3.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Pre-trained CLIP Model}{2}{subsection.3.2}\protected@file@percent }
-\newlabel{sec:clip}{{3.2}{2}{Pre-trained CLIP Model}{subsection.3.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Fine-tuning Objectives}{2}{subsection.3.3}\protected@file@percent }
-\newlabel{sec:finetuning}{{3.3}{2}{Fine-tuning Objectives}{subsection.3.3}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {4}Results and Discussion}{2}{section.4}\protected@file@percent }
-\newlabel{sec:results}{{4}{2}{Results and Discussion}{section.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Fine-tuned Retrieval Accuracy}{2}{subsection.4.1}\protected@file@percent }
-\newlabel{sec:retrieval_acc}{{4.1}{2}{Fine-tuned Retrieval Accuracy}{subsection.4.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}`Zero-shot' Hypothesis and Object Retrieval}{2}{subsection.4.2}\protected@file@percent }
-\newlabel{sec:zero_shot}{{4.2}{2}{`Zero-shot' Hypothesis and Object Retrieval}{subsection.4.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Text-to-Image Retrieval}{2}{subsection.4.3}\protected@file@percent }
-\newlabel{sec:tti}{{4.3}{2}{Text-to-Image Retrieval}{subsection.4.3}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Conclusion}{2}{section.5}\protected@file@percent }
-\newlabel{sec:conclusion}{{5}{2}{Conclusion}{section.5}{}}
+\bibcite{cepeda2023geoclip}{{1}{2023}{{Cepeda et~al.}}{{Cepeda, Nayak, and Shah}}}
+\bibcite{lanusse2023astroclip}{{2}{2023}{{Lanusse et~al.}}{{Lanusse, Parker, Golkar, Cranmer, Bietti, Eickenberg, Krawezik, McCabe, Ohana, Pettee, et~al.}}}
+\bibcite{nguyen2023astrollama}{{3}{2023}{{Nguyen et~al.}}{{Nguyen, Ting, Ciuc{\u {a}}, O'Neill, Sun, Jab{\l }o{\'n}ska, Kruk, Perkowski, Miller, Li, et~al.}}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Retrieval accuracy}}{7}{figure.1}\protected@file@percent }
+\newlabel{fig:retrieval_acc}{{1}{7}{Retrieval accuracy}{figure.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Retrieval accuracy}}{7}{figure.2}\protected@file@percent }
+\newlabel{fig:retrieval_acc}{{2}{7}{Retrieval accuracy}{figure.2}{}}
+\bibcite{oord2018representation}{{4}{2018}{{Oord et~al.}}{{Oord, Li, and Vinyals}}}
+\bibcite{radford2021learning}{{5}{2021}{{Radford et~al.}}{{Radford, Kim, Hallacy, Ramesh, Goh, Agarwal, Sastry, Askell, Mishkin, Clark, et~al.}}}
+\bibcite{willard2023efficient}{{6}{2023}{{Willard \& Louf}}{{Willard and Louf}}}
 \bibstyle{tmlr}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Data overview}}{3}{table.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {A}Appendix}{3}{appendix.A}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Retrieval accuracy}}{4}{figure.1}\protected@file@percent }
-\newlabel{fig:retrieval_acc}{{1}{4}{Retrieval accuracy}{figure.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Retrieval accuracy}}{4}{figure.2}\protected@file@percent }
-\newlabel{fig:retrieval_acc}{{2}{4}{Retrieval accuracy}{figure.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Retrieval accuracy}}{5}{figure.3}\protected@file@percent }
-\newlabel{fig:itt}{{3}{5}{Retrieval accuracy}{figure.3}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Retrieval accuracy}}{6}{figure.4}\protected@file@percent }
-\newlabel{fig:tti}{{4}{6}{Retrieval accuracy}{figure.4}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Retrieval accuracy}}{6}{figure.5}\protected@file@percent }
-\newlabel{fig:tti_base}{{5}{6}{Retrieval accuracy}{figure.5}{}}
-\gdef \@abspage@last{6}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Retrieval accuracy}}{8}{figure.3}\protected@file@percent }
+\newlabel{fig:itt}{{3}{8}{Retrieval accuracy}{figure.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Summarization via regex-guided generation}{8}{appendix.A}\protected@file@percent }
+\newlabel{app:summarization}{{A}{8}{Summarization via regex-guided generation}{appendix.A}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Retrieval accuracy}}{9}{figure.4}\protected@file@percent }
+\newlabel{fig:tti}{{4}{9}{Retrieval accuracy}{figure.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Retrieval accuracy}}{9}{figure.5}\protected@file@percent }
+\newlabel{fig:tti_base}{{5}{9}{Retrieval accuracy}{figure.5}{}}
+\gdef \@abspage@last{10}

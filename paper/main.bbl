@@ -1,13 +1,51 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{6}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
 
-\bibitem[Hinton et~al.(2006)Hinton, Osindero, and Teh]{Hinton06}
-Geoffrey~E. Hinton, Simon Osindero, and Yee~Whye Teh.
-\newblock A fast learning algorithm for deep belief nets.
-\newblock \emph{Neural Computation}, 18:\penalty0 1527--1554, 2006.
+\bibitem[Cepeda et~al.(2023)Cepeda, Nayak, and Shah]{cepeda2023geoclip}
+Vicente~Vivanco Cepeda, Gaurav~Kumar Nayak, and Mubarak Shah.
+\newblock Geoclip: Clip-inspired alignment between locations and images for
+  effective worldwide geo-localization.
+\newblock \emph{arXiv preprint arXiv:2309.16020}, 2023.
+
+\bibitem[Lanusse et~al.(2023)Lanusse, Parker, Golkar, Cranmer, Bietti,
+  Eickenberg, Krawezik, McCabe, Ohana, Pettee, et~al.]{lanusse2023astroclip}
+Francois Lanusse, Liam Parker, Siavash Golkar, Miles Cranmer, Alberto Bietti,
+  Michael Eickenberg, Geraud Krawezik, Michael McCabe, Ruben Ohana, Mariel
+  Pettee, et~al.
+\newblock Astroclip: Cross-modal pre-training for astronomical foundation
+  models.
+\newblock \emph{arXiv preprint arXiv:2310.03024}, 2023.
+
+\bibitem[Nguyen et~al.(2023)Nguyen, Ting, Ciuc{\u{a}}, O'Neill, Sun,
+  Jab{\l}o{\'n}ska, Kruk, Perkowski, Miller, Li, et~al.]{nguyen2023astrollama}
+Tuan~Dung Nguyen, Yuan-Sen Ting, Ioana Ciuc{\u{a}}, Charlie O'Neill, Ze-Chang
+  Sun, Maja Jab{\l}o{\'n}ska, Sandor Kruk, Ernest Perkowski, Jack Miller, Jason
+  Li, et~al.
+\newblock Astrollama: Towards specialized foundation models in astronomy.
+\newblock \emph{arXiv preprint arXiv:2309.06126}, 2023.
+
+\bibitem[Oord et~al.(2018)Oord, Li, and Vinyals]{oord2018representation}
+Aaron van~den Oord, Yazhe Li, and Oriol Vinyals.
+\newblock Representation learning with contrastive predictive coding.
+\newblock \emph{arXiv preprint arXiv:1807.03748}, 2018.
+
+\bibitem[Radford et~al.(2021)Radford, Kim, Hallacy, Ramesh, Goh, Agarwal,
+  Sastry, Askell, Mishkin, Clark, et~al.]{radford2021learning}
+Alec Radford, Jong~Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh,
+  Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark,
+  et~al.
+\newblock Learning transferable visual models from natural language
+  supervision.
+\newblock In \emph{International conference on machine learning}, pp.\
+  8748--8763. PMLR, 2021.
+
+\bibitem[Willard \& Louf(2023)Willard and Louf]{willard2023efficient}
+Brandon~T Willard and R{\'e}mi Louf.
+\newblock Efficient guided generation for llms.
+\newblock \emph{arXiv preprint arXiv:2307.09702}, 2023.
 
 \end{thebibliography}
