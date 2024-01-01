@@ -83,6 +83,8 @@ def summarize(
                                for d in dirs
                                if d.startswith("proposal_") and not d.endswith('.ipynb_checkpoints')]
 
+    generator = outlines.generate.json(model, ConstrainedResponseHST)
+    
     # Walk through data folder
     for directory in tqdm(directories_with_images[i_start:i_start + n_max_abstracts]):
         proposal_id = directory.split("proposal_")[-1]  # Extract proposal id from the directory name
@@ -92,8 +94,7 @@ def summarize(
 
         # Generate summary with constrained response
         prompt = prompt_fn(abstract)
-        generator = outlines.generate.json(model, ConstrainedResponseHST)
-
+        
         # Try up to n_max_tries times; if it fails, skip and go to the next abstract
         for _ in range(n_max_tries):
             result = None
