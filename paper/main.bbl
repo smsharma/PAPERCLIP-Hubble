@@ -1,4 +1,4 @@
-\begin{thebibliography}{6}
+\begin{thebibliography}{8}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -11,6 +11,14 @@ Vicente~Vivanco Cepeda, Gaurav~Kumar Nayak, and Mubarak Shah.
   effective worldwide geo-localization.
 \newblock \emph{arXiv preprint arXiv:2309.16020}, 2023.
 
+\bibitem[Kingma \& Ba(2015)Kingma and Ba]{DBLP:journals/corr/KingmaB14}
+Diederik~P. Kingma and Jimmy Ba.
+\newblock Adam: {A} method for stochastic optimization.
+\newblock In Yoshua Bengio and Yann LeCun (eds.), \emph{3rd International
+  Conference on Learning Representations, {ICLR} 2015, San Diego, CA, USA, May
+  7-9, 2015, Conference Track Proceedings}, 2015.
+\newblock URL \url{http://arxiv.org/abs/1412.6980}.
+
 \bibitem[Lanusse et~al.(2023)Lanusse, Parker, Golkar, Cranmer, Bietti,
   Eickenberg, Krawezik, McCabe, Ohana, Pettee, et~al.]{lanusse2023astroclip}
 Francois Lanusse, Liam Parker, Siavash Golkar, Miles Cranmer, Alberto Bietti,
@@ -19,6 +27,14 @@ Francois Lanusse, Liam Parker, Siavash Golkar, Miles Cranmer, Alberto Bietti,
 \newblock Astroclip: Cross-modal pre-training for astronomical foundation
   models.
 \newblock \emph{arXiv preprint arXiv:2310.03024}, 2023.
+
+\bibitem[Loshchilov \& Hutter(2019)Loshchilov and
+  Hutter]{DBLP:conf/iclr/LoshchilovH19}
+Ilya Loshchilov and Frank Hutter.
+\newblock Decoupled weight decay regularization.
+\newblock In \emph{7th International Conference on Learning Representations,
+  {ICLR} 2019, New Orleans, LA, USA, May 6-9, 2019}, 2019.
+\newblock URL \url{https://openreview.net/forum?id=Bkg6RiCqY7}.
 
 \bibitem[Nguyen et~al.(2023)Nguyen, Ting, Ciuc{\u{a}}, O'Neill, Sun,
   Jab{\l}o{\'n}ska, Kruk, Perkowski, Miller, Li, et~al.]{nguyen2023astrollama}
