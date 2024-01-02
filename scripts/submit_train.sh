@@ -35,3 +35,5 @@ cd /n/holystore01/LABS/iaifi_lab/Users/smsharma/multimodal-data/
 # /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.data.caption_type="abstract"  --config.data.augment_subsample_text=True  # Full abstract
 # /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.clip.random_init_text=True --config.clip.random_init_vision=True  # From scratch
 # /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.training.loss_type="sigmoid"
+# /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.data.shuffle_within_batch=True  # Shuffle within batch
+# /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.training.batch_size=64  # Larger batch size
