@@ -147,11 +147,10 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     ## Training config and loop
     
-    # Create checkpoint manager
+    # Checkpoint manager
 
     best_fn = lambda metrics: metrics[f"val/{config.training.ckpt_best_metric}"]
-    
-    mgr_options = orbax.checkpoint.CheckpointManagerOptions(create=True, step_prefix=f'step_{config.training.ckpt_best_metric}', max_to_keep=config.training.ckpt_keep_top_n, best_fn=best_fn, best_mode=config.training.ckpt_best_metric_best_mode)
+    mgr_options = orbax.checkpoint.CheckpointManagerOptions(create=True, step_prefix=f'step', max_to_keep=config.training.ckpt_keep_top_n, best_fn=best_fn, best_mode=config.training.ckpt_best_metric_best_mode)
 
     ckpt_mgr = orbax.checkpoint.CheckpointManager(f"{workdir}/ckpts/", orbax.checkpoint.Checkpointer(orbax.checkpoint.PyTreeCheckpointHandler()), mgr_options)
 
@@ -204,7 +203,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
             rng_eval = jax.random.PRNGKey(config.seed)
 
             # Eval portion
-            
+
             # Evaluate before starting, hence no `and (step != 0)`
             if (step % config.training.eval_every_steps == 0) and (jax.process_index() == 0):
 
