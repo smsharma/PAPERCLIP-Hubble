@@ -30,7 +30,13 @@
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
+\newcommand{\package}[1]{\textsl{#1}\xspace}
+\newcommand{\eg}{{e.\,g.}\xspace}
+\newcommand{\ie}{{i.\,e.}\xspace}
+\newcommand{\SM}[1]{\textcolor{blue}{[SM: #1]}}
 \newcommand{\hubble}{\emph{Hubble}\xspace}
+
+\def\preprintno{XXXX} % Insert correct preprint number
 
 \usepackage[
 pdfnewwindow=true,      % links in new window
@@ -41,6 +47,12 @@ filecolor=xlinkcolor,  % color of file links
 urlcolor=xlinkcolor,      % color of external links
 final=true,
 ]{hyperref}
+
+% Define a new fancy page style
+\fancypagestyle{firstpage}{
+    \rhead{MIT-CTP/\preprintno}
+    % Define other header and footer elements if necessary
+}
 
 \lstdefinestyle{mystyle}{
   backgroundcolor=\color{backcolour},
@@ -64,7 +76,6 @@ final=true,
 }
 
 \lstset{style=mystyle}
-
 
 \title{\textsc{HubbleCLIP}: Associating Astronomical Observations and Natural Language with Multi-Modal Models}
 
@@ -103,6 +114,8 @@ final=true,
 
 \maketitle
 
+\thispagestyle{firstpage}
+
 \begin{abstract}
 We present a multi-modal model which associates astronomical observations imaged by the \hubble Space Telescope (HST) with natural language. The model is fine-tuned from a base CLIP model using successful proposal abstracts corresponding to HST observations, summarized via guided large language (LLM) model generation. We show that the model embodies a meaningful joint representation between observations and text through experiments targeting observation retrieval (i.e., retrieving the most relevant observations from a set using natural language queries) and description retrieval (i.e., querying the astrophysical object classes and science use cases most relevant to a given observation). The model demonstrates the potential for using generalist rather than task-specific models for astrophysics research, in particular by leveraging text as an interface.
 \end{abstract}
@@ -127,7 +140,7 @@ The paper is organized as follows. In Sec.~\ref{sec:dataset}, we describe the da
 \section{Dataset Construction}
 \label{sec:dataset}
 
-We curate a dataset of images of \hubble observations and corresponding text descriptions. We rely on summarized versions of proposal abstracts from the Proposal Abstracts Catalog\footnote{\url{https://archive.stsci.edu/hst/proposal_abstracts.html}} -- a catalog of all accepted \hubble proposals -- as captions for the observations. The HST has been operational for 33 years, having been launched on April 24, 1990, and we use proposals and observations up to Cycle 31. 
+We curate a dataset of images of \hubble observations and corresponding text descriptions. We rely on summarized versions of proposal abstracts from the Proposal Abstracts Catalog\footnote{\url{https://archive.stsci.edu/hst/proposal_abstracts.html}} -- a catalog of all accepted \hubble proposals -- to derive captions for the observations. The HST has been operational for 33 years, having been launched on April 24, 1990. We use available proposals and observations up to Cycle 30, which commenced data-taking in 2022. 
 
 Examples of images and corresponding captions are shown in Tab.~\ref{tab:dataset}. It can be seen that these images have specific characteristics as well as artifacts particular to the nature of data-taking which distinguish them from the distribution of natural images typically used for large-scale pre-training of foundation models. This further motivates the need for fine-tuning on domain-specific data.
 
@@ -158,6 +171,8 @@ which is then used to construct the summarized caption by combining the two key 
 The open-weights, instruction-tuned model \textsc{Mixtral-8x7B}\footnote{\url{https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1}} is used to generate the summaries, with guided generation performed using the \texttt{outlines}\footnote{\url{https://github.com/outlines-dev/outlines}} package.
 
 The goal if summarization-via-guided-generation is to increase the signal between text and images by standardizing the captions used for fine-tuning the CLIP model. 
+
+% Note that the signal is very imperfect!
 
 \datafolder{./plots/data/}
  
@@ -198,7 +213,7 @@ The goal if summarization-via-guided-generation is to increase the signal betwee
               \input{\thedatafolder/id1_3.txt} & {\scriptsize \input{\thedatafolder/abs1_3.txt}} & {\scriptsize \input{\thedatafolder/obj1_3.txt}} & {\scriptsize \input{\thedatafolder/sci1_3.txt}} \tabularnewline
               \bottomrule
           \end{tabular}
-          \caption{Examples of the beginning of raw proposal abstracts (second column) and LLM (\textsc{Mixtral-8x7B})-extracted summaries (rightmost two columns), separately extracting objects and phenomena as well as potential downstream science use cases. The LLM-extracted summaries are used for associating text with observations.}
+          \caption{Examples of the initial parts of raw proposal abstracts (second column) and LLM (\textsc{Mixtral-8x7B})-extracted summaries (rightmost two columns), separately extracting objects and phenomena as well as potential downstream science use cases. The LLM-extracted summaries are used for associating text with observations.}
           \label{tab:datasetsumm}
       \end{table}
   \end{landscape}
@@ -211,19 +226,18 @@ Our goal is to learn a semantically  meaningful joint representation of HST imag
 \subsection{Language-Image Pre-training}
 \label{sec:pretraining}
 
-
-CLIP \citep[Contrastive Language-Image Pretraining;][]{radford2021learning} is a multi-modal model pre-trained on a large corpus of image-text pairs via weak supervision using a contrastive loss. Given a minibatch $\mathcal{B}$ of $|\mathcal{B}|$ image-text pairs $\{(I_i, T_i)\}$, the goal is to align the learned representations of corresponding (positive) pairs $(I_i, T_i)$ while repelling the representations of unaligned (negative) pairs $(I_i, T_{j\neq i})$. Image and text encoders $f(\cdot)$ and $g(\cdot)$ are used to map images and text to a common embedding space, and the standard softmax-based InfoNCE~\citep{oord2018representation} contrastive loss function is given by
+CLIP \citep[Contrastive Language-Image Pretraining;][]{radford2021learning} is a multi-modal model pre-trained on a large corpus of image-text pairs via weak supervision using a contrastive loss. Given a minibatch $\mathcal{B}$ of $|\mathcal{B}|$ image-text pairs $\{(I_i, T_i)\}$, the goal is to align the learned representations of corresponding (positive) pairs $(I_i, T_i)$ while repelling the representations of unaligned (negative) pairs $(I_i, T_{j\neq i})$. Image and text encoders $f(\cdot)$ and $g(\cdot)$ are used to map images and text to a common embedding space. The standard softmax-based bidirectional variation of the InfoNCE~\citep{oord2018representation} contrastive loss function, as used by CLIP, is particularly effective for multimodal learning. This bidirectionality is crucial as it ensures the model learns to map both images to text and text to images with equal importance. This symmetry in learning is essential for tasks that require a mutual understanding and interchangeability between visual and textual representations, such as image captioning, text-to-image synthesis, and cross-modal retrieval. The bidirectional loss is given by \citep{radford2021learning}
 \begin{equation}
-\mathcal L(\mathcal B) = -\frac{1}{2|\mathcal{B}|} \sum_{i=1}^{|\mathcal{B}|}\left(\overbrace{\log \frac{e^{t {x}_i \cdot {y}_i}}{\sum_{j=1}^{|\mathcal{B}|} e^{t {x}_i \cdot {y}_j}}}^{\text {image } \rightarrow \text { text softmax }}+\overbrace{\log \frac{e^{t {x}_i \cdot {y}_i}}{\sum_{j=1}^{|\mathcal{B}|} e^{t {x}_j \cdot {y}_i}}}^{\text {text } \rightarrow \text { image softmax }}\right)
+\mathcal L(\mathcal B) = -\frac{1}{2|\mathcal{B}|} \sum_{i=1}^{|\mathcal{B}|}\left(\overbrace{\log \frac{e^{{x}_i \cdot {y}_i / \tau}}{\sum_{j=1}^{|\mathcal{B}|} e^{{x}_i \cdot {y}_j / \tau}}}^{\text {image } \rightarrow \text { text softmax }}+\overbrace{\log \frac{e^{{x}_i \cdot {y}_i / \tau}}{\sum_{j=1}^{|\mathcal{B}|} e^{{x}_j \cdot {y}_i / \tau}}}^{\text {text } \rightarrow \text { image softmax }}\right)
 \end{equation}
-where ${x}_i=\frac{f\left(I_i\right)}{\left\|f\left(I_i\right)\right\|_2}$ and ${y}_i=\frac{g\left(T_i\right)}{\left\|g\left(T_i\right)\right\|_2}$ are the normalized representations of the $i$-th image and text, respectively, and $t$ is a (typically learnable) temperature hyperparameter.
+where ${x}_i=\frac{f\left(I_i\right)}{\left\|f\left(I_i\right)\right\|_2}$ and ${y}_i=\frac{g\left(T_i\right)}{\left\|g\left(T_i\right)\right\|_2}$ are the normalized representations of the $i$-th image and text, respectively, and $\tau$ is a (typically learnable) temperature hyperparameter. This bidirectional approach not only enhances the model's ability to create robust and versatile embeddings but also aligns with the intuitive understanding of how humans interact with and interpret multimodal information, further bridging the gap between artificial and natural intelligence in multimodal contexts.
 
 As the base model, we use the CLIP-ViT-B/16 \citep{radford2021learning} variant trained by OpenAI. This model uses a (12-layer, 12-head, 768-embedding dimension) vision transformer as the image encoder and a (12-layer, 8-head, 512-embedding dimension) sequence transformer as the text backbone. The text encoder has a maximum length of 77-tokens and the image encoder a native resolution of $224\times224$. Linear projection layers map the outputs of the image and text encoders to a common embedding space of dimension 512. In total, the model has 149,620,737 trainable parameters. The model was trained on 400 million image-text pairs from the internet. 
 
 \subsection{Fine-tuning Procedure and Evaluation}
 \label{sec:finetuning}
 
-The base CLIP model is fine-tuned using the dataset described in Sec.~\ref{sec:dataset}, using either the LLM-summarized data or the raw proposal abstracts. When using raw proposal abstracts, random chunks of the text delimited by periods are selected on the fly to fit within the maximum length of the text encoder. Images are downsampled to the native resolution of the image encoder and randomly rotated over training. Given the relatively modest size of the fine-tuning set, a batch size $|\mathcal B| = 32$ is used throughout. We note that positive and negative image-text association is noisy and imperfect, since multiple images can be associated with the same abstract.
+The base CLIP model is fine-tuned using the dataset described in Sec.~\ref{sec:dataset}, using either the LLM-summarized data or the raw proposal abstracts. When using raw proposal abstracts, random chunks of the text delimited by periods are selected on the fly to fit within the maximum token length of the text encoder. Images are randomly cropped to the native resolution of the image encoder and randomly rotated at each training step. Given the relatively modest size of the fine-tuning set, a batch size $|\mathcal B| = 32$ is used throughout. We note that the positive and negative image-text association is noisy and imperfect, since multiple images can be associated with the same abstract.
 
 We explore three different methods of training the model on our domain dataset: \emph{(1)} Fine-tuning the entire network, starting from the pre-trained base model; \emph{(2)} Freezing the base image and text encoders, and training a small projection head on top of these; and \emph{(3)} Training the entire model from scratch.
 
