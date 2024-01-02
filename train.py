@@ -277,31 +277,31 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
                     images, captions = next(val_batches)
                     images = np.array(images)
 
-                    # # NOTE: Don't augment images for eval!  
-                    # # Augment images through random rotations and flips
-                    # if config.data.augment_rotate:
+                    # NOTE: Don't augment images for eval! NOTE: Changed my mind.
+                    # Augment images through random rotations and flips
+                    if config.data.augment_rotate:
 
-                    #     # Rotations
-                    #     rng_eval, _ = jax.random.split(rng_eval)
-                    #     if config.data.augment_rotate_type == "continuous":
-                    #         rotation_angles = jax.random.choice(rng_eval, rot_angles_90, shape=(images.shape[0],))  # Angles in radians
-                    #     elif config.data.augment_rotate_type == "discrete":
-                    #         rotation_angles = jax.random.uniform(rng_eval, shape=(images.shape[0],)) * 2 * np.pi  # Angles in radians
-                    #     else:
-                    #         raise ValueError(f"Invalid augment_rotate_type: {config.data.augment_rotate_type}")
-                    #     images = jax.vmap(partial(rotate, mode='constant', cval=1.))(images, rotation_angles)
+                        # Rotations
+                        rng_eval, _ = jax.random.split(rng_eval)
+                        if config.data.augment_rotate_type == "continuous":
+                            rotation_angles = jax.random.choice(rng_eval, rot_angles_90, shape=(images.shape[0],))  # Angles in radians
+                        elif config.data.augment_rotate_type == "discrete":
+                            rotation_angles = jax.random.uniform(rng_eval, shape=(images.shape[0],)) * 2 * np.pi  # Angles in radians
+                        else:
+                            raise ValueError(f"Invalid augment_rotate_type: {config.data.augment_rotate_type}")
+                        images = jax.vmap(partial(rotate, mode='constant', cval=1.))(images, rotation_angles)
                         
-                    #     # Flips
-                    #     rng_eval, _ = jax.random.split(rng_eval)
-                    #     images = jax.vmap(partial(random_flip_up_down, key=rng_eval))(image=images)
+                        # Flips
+                        rng_eval, _ = jax.random.split(rng_eval)
+                        images = jax.vmap(partial(random_flip_up_down, key=rng_eval))(image=images)
 
-                    #     rng_eval, _ = jax.random.split(rng_eval)
-                    #     images = jax.vmap(partial(random_flip_left_right, key=rng_eval))(image=images)
+                        rng_eval, _ = jax.random.split(rng_eval)
+                        images = jax.vmap(partial(random_flip_left_right, key=rng_eval))(image=images)
 
-                    # # Augment images through random crops
-                    # # Otherwise, they'll be downsampled to the vision model's image size
-                    # if config.data.augment_crop:
-                    #     images = jax.vmap(random_crop, in_axes=(None,0,None))(rng_eval, images, (model.config.vision_config.image_size, model.config.vision_config.image_size, 3))
+                    # Augment images through random crops
+                    # Otherwise, they'll be downsampled to the vision model's image size
+                    if config.data.augment_crop:
+                        images = jax.vmap(random_crop, in_axes=(None,0,None))(rng_eval, images, (model.config.vision_config.image_size, model.config.vision_config.image_size, 3))
 
                     # NOTE: Image arrays should be ints in the range [0, 255] here
                     captions = process_truncate_captions(captions, rng_eval, max_length_words=max_length_words)
