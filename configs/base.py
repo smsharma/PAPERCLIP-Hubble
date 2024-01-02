@@ -42,7 +42,7 @@ def get_config():
     training.train_fraction = 0.95
     training.batch_size = 32  # Must be divisible by number of devices; this is the total batch size, not per-device
     training.batch_size_val = 100
-    training.n_train_steps = 40_001
+    training.n_train_steps = 20_001
     training.warmup_steps = 2000
     training.log_every_steps = 100
     training.eval_every_steps = 200
