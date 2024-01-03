@@ -229,9 +229,9 @@ Our goal is to learn a semantically  meaningful joint representation of HST imag
 
 CLIP \citep[Contrastive Language-Image Pretraining;][]{radford2021learning} is a multi-modal model pre-trained on a large corpus of image-text pairs via weak supervision using a contrastive loss. Given a minibatch $\mathcal{B}$ of $|\mathcal{B}|$ image-text pairs $\{(I_i, T_i)\}$, the goal is to align the learned representations of corresponding (positive) pairs $(I_i, T_i)$ while repelling the representations of unaligned (negative) pairs $(I_i, T_{j\neq i})$. Image and text encoders $f(\cdot)$ and $g(\cdot)$ are used to map images and text to a common embedding space. The standard softmax-based bidirectional variation of the InfoNCE~\citep{oord2018representation} contrastive loss function, as used by CLIP, is particularly effective for multimodal learning. This bidirectionality is crucial as it ensures the model learns to map both images to text and text to images with equal importance. This symmetry in learning is essential for tasks that require a mutual understanding and interchangeability between visual and textual representations, such as image captioning, text-to-image synthesis, and cross-modal retrieval. The bidirectional loss is given by \citep{radford2021learning}
 \begin{equation}
-\mathcal L(\mathcal B) = -\frac{1}{2|\mathcal{B}|} \sum_{i=1}^{|\mathcal{B}|}\left(\overbrace{\log \frac{e^{{x}_i \cdot {y}_i / \tau}}{\sum_{j=1}^{|\mathcal{B}|} e^{{x}_i \cdot {y}_j / \tau}}}^{\text {image } \rightarrow \text { text softmax }}+\overbrace{\log \frac{e^{{x}_i \cdot {y}_i / \tau}}{\sum_{j=1}^{|\mathcal{B}|} e^{{x}_j \cdot {y}_i / \tau}}}^{\text {text } \rightarrow \text { image softmax }}\right)
+\mathcal L(\mathcal B) = -\frac{1}{2|\mathcal{B}|} \sum_{i=1}^{|\mathcal{B}|}\left(\underbrace{\log \frac{e^{{x}_i \cdot {y}_i / \tau}}{\sum_{j=1}^{|\mathcal{B}|} e^{{x}_i \cdot {y}_j / \tau}}}_{\text {image } \rightarrow \text { text softmax }}+\underbrace{\log \frac{e^{{x}_i \cdot {y}_i / \tau}}{\sum_{j=1}^{|\mathcal{B}|} e^{{x}_j \cdot {y}_i / \tau}}}_{\text {text } \rightarrow \text { image softmax }}\right)
 \end{equation}
-where ${x}_i=\frac{f\left(I_i\right)}{\left\|f\left(I_i\right)\right\|_2}$ and ${y}_i=\frac{g\left(T_i\right)}{\left\|g\left(T_i\right)\right\|_2}$ are the normalized representations of the $i$-th image and text, respectively, and $\tau$ is a (typically learnable) temperature hyperparameter. 
+where ${x}_i=\frac{f\left(I_i\right)}{\left\|f\left(I_i\right)\right\|_2}$ and ${y}_i=\frac{g\left(T_i\right)}{\left\|g\left(T_i\right)\right\|_2}$ are the normalized representations of the $i$-th image and text, respectively, and $\tau$ is a learnable temperature hyperparameter. 
 % This bidirectional approach not only enhances the model's ability to create robust and versatile embeddings but also aligns with the intuitive understanding of how humans interact with and interpret multimodal information, further bridging the gap between artificial and natural intelligence in multimodal contexts.
 
 As the base model, we use the CLIP-ViT-B/16 \citep{radford2021learning} variant trained by OpenAI. This model uses a (12-layer, 12-head, 768-embedding dimension) vision transformer as the image encoder and a (12-layer, 8-head, 512-embedding dimension) sequence transformer as the text backbone. The text encoder has a maximum length of 77 tokens and the image encoder a native resolution of $224\times224$. Linear projection layers map the outputs of the image and text encoders to a common embedding space of dimension 512. In total, the model has 149,620,737 trainable parameters. The model was trained on 400 million image-text pairs from the internet. 
@@ -243,7 +243,9 @@ The base CLIP model is fine-tuned using the dataset described in Sec.~\ref{sec:d
 
 We explore three different methods of training the model on our domain dataset: \emph{(1)} Fine-tuning the entire network, starting from the pre-trained base model; \emph{(2)} Freezing the base image and text encoders, and training a small projection head on top of these; and \emph{(3)} Training the entire model from scratch.
 
-Models were instantiated and trained using the \package{Jax} \citep{jax2018github} ecosystem. The model is trained over 50,000 steps with 5000 linear warmup steps and cosine decay using the AdamW optimizer \citep{DBLP:conf/iclr/LoshchilovH19,DBLP:journals/corr/KingmaB14} with peak learning rate of either $10^{-5}$ or $10^{-6}$ and weight decay $10^{-3}$. Training takes approximately 6 hours on 4 Nvidia A100 GPUs.
+Models were instantiated and trained using the \package{Jax} \citep{jax2018github} ecosystem. The model is trained over 20,000 steps with 5000 linear warmup steps and cosine decay using the AdamW optimizer \citep{DBLP:conf/iclr/LoshchilovH19,DBLP:journals/corr/KingmaB14} with peak learning rate of $10^{-5}$ and weight decay $10^{-3}$. Training takes approximately 3 hours on 4 Nvidia A100 GPUs.
+
+% Describe evals
 
 \section{Results and Discussion}
 \label{sec:results}
@@ -273,14 +275,7 @@ Models were instantiated and trained using the \package{Jax} \citep{jax2018githu
   
 
 \begin{figure*}[!h]
-      \includegraphics[width=0.95\textwidth]{plots/val_metrics.pdf}
-      \caption{Retrieval accuracy}
-      \label{fig:retrieval_acc}
-      \end{figure*}
-      
-
-\begin{figure*}[!h]
-\includegraphics[width=0.95\textwidth]{plots/retrieval_acc.pdf}
+\includegraphics[width=0.95\textwidth]{plots/val_metrics.pdf}
 \caption{Retrieval accuracy}
 \label{fig:retrieval_acc}
 \end{figure*}
@@ -378,5 +373,10 @@ Answer in JSON format. The JSON should be a dictionary with keys "objects_and_ph
 \section{Additional Evaluation Metrics and Ablations}
 \label{app:ablations}
 
-
+\begin{figure*}[!h]
+\includegraphics[width=0.95\textwidth]{plots/retrieval_acc.pdf}
+\caption{Retrieval accuracy}
+\label{fig:retrieval_acc}
+\end{figure*}
+  
 \end{document}
