@@ -1,4 +1,5 @@
 import sys, os
+
 sys.path.append("../")
 
 import outlines
@@ -16,6 +17,7 @@ import torch
 from utils.summarize_utils import prompt_fn, ConstrainedResponseHST
 from utils.abstract_utils import read_abstracts_file
 
+
 def summarize(
     data_dir: str = "./data/",
     observations_dir: str = "observations_v1",
@@ -28,35 +30,22 @@ def summarize(
     verbose: bool = False,
     n_max_tries: int = 5,
 ):
-    
     if model_name == "mistralai/Mixtral-8x7B-Instruct-v0.1":
-
         config = transformers.AutoConfig.from_pretrained(
-            model_name, trust_remote_code=True, asd=True,
+            model_name,
+            trust_remote_code=True,
+            asd=True,
         )
 
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_use_double_quant=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.bfloat16
-        )
+        bnb_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_use_double_quant=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.bfloat16)
 
         model = models.transformers(
-            
             model_name=model_name,
-            model_kwargs={
-                "config": config,
-                "quantization_config": bnb_config,
-                "trust_remote_code": True,
-                "device_map": "auto",
-                "load_in_4bit": True,
-                "cache_dir": "/n/holystore01/LABS/iaifi_lab/Users/smsharma/hf_cache/"
-            },
+            model_kwargs={"config": config, "quantization_config": bnb_config, "trust_remote_code": True, "device_map": "auto", "load_in_4bit": True, "cache_dir": "/n/holystore01/LABS/iaifi_lab/Users/smsharma/hf_cache/"},
         )
-        
+
     elif model_name == "TheBloke/OpenHermes-2.5-Mistral-7B-AWQ":
-        model = models.awq(model_name)  
+        model = models.awq(model_name)
     else:
         raise ValueError("Invalid model name.")
 
@@ -65,12 +54,12 @@ def summarize(
     abstracts_df = read_abstracts_file(abstract_file)
 
     # Drop rows with missing Cycle
-    abstracts_df = abstracts_df.dropna(subset=['Cycle'])
-    abstracts_df = abstracts_df[abstracts_df['Cycle'] != '']
+    abstracts_df = abstracts_df.dropna(subset=["Cycle"])
+    abstracts_df = abstracts_df[abstracts_df["Cycle"] != ""]
 
     # Convert Cycle and ID to int
-    abstracts_df['Cycle'] = abstracts_df['Cycle'].astype(int)
-    abstracts_df['ID'] = abstracts_df['ID'].astype(int)
+    abstracts_df["Cycle"] = abstracts_df["Cycle"].astype(int)
+    abstracts_df["ID"] = abstracts_df["ID"].astype(int)
 
     # Lists to store results
     proposal_id_list = []
@@ -78,15 +67,12 @@ def summarize(
     science_list = []
 
     # Collect directories that contain .jpg files and match the "proposal_" pattern, excluding unwanted directories
-    directories_with_images = [os.path.join(r, d)
-                               for r, dirs, files in os.walk(f"{data_dir}/{observations_dir}/")
-                               for d in dirs
-                               if d.startswith("proposal_") and not d.endswith('.ipynb_checkpoints')]
+    directories_with_images = [os.path.join(r, d) for r, dirs, files in os.walk(f"{data_dir}/{observations_dir}/") for d in dirs if d.startswith("proposal_") and not d.endswith(".ipynb_checkpoints")]
 
     generator = outlines.generate.json(model, ConstrainedResponseHST)
-    
+
     # Walk through data folder
-    for directory in tqdm(directories_with_images[i_start:i_start + n_max_abstracts]):
+    for directory in tqdm(directories_with_images[i_start : i_start + n_max_abstracts]):
         proposal_id = directory.split("proposal_")[-1]  # Extract proposal id from the directory name
 
         # Extract abstract using the dataframe
@@ -94,7 +80,7 @@ def summarize(
 
         # Generate summary with constrained response
         prompt = prompt_fn(abstract)
-        
+
         # Try up to n_max_tries times; if it fails, skip and go to the next abstract
         for _ in range(n_max_tries):
             result = None
@@ -103,12 +89,11 @@ def summarize(
                 break
             except:
                 pass
-        
+
         if result is None:
             raise ValueError(f"Failed to generate summary for proposal {proposal_id}.")
-        
-        if verbose:
 
+        if verbose:
             # Print the abstract
             print("\n")
             print("Abstract:")
@@ -135,14 +120,11 @@ def summarize(
         objects_list.append(result.objects_and_phenomena)
 
     # Create a DataFrame
-    df = pd.DataFrame({
-        'proposal_id': proposal_id_list,
-        'objects_phenomena': objects_list,
-        'science_use_cases': science_list
-    })
+    df = pd.DataFrame({"proposal_id": proposal_id_list, "objects_phenomena": objects_list, "science_use_cases": science_list})
 
     # Save the DataFrame
     df.to_csv(f"{data_dir}/{save_filename}.csv", index=False)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Summarize abstracts.")
