@@ -30,6 +30,7 @@
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
+
 \newcommand{\package}[1]{\textsl{#1}\xspace}
 \newcommand{\eg}{{e.\,g.}\xspace}
 \newcommand{\ie}{{i.\,e.}\xspace}
@@ -144,7 +145,7 @@ We curate a dataset of images of \hubble observations and corresponding text des
 
 Examples of images and corresponding captions are shown in Tab.~\ref{tab:dataset}. It can be seen that these images have specific characteristics as well as artifacts particular to the nature of data-taking which distinguish them from the distribution of natural images typically used for large-scale pre-training of foundation models. This further motivates the need for fine-tuning on domain-specific data.
 
-\subsection{Data Selection and Pre-processing}
+\subsection{Data Selection and Pre-Processing}
 
 Observations corresponding to individual proposal IDs are queried through the Mikulski Archive for Space Telescopes (MAST) via the \texttt{astroquery} interface. Products of type \texttt{PREVIEW} are filtered in, corresponding to preview postcard images. Note that these are not science-grade observations, but rather low-resolution images used for quick-look purposes; given the nature of associations we aim to learn, we deem this adequate for our current purposes. A maximum of 20 images are downloaded per proposal ID, selected at random, in order to avoid biasing the model towards proposals with a larger number of observations. Images are centered and resized to a resolution per side of 512 pixels before saving. Color previews (i.e., observations taken with multiple wavelength filters assigned to individual RGB channels) are manually excluded via a filename filter in order to maintain consistency across the dataset; models trained on datasets with color images included were observed to show worse performance on generalization metrics. If no appropriate images corresponding to an abstract are found, the abstract is excluded from the dataset.
 
@@ -230,9 +231,10 @@ CLIP \citep[Contrastive Language-Image Pretraining;][]{radford2021learning} is a
 \begin{equation}
 \mathcal L(\mathcal B) = -\frac{1}{2|\mathcal{B}|} \sum_{i=1}^{|\mathcal{B}|}\left(\overbrace{\log \frac{e^{{x}_i \cdot {y}_i / \tau}}{\sum_{j=1}^{|\mathcal{B}|} e^{{x}_i \cdot {y}_j / \tau}}}^{\text {image } \rightarrow \text { text softmax }}+\overbrace{\log \frac{e^{{x}_i \cdot {y}_i / \tau}}{\sum_{j=1}^{|\mathcal{B}|} e^{{x}_j \cdot {y}_i / \tau}}}^{\text {text } \rightarrow \text { image softmax }}\right)
 \end{equation}
-where ${x}_i=\frac{f\left(I_i\right)}{\left\|f\left(I_i\right)\right\|_2}$ and ${y}_i=\frac{g\left(T_i\right)}{\left\|g\left(T_i\right)\right\|_2}$ are the normalized representations of the $i$-th image and text, respectively, and $\tau$ is a (typically learnable) temperature hyperparameter. This bidirectional approach not only enhances the model's ability to create robust and versatile embeddings but also aligns with the intuitive understanding of how humans interact with and interpret multimodal information, further bridging the gap between artificial and natural intelligence in multimodal contexts.
+where ${x}_i=\frac{f\left(I_i\right)}{\left\|f\left(I_i\right)\right\|_2}$ and ${y}_i=\frac{g\left(T_i\right)}{\left\|g\left(T_i\right)\right\|_2}$ are the normalized representations of the $i$-th image and text, respectively, and $\tau$ is a (typically learnable) temperature hyperparameter. 
+% This bidirectional approach not only enhances the model's ability to create robust and versatile embeddings but also aligns with the intuitive understanding of how humans interact with and interpret multimodal information, further bridging the gap between artificial and natural intelligence in multimodal contexts.
 
-As the base model, we use the CLIP-ViT-B/16 \citep{radford2021learning} variant trained by OpenAI. This model uses a (12-layer, 12-head, 768-embedding dimension) vision transformer as the image encoder and a (12-layer, 8-head, 512-embedding dimension) sequence transformer as the text backbone. The text encoder has a maximum length of 77-tokens and the image encoder a native resolution of $224\times224$. Linear projection layers map the outputs of the image and text encoders to a common embedding space of dimension 512. In total, the model has 149,620,737 trainable parameters. The model was trained on 400 million image-text pairs from the internet. 
+As the base model, we use the CLIP-ViT-B/16 \citep{radford2021learning} variant trained by OpenAI. This model uses a (12-layer, 12-head, 768-embedding dimension) vision transformer as the image encoder and a (12-layer, 8-head, 512-embedding dimension) sequence transformer as the text backbone. The text encoder has a maximum length of 77 tokens and the image encoder a native resolution of $224\times224$. Linear projection layers map the outputs of the image and text encoders to a common embedding space of dimension 512. In total, the model has 149,620,737 trainable parameters. The model was trained on 400 million image-text pairs from the internet. 
 
 \subsection{Fine-tuning Procedure and Evaluation}
 \label{sec:finetuning}
@@ -241,7 +243,7 @@ The base CLIP model is fine-tuned using the dataset described in Sec.~\ref{sec:d
 
 We explore three different methods of training the model on our domain dataset: \emph{(1)} Fine-tuning the entire network, starting from the pre-trained base model; \emph{(2)} Freezing the base image and text encoders, and training a small projection head on top of these; and \emph{(3)} Training the entire model from scratch.
 
-The model is trained over 50,000 steps with 5000 linear warmup steps and cosine decay using the AdamW optimizer \citep{DBLP:conf/iclr/LoshchilovH19,DBLP:journals/corr/KingmaB14} with peak learning rate of either $10^{-5}$ or $10^{-6}$ and weight decay $10^{-3}$. Training takes approximately 6 hours on 4 Nvidia A100 GPUs.
+Models were instantiated and trained using the \package{Jax} \citep{jax2018github} ecosystem. The model is trained over 50,000 steps with 5000 linear warmup steps and cosine decay using the AdamW optimizer \citep{DBLP:conf/iclr/LoshchilovH19,DBLP:journals/corr/KingmaB14} with peak learning rate of either $10^{-5}$ or $10^{-6}$ and weight decay $10^{-3}$. Training takes approximately 6 hours on 4 Nvidia A100 GPUs.
 
 \section{Results and Discussion}
 \label{sec:results}
@@ -316,11 +318,16 @@ The model is trained over 50,000 steps with 5000 linear warmup steps and cosine 
 
 \subsubsection*{Code}
 
+The code, dataset, and models used in this work is available at \url{https://www.github.com/smsharma/HubbleCLIP}.
+
+This work relied on the \package{Astroquery} \citep{2019AJ....157...98G}, \package{bitsandbytes} \citep{dettmers2022llmint8}, \package{Flax} \citep{flax2020github}, \package{Jax} \citep{jax2018github}, \package{Jupyter} \citep{Kluyver2016jupyter}, \package{Matplotlib} \citep{Hunter:2007}, \package{Numpy} \citep{harris2020array}, \package{Optax} \citep{deepmind2020jax}, \package{Outlines}, \package{Pandas}, \package{Pydantic}, \package{PyTorch} \citep{paszke2019pytorch}, \package{SciPy} \citep{2020SciPy-NMeth}, \package{Transformers} \citep{wolf2019huggingface}, and \package{wandb} \citep{wandb} software packages.
+
+
 % Code repo and package cites.
 % Dataset availability
 
 \subsubsection*{Acknowledgments}
-This work is supported by the National Science Foundation under Cooperative Agreement PHY-2019786 (The NSF AI Institute for Artificial Intelligence and Fundamental Interactions, \url{http://iaifi.org/}). This material is based upon work supported by the U.S. Department of Energy, Office of Science, Office of High Energy Physics of U.S. Department of Energy under grant Contract Number  DE-SC0012567. The computations in this paper were run on the FASRC Cannon cluster supported by the FAS Division of Science Research Computing Group at Harvard University.
+This work is supported by the National Science Foundation under Cooperative Agreement PHY-2019786 (The NSF AI Institute for Artificial Intelligence and Fundamental Interactions, \url{http://iaifi.org/}). This material is based upon work supported by the U.S. Department of Energy, Office of Science, Office of High Energy Physics of U.S. Department of Energy under grant Contract Number  DE-SC0012567. YS was supported by the Research Science Institute (RSI) program at MIT. The computations in this paper were run on the FASRC Cannon cluster supported by the FAS Division of Science Research Computing Group at Harvard University.
 
 This research is based on observations made with the NASA/ESA Hubble Space Telescope obtained from the Space Telescope Science Institute, which is operated by the Association of Universities for Research in Astronomy, Inc., under NASA contract NAS 5-26555.
 
@@ -331,7 +338,7 @@ Based on observations made with the NASA/ESA Hubble Space Telescope, and obtaine
 \bibliographystyle{tmlr}
 
 \appendix
-\section{Summarization via regex-guided generation}
+\section{Summarization via Regex-Guided Generation}
 \label{app:summarization}
 
 The following prompt is used to summarize the abstracts.
@@ -367,5 +374,9 @@ Answer in JSON format. The JSON should be a dictionary with keys "objects_and_ph
 [/INST]
 """
 \end{lstlisting}
+
+\section{Additional Evaluation Metrics and Ablations}
+\label{app:ablations}
+
 
 \end{document}
