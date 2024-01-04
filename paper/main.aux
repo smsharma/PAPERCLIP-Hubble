@@ -16,6 +16,8 @@
 \gdef\HyperFirstAtBeginDocument#1{#1}
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{huertas2022dawes}
+\citation{batatia2023foundation,subramanian2023towards}
 \citation{lanusse2023astroclip}
 \citation{nguyen2023astrollama}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
@@ -29,8 +31,8 @@
 \citation{willard2023efficient}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Summarization via Guided Generation}{3}{subsection.2.2}\protected@file@percent }
 \newlabel{sec:summarization}{{2.2}{3}{Summarization via Guided Generation}{subsection.2.2}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Examples of images and corresponding captions, constructed using the LLM-extracted summaries. The CLIP model is fine-tuned on these text-image associations.}}{4}{table.1}\protected@file@percent }
-\newlabel{tab:dataset}{{1}{4}{Examples of images and corresponding captions, constructed using the LLM-extracted summaries. The CLIP model is fine-tuned on these text-image associations}{table.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Examples of images and corresponding captions, constructed using the LLM-extracted summaries. The CLIP model is fine-tuned on these text-image associations. \leavevmode {\color  {blue}[SM: Can add another row to fill the page]}}}{4}{table.1}\protected@file@percent }
+\newlabel{tab:dataset}{{1}{4}{Examples of images and corresponding captions, constructed using the LLM-extracted summaries. The CLIP model is fine-tuned on these text-image associations. \SM {Can add another row to fill the page}}{table.1}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Examples of the initial parts of raw proposal abstracts (second column) and LLM (\textsc  {Mixtral-8x7B})-extracted summaries (rightmost two columns), separately extracting objects and phenomena as well as potential downstream science use cases. The LLM-extracted summaries are used for associating text with observations.}}{5}{table.2}\protected@file@percent }
 \newlabel{tab:datasetsumm}{{2}{5}{Examples of the initial parts of raw proposal abstracts (second column) and LLM (\textsc {Mixtral-8x7B})-extracted summaries (rightmost two columns), separately extracting objects and phenomena as well as potential downstream science use cases. The LLM-extracted summaries are used for associating text with observations}{table.2}{}}
 \citation{radford2021learning}
@@ -41,15 +43,13 @@
 \citation{DBLP:conf/iclr/LoshchilovH19,DBLP:journals/corr/KingmaB14}
 \@writefile{toc}{\contentsline {section}{\numberline {3}Methodology}{6}{section.3}\protected@file@percent }
 \newlabel{sec:methodology}{{3}{6}{Methodology}{section.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Language-Image Pre-training}{6}{subsection.3.1}\protected@file@percent }
-\newlabel{sec:pretraining}{{3.1}{6}{Language-Image Pre-training}{subsection.3.1}{}}
-\newlabel{eq:softmax_loss}{{1}{6}{Language-Image Pre-training}{equation.3.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Fine-tuning Procedure and Evaluation}{6}{subsection.3.2}\protected@file@percent }
-\newlabel{sec:finetuning}{{3.2}{6}{Fine-tuning Procedure and Evaluation}{subsection.3.2}{}}
+\newlabel{eq:softmax_loss}{{1}{6}{Pre-trained CLIP model}{equation.3.1}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {4}Results and Discussion}{7}{section.4}\protected@file@percent }
 \newlabel{sec:results}{{4}{7}{Results and Discussion}{section.4}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces The CLIP-contrastive loss from Eq.\nobreakspace  {}\ref  {eq:softmax_loss} and the top-10\% retrieval accuracy computed on the validation set over the course of training. Shown for the fiducial set-up (orange), dataset using raw proposal abstracts (purple), only fine-tuning a small MLP head (green), training from scratch (blue), and a baseline trained with shuffled image-text pairs.}}{7}{figure.1}\protected@file@percent }
 \newlabel{fig:retrieval_acc}{{1}{7}{The CLIP-contrastive loss from Eq.~\ref {eq:softmax_loss} and the top-10\% retrieval accuracy computed on the validation set over the course of training. Shown for the fiducial set-up (orange), dataset using raw proposal abstracts (purple), only fine-tuning a small MLP head (green), training from scratch (blue), and a baseline trained with shuffled image-text pairs}{figure.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Image retrieval using the base CLIP model on four curated queries.}}{8}{figure.2}\protected@file@percent }
+\newlabel{fig:tti_base}{{2}{8}{Image retrieval using the base CLIP model on four curated queries}{figure.2}{}}
 \citation{2019AJ....157...98G}
 \citation{dettmers2022llmint8}
 \citation{flax2020github}
@@ -63,35 +63,36 @@
 \citation{2020SciPy-NMeth}
 \citation{wolf2019huggingface}
 \citation{wandb}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Outlook and Conclusions}{8}{section.5}\protected@file@percent }
-\newlabel{sec:conclusion}{{5}{8}{Outlook and Conclusions}{section.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Image retrieval using the fine-tuned CLIP model on four curated queries.}}{9}{figure.3}\protected@file@percent }
+\newlabel{fig:tti}{{3}{9}{Image retrieval using the fine-tuned CLIP model on four curated queries}{figure.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Outlook and Conclusions}{9}{section.5}\protected@file@percent }
+\newlabel{sec:conclusion}{{5}{9}{Outlook and Conclusions}{section.5}{}}
 \bibdata{main}
 \bibcite{deepmind2020jax}{{1}{2020}{{Babuschkin et~al.}}{{Babuschkin, Baumli, Bell, Bhupatiraju, Bruce, Buchlovsky, Budden, Cai, Clark, Danihelka, Dedieu, Fantacci, Godwin, Jones, Hemsley, Hennigan, Hessel, Hou, Kapturowski, Keck, Kemaev, King, Kunesch, Martens, Merzic, Mikulik, Norman, Papamakarios, Quan, Ring, Ruiz, Sanchez, Schneider, Sezener, Spencer, Srinivasan, Stokowiec, Wang, Zhou, and Viola}}}
-\bibcite{wandb}{{2}{2020}{{Biewald}}{{}}}
-\bibcite{jax2018github}{{3}{2018}{{Bradbury et~al.}}{{Bradbury, Frostig, Hawkins, Johnson, Leary, Maclaurin, Necula, Paszke, Vander{P}las, Wanderman-{M}ilne, and Zhang}}}
-\bibcite{cepeda2023geoclip}{{4}{2023}{{Cepeda et~al.}}{{Cepeda, Nayak, and Shah}}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Image retrieval using the base CLIP model on four curated queries.}}{9}{figure.2}\protected@file@percent }
-\newlabel{fig:tti_base}{{2}{9}{Image retrieval using the base CLIP model on four curated queries}{figure.2}{}}
-\bibcite{dettmers2022llmint8}{{5}{2022}{{Dettmers et~al.}}{{Dettmers, Lewis, Belkada, and Zettlemoyer}}}
-\bibcite{2019AJ....157...98G}{{6}{2019}{{{Ginsburg} et~al.}}{{{Ginsburg}, {Sip{\H o}cz}, {Brasseur}, {Cowperthwaite}, {Craig}, {Deil}, {Guillochon}, {Guzman}, {Liedtke}, {Lian Lim}, {Lockhart}, {Mommert}, {Morris}, {Norman}, {Parikh}, {Persson}, {Robitaille}, {Segovia}, {Singer}, {Tollerud}, {de Val-Borro}, {Valtchanov}, {Woillez}, {The Astroquery collaboration}, and {a subset of the astropy collaboration}}}}
-\bibcite{harris2020array}{{7}{2020}{{Harris et~al.}}{{Harris, Millman, van~der Walt, Gommers, Virtanen, Cournapeau, Wieser, Taylor, Berg, Smith, Kern, Picus, Hoyer, van Kerkwijk, Brett, Haldane, del R{\'{i}}o, Wiebe, Peterson, G{\'{e}}rard-Marchant, Sheppard, Reddy, Weckesser, Abbasi, Gohlke, and Oliphant}}}
-\bibcite{flax2020github}{{8}{2023}{{Heek et~al.}}{{Heek, Levskaya, Oliver, Ritter, Rondepierre, Steiner, and van {Z}ee}}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Image retrieval using the fine-tuned CLIP model on four curated queries.}}{10}{figure.3}\protected@file@percent }
-\newlabel{fig:tti}{{3}{10}{Image retrieval using the fine-tuned CLIP model on four curated queries}{figure.3}{}}
-\bibcite{Hunter:2007}{{9}{2007}{{Hunter}}{{}}}
-\bibcite{DBLP:journals/corr/KingmaB14}{{10}{2015}{{Kingma \& Ba}}{{Kingma and Ba}}}
-\bibcite{Kluyver2016jupyter}{{11}{2016}{{Kluyver et~al.}}{{Kluyver, Ragan-Kelley, P{\'e}rez, Granger, Bussonnier, Frederic, Kelley, Hamrick, Grout, Corlay, Ivanov, Avila, Abdalla, and Willing}}}
-\bibcite{lanusse2023astroclip}{{12}{2023}{{Lanusse et~al.}}{{Lanusse, Parker, Golkar, Cranmer, Bietti, Eickenberg, Krawezik, McCabe, Ohana, Pettee, et~al.}}}
-\bibcite{DBLP:conf/iclr/LoshchilovH19}{{13}{2019}{{Loshchilov \& Hutter}}{{Loshchilov and Hutter}}}
-\bibcite{nguyen2023astrollama}{{14}{2023}{{Nguyen et~al.}}{{Nguyen, Ting, Ciuc{\u {a}}, O'Neill, Sun, Jab{\l }o{\'n}ska, Kruk, Perkowski, Miller, Li, et~al.}}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Text associations from a curated list most closely matching a given image query, for both the fine-tuned and base models. The `ground truth' LLM-summarized abstract is shown in the right column.}}{11}{figure.4}\protected@file@percent }
-\newlabel{fig:itt}{{4}{11}{Text associations from a curated list most closely matching a given image query, for both the fine-tuned and base models. The `ground truth' LLM-summarized abstract is shown in the right column}{figure.4}{}}
-\bibcite{oord2018representation}{{15}{2018}{{Oord et~al.}}{{Oord, Li, and Vinyals}}}
-\bibcite{paszke2019pytorch}{{16}{2019}{{Paszke et~al.}}{{Paszke, Gross, Massa, Lerer, Bradbury, Chanan, Killeen, Lin, Gimelshein, Antiga, et~al.}}}
-\bibcite{radford2021learning}{{17}{2021}{{Radford et~al.}}{{Radford, Kim, Hallacy, Ramesh, Goh, Agarwal, Sastry, Askell, Mishkin, Clark, et~al.}}}
-\bibcite{2020SciPy-NMeth}{{18}{2020}{{Virtanen et~al.}}{{Virtanen, Gommers, Oliphant, Haberland, Reddy, Cournapeau, Burovski, Peterson, Weckesser, Bright, {van der Walt}, Brett, Wilson, Millman, Mayorov, Nelson, Jones, Kern, Larson, Carey, Polat, Feng, Moore, {VanderPlas}, Laxalde, Perktold, Cimrman, Henriksen, Quintero, Harris, Archibald, Ribeiro, Pedregosa, {van Mulbregt}, and {SciPy 1.0 Contributors}}}}
-\bibcite{willard2023efficient}{{19}{2023}{{Willard \& Louf}}{{Willard and Louf}}}
-\bibcite{wolf2019huggingface}{{20}{2019}{{Wolf et~al.}}{{Wolf, Debut, Sanh, Chaumond, Delangue, Moi, Cistac, Rault, Louf, Funtowicz, et~al.}}}
+\bibcite{batatia2023foundation}{{2}{2023}{{Batatia et~al.}}{{Batatia, Benner, Chiang, Elena, Kov{\'a}cs, Riebesell, Advincula, Asta, Baldwin, Bernstein, et~al.}}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Text associations from a curated list most closely matching a given image query, for both the fine-tuned and base models. The `ground truth' LLM-summarized abstract is shown in the right column.}}{10}{figure.4}\protected@file@percent }
+\newlabel{fig:itt}{{4}{10}{Text associations from a curated list most closely matching a given image query, for both the fine-tuned and base models. The `ground truth' LLM-summarized abstract is shown in the right column}{figure.4}{}}
+\bibcite{wandb}{{3}{2020}{{Biewald}}{{}}}
+\bibcite{jax2018github}{{4}{2018}{{Bradbury et~al.}}{{Bradbury, Frostig, Hawkins, Johnson, Leary, Maclaurin, Necula, Paszke, Vander{P}las, Wanderman-{M}ilne, and Zhang}}}
+\bibcite{cepeda2023geoclip}{{5}{2023}{{Cepeda et~al.}}{{Cepeda, Nayak, and Shah}}}
+\bibcite{dettmers2022llmint8}{{6}{2022}{{Dettmers et~al.}}{{Dettmers, Lewis, Belkada, and Zettlemoyer}}}
+\bibcite{2019AJ....157...98G}{{7}{2019}{{{Ginsburg} et~al.}}{{{Ginsburg}, {Sip{\H o}cz}, {Brasseur}, {Cowperthwaite}, {Craig}, {Deil}, {Guillochon}, {Guzman}, {Liedtke}, {Lian Lim}, {Lockhart}, {Mommert}, {Morris}, {Norman}, {Parikh}, {Persson}, {Robitaille}, {Segovia}, {Singer}, {Tollerud}, {de Val-Borro}, {Valtchanov}, {Woillez}, {The Astroquery collaboration}, and {a subset of the astropy collaboration}}}}
+\bibcite{harris2020array}{{8}{2020}{{Harris et~al.}}{{Harris, Millman, van~der Walt, Gommers, Virtanen, Cournapeau, Wieser, Taylor, Berg, Smith, Kern, Picus, Hoyer, van Kerkwijk, Brett, Haldane, del R{\'{i}}o, Wiebe, Peterson, G{\'{e}}rard-Marchant, Sheppard, Reddy, Weckesser, Abbasi, Gohlke, and Oliphant}}}
+\bibcite{flax2020github}{{9}{2023}{{Heek et~al.}}{{Heek, Levskaya, Oliver, Ritter, Rondepierre, Steiner, and van {Z}ee}}}
+\bibcite{huertas2022dawes}{{10}{2022}{{Huertas-Company \& Lanusse}}{{Huertas-Company and Lanusse}}}
+\bibcite{Hunter:2007}{{11}{2007}{{Hunter}}{{}}}
+\bibcite{DBLP:journals/corr/KingmaB14}{{12}{2015}{{Kingma \& Ba}}{{Kingma and Ba}}}
+\bibcite{Kluyver2016jupyter}{{13}{2016}{{Kluyver et~al.}}{{Kluyver, Ragan-Kelley, P{\'e}rez, Granger, Bussonnier, Frederic, Kelley, Hamrick, Grout, Corlay, Ivanov, Avila, Abdalla, and Willing}}}
+\bibcite{lanusse2023astroclip}{{14}{2023}{{Lanusse et~al.}}{{Lanusse, Parker, Golkar, Cranmer, Bietti, Eickenberg, Krawezik, McCabe, Ohana, Pettee, et~al.}}}
+\bibcite{DBLP:conf/iclr/LoshchilovH19}{{15}{2019}{{Loshchilov \& Hutter}}{{Loshchilov and Hutter}}}
+\bibcite{nguyen2023astrollama}{{16}{2023}{{Nguyen et~al.}}{{Nguyen, Ting, Ciuc{\u {a}}, O'Neill, Sun, Jab{\l }o{\'n}ska, Kruk, Perkowski, Miller, Li, et~al.}}}
+\bibcite{oord2018representation}{{17}{2018}{{Oord et~al.}}{{Oord, Li, and Vinyals}}}
+\bibcite{paszke2019pytorch}{{18}{2019}{{Paszke et~al.}}{{Paszke, Gross, Massa, Lerer, Bradbury, Chanan, Killeen, Lin, Gimelshein, Antiga, et~al.}}}
+\bibcite{radford2021learning}{{19}{2021}{{Radford et~al.}}{{Radford, Kim, Hallacy, Ramesh, Goh, Agarwal, Sastry, Askell, Mishkin, Clark, et~al.}}}
+\bibcite{subramanian2023towards}{{20}{2023}{{Subramanian et~al.}}{{Subramanian, Harrington, Keutzer, Bhimji, Morozov, Mahoney, and Gholami}}}
+\bibcite{2020SciPy-NMeth}{{21}{2020}{{Virtanen et~al.}}{{Virtanen, Gommers, Oliphant, Haberland, Reddy, Cournapeau, Burovski, Peterson, Weckesser, Bright, {van der Walt}, Brett, Wilson, Millman, Mayorov, Nelson, Jones, Kern, Larson, Carey, Polat, Feng, Moore, {VanderPlas}, Laxalde, Perktold, Cimrman, Henriksen, Quintero, Harris, Archibald, Ribeiro, Pedregosa, {van Mulbregt}, and {SciPy 1.0 Contributors}}}}
+\bibcite{willard2023efficient}{{22}{2023}{{Willard \& Louf}}{{Willard and Louf}}}
+\bibcite{wolf2019huggingface}{{23}{2019}{{Wolf et~al.}}{{Wolf, Debut, Sanh, Chaumond, Delangue, Moi, Cistac, Rault, Louf, Funtowicz, et~al.}}}
 \bibstyle{tmlr}
 \@writefile{toc}{\contentsline {section}{\numberline {A}Summarization via Regex-Guided Generation}{12}{appendix.A}\protected@file@percent }
 \newlabel{app:summarization}{{A}{12}{Summarization via Regex-Guided Generation}{appendix.A}{}}

@@ -1,4 +1,4 @@
-\begin{thebibliography}{20}
+\begin{thebibliography}{23}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -22,6 +22,15 @@ Igor Babuschkin, Kate Baumli, Alison Bell, Surya Bhupatiraju, Jake Bruce, Peter
   Viola.
 \newblock The {D}eep{M}ind {JAX} {E}cosystem, 2020.
 \newblock URL \url{http://github.com/deepmind}.
+
+\bibitem[Batatia et~al.(2023)Batatia, Benner, Chiang, Elena, Kov{\'a}cs,
+  Riebesell, Advincula, Asta, Baldwin, Bernstein,
+  et~al.]{batatia2023foundation}
+Ilyes Batatia, Philipp Benner, Yuan Chiang, Alin~M Elena, D{\'a}vid~P
+  Kov{\'a}cs, Janosh Riebesell, Xavier~R Advincula, Mark Asta, William~J
+  Baldwin, Noam Bernstein, et~al.
+\newblock A foundation model for atomistic materials chemistry.
+\newblock \emph{arXiv preprint arXiv:2401.00096}, 2023.
 
 \bibitem[Biewald(2020)]{wandb}
 Lukas Biewald.
@@ -90,6 +99,13 @@ Jonathan Heek, Anselm Levskaya, Avital Oliver, Marvin Ritter, Bertrand
   Rondepierre, Andreas Steiner, and Marc van {Z}ee.
 \newblock {F}lax: A neural network library and ecosystem for {JAX}, 2023.
 \newblock URL \url{http://github.com/google/flax}.
+
+\bibitem[Huertas-Company \& Lanusse(2022)Huertas-Company and
+  Lanusse]{huertas2022dawes}
+Marc Huertas-Company and Fran{\c{c}}ois Lanusse.
+\newblock The dawes review 10: The impact of deep learning for the analysis of
+  galaxy surveys.
+\newblock \emph{arXiv preprint arXiv:2210.01813}, 2022.
 
 \bibitem[Hunter(2007)]{Hunter:2007}
 J.~D. Hunter.
@@ -165,6 +181,14 @@ Alec Radford, Jong~Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh,
   supervision.
 \newblock In \emph{International conference on machine learning}, pp.\
   8748--8763. PMLR, 2021.
+
+\bibitem[Subramanian et~al.(2023)Subramanian, Harrington, Keutzer, Bhimji,
+  Morozov, Mahoney, and Gholami]{subramanian2023towards}
+Shashank Subramanian, Peter Harrington, Kurt Keutzer, Wahid Bhimji, Dmitriy
+  Morozov, Michael Mahoney, and Amir Gholami.
+\newblock Towards foundation models for scientific machine learning:
+  Characterizing scaling and transfer behavior.
+\newblock \emph{arXiv preprint arXiv:2306.00258}, 2023.
 
 \bibitem[Virtanen et~al.(2020)Virtanen, Gommers, Oliphant, Haberland, Reddy,
   Cournapeau, Burovski, Peterson, Weckesser, Bright, {van der Walt}, Brett,

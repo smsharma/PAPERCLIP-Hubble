@@ -9,45 +9,45 @@ Warning--entry type for "jax2018github" isn't style-file defined
 --line 83 of file main.bib
 Warning--entry type for "deepmind2020jax" isn't style-file defined
 --line 126 of file main.bib
-You've used 20 entries,
+You've used 23 entries,
             2773 wiz_defined-function locations,
-            713 strings with 12210 characters,
-and the built_in function-call counts, 17756 in all, are:
-= -- 1308
-> -- 2146
-< -- 7
-+ -- 717
-- -- 697
-* -- 1770
-:= -- 2986
-add.period$ -- 70
-call.type$ -- 20
-change.case$ -- 286
-chr.to.int$ -- 20
-cite$ -- 40
-duplicate$ -- 419
-empty$ -- 723
-format.name$ -- 723
-if$ -- 3462
+            725 strings with 13000 characters,
+and the built_in function-call counts, 19535 in all, are:
+= -- 1443
+> -- 2334
+< -- 8
++ -- 780
+- -- 757
+* -- 1932
+:= -- 3286
+add.period$ -- 79
+call.type$ -- 23
+change.case$ -- 314
+chr.to.int$ -- 23
+cite$ -- 46
+duplicate$ -- 478
+empty$ -- 815
+format.name$ -- 788
+if$ -- 3812
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 16
-newline$ -- 116
-num.names$ -- 84
-pop$ -- 580
+missing$ -- 19
+newline$ -- 131
+num.names$ -- 96
+pop$ -- 635
 preamble$ -- 1
-purify$ -- 266
+purify$ -- 291
 quote$ -- 0
-skip$ -- 507
+skip$ -- 565
 stack$ -- 0
-substring$ -- 177
-swap$ -- 46
+substring$ -- 183
+swap$ -- 49
 text.length$ -- 2
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 220
+type$ -- 253
 warning$ -- 0
-while$ -- 73
+while$ -- 82
 width$ -- 0
-write$ -- 272
+write$ -- 308
 (There were 3 warnings)
