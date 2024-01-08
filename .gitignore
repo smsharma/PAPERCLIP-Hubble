@@ -189,4 +189,4 @@ notebooks/*.tfrecord*
 *.DS_Store
 
 # Draft files
-main.tex
+main.pdf
