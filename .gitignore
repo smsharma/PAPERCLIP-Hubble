@@ -170,3 +170,23 @@ wandb
 wandb/*
 notebooks/data
 notebooks/*.tfrecord*
+
+# Tex
+*.aux
+*.bbl
+*.blg
+*.toc
+*.bak
+*Notes.bib
+*.bib.bak
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz*
+*.synctex*
+*.out
+*.dbj
+*.DS_Store
+
+# Draft files
+main.pdf

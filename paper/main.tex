@@ -25,7 +25,7 @@
 \definecolor{deepgreen}{rgb}{0,0.5,0}
 
 \definecolor{xlinkcolor}{rgb}{0.7752941176470588, 0.22078431372549023, 0.2262745098039215}
-\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegreen}{rgb}{0,0.4,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
@@ -118,47 +118,43 @@ final=true,
 \thispagestyle{firstpage}
 
 \begin{abstract}
-We present a multi-modal model which associates astronomical observations imaged by the \hubble Space Telescope (HST) with natural language. The model is fine-tuned from a base CLIP model using successful proposal abstracts corresponding to HST observations, summarized via guided large language (LLM) model generation. We show that the model embodies a meaningful joint representation between observations and text through experiments targeting observation retrieval (i.e., retrieving the most relevant observations from a set using natural language queries) and description retrieval (i.e., querying the astrophysical object classes and science use cases most relevant to a given observation). The model demonstrates the potential for using generalist rather than task-specific models for astrophysics research, in particular by leveraging text as an interface.
+We present a multi-modal model which associates astronomical observations imaged by the \hubble Space Telescope (HST) with natural language. The model is fine-tuned from a base Contrastive Language–Image Pre-training (CLIP) model using successful proposal abstracts corresponding to HST observations, summarized via guided large language model (LLM) generation. We show that the model embodies a meaningful joint representation between observations and text through experiments targeting observation retrieval (i.e., retrieving the most relevant observations from a set using natural language queries) and description retrieval (i.e., querying the astrophysical object classes and science use cases most relevant to a given observation). The model demonstrates the potential for using generalist rather than task-specific models for astrophysics research, in particular by leveraging text as an interface.
 \end{abstract}
 
 \section{Introduction}
 \label{sec:intro}
 
-Machine learning (ML) is starting to have a significant impact on the sciences, with astrophysics being no exception. Machine learning methods have demonstrated promise when applied to every part of the astrophysics pipeline, from instrument design, to data acquisition, to its analysis. Until recently, most applications of ML within astrophysics have focused on replacing or augmenting traditional techniques with ML counterparts in order to improve performance on specific tasks.
+Machine learning (ML) is beginning to have a significant impact in the sciences, with astrophysics being no exception. ML methods have demonstrated promise at every stage of the astrophysics pipeline, from instrument design, to data acquisition, to its analysis \citep{huertas2022dawes}. Until recently, most applications of ML within astrophysics have focused on replacing or augmenting traditional techniques with ML counterparts in order to improve performance on specific tasks. The \emph{Foundation Model} paradigm, in contrast, seeks to develop generalist models which can be deployed on a wide range of tasks. The paradigm has been highly successful in domains like computer vision and natural language processing, as demonstrated by the widespread adoption of tools like ChatGPT, Dall-E, Stable Diffusion, and CLIP. These models are typically pre-trained on massive amounts of unlabeled data using self-supervised learning techniques, enabling them to learn powerful representations which can be deployed on different tasks across domains. At the heart of the paradigm lies the triumph of scale -- scaling up model size, dataset size, and compute. However, foundation models can often benefit from \emph{fine tuning} using a small amounts of domain data, increasing their usefulness when applied to those target domains.
 
-The \emph{Foundation Model} paradigm, in contrast, seeks to develop generalist models which can be deployed on a wide range of tasks. The paradigm has been highly successful in domains like computer vision and natural language processing, as demonstrated by the widespread adoption of tools like CLIP, ChatGPT, Dall-E, and Stable Diffusion. These models are typically pre-trained on massive amounts of unlabeled data using self-supervised learning techniques, enabling them to learn powerful representations which can be optionally fine-tuned to address domain-specific tasks. At the heart of the paradigm lies the triumph of scale -- scaling up model size, dataset size, and compute. However, foundation models often benefit from fine tuning using a relatively small amounts of domain-specific data, increasing their usefulness when applied to those specific domains.
+There is considerable interest in developing custom foundation models for the sciences \citep{batatia2023foundation,subramanian2023towards}, with astrophysics being ripe for such an effort given the availability of large amounts of publicly-available data and diverse ways of interacting with it. The multi-modality inherent to the nature of astrophysical observations, with different types of data (e.g., images, spectra, light curves, textual descriptions) often available, presents a unique opportunity. This multi-modality was recently exploited in \textsc{AstroCLIP}~\citep{lanusse2023astroclip} -- method to obtain a joint embedding space between multi-band images and optical spectra from the Dark Energy Spectroscopic Instrument (DESI). \textsc{AstroLLaMA}~\citep{nguyen2023astrollama} is another recent effort to fine-tune a publicly-available model (\textsc{Llama-2}) on astrophysics-specific textual data from the arXiv.
 
-There is considerable interest in developing custom foundation models for the sciences, with astrophysics being ripe for such an effort due to several reasons. The first is the availability of large amounts of publicly-available data as a contingency of publicy-funded data-taking efforts. The second is the multi-modality inherent astrophysical observations, with different types of data (e.g., images, spectra, light curves, textual descriptions) often available for each observation. This multi-modality was recently exploited to train \textsc{AstroCLIP}~\citep{lanusse2023astroclip} -- a joint representation between multi-band images and optical spectra from the Dark Energy Spectroscopic Instrument (DESI). \textsc{AstroLLaMA}~\citep{nguyen2023astrollama} is another recent effort to fine-tune a publicly-available model (\textsc{Llama-2}) on astrophysics-specific textual data from the arXiv.
+The Contrastive Language-Image Pre-training~\citep[CLIP;][]{radford2021learning} family of foundation models, which in its original instantiation embed images and text-via-captions into a common embedding space via contrastive learning, has shown strong performance and generalization capabilities on a variety of downstream tasks including zero-shot classification and image retrieval. Besides \textsc{AstroCLIP}, the concept of contrastive pre-training has been used in a variety of domains, e.g \textsc{GeoCLIP}~\citep{cepeda2023geoclip} for geospatial location querying.
 
-The CLIP~\citep{radford2021learning} family of models has shown strong performance on a variety of downstream tasks including zero-shot classification and image retrieval.
-
-\textsc{GeoCLIP}~\citep{cepeda2023geoclip}.
-
-The success of the foundation model paradigm partly relies on the ability to flexibly leverage text as a \emph{universal interface}. In this work, we take this outlook and train a joint representation between observations taken by the \hubble Space Telescope (HST) and natural language. We do so by using the associations between observation proposals and corresponding downstream observations. We show that fine-tuning a CLIP (Contrastive Language-Image Pre-training) model on this data enables learning meaningful joint representations.
+The success of the foundation model paradigm partly relies on the ability to flexibly leverage text as a \emph{universal interface} for interacting with models. In this work, we take this outlook and train a joint representation between observations taken by the \hubble Space Telescope (HST) and natural language. We do so by leveraging associations between LLM-summarized abstracts of successful observing proposals and corresponding downstream image observations. We show that fine-tuning a pre-trained CLIP image-text model on this data enables learning semantically meaningful joint representations through quantitative and qualitative evaluation on retrieval tasks.
 
 The paper is organized as follows. In Sec.~\ref{sec:dataset}, we describe the dataset used in this work, including its curation and processing. In Sec.~\ref{sec:methodology}, we describe the methodology used to train and evaluate the model. In Sec.~\ref{sec:results}, we present the results of our experiments on image and text retrieval tasks. We discuss future prospects and conclude in Sec.~\ref{sec:conclusion}.
 
 \section{Dataset Construction}
 \label{sec:dataset}
 
-We curate a dataset of images of \hubble observations and corresponding text descriptions. We rely on summarized versions of proposal abstracts from the Proposal Abstracts Catalog\footnote{\url{https://archive.stsci.edu/hst/proposal_abstracts.html}} -- a catalog of all accepted \hubble proposals -- to derive captions for the observations. The HST has been operational for 33 years, having been launched on April 24, 1990. We use available proposals and observations up to Cycle 30, which commenced data-taking in 2022. 
+We curate a dataset of images of \hubble observations and corresponding text descriptions. We rely on summarized versions of proposal abstracts from the Proposal Abstracts Catalog\footnote{\url{https://archive.stsci.edu/hst/proposal_abstracts.html}} -- a catalog of all accepted \hubble proposals to-date -- to derive captions for the observations. The HST has been operational for 33 years, having been launched on April 24, 1990. We use available proposals and observations up to Cycle 30, which commenced data-taking in 2022. 
 
 Examples of images and corresponding captions are shown in Tab.~\ref{tab:dataset}. It can be seen that these images have specific characteristics as well as artifacts particular to the nature of data-taking which distinguish them from the distribution of natural images typically used for large-scale pre-training of foundation models. This further motivates the need for fine-tuning on domain-specific data.
 
 \subsection{Data Selection and Pre-Processing}
 
-Observations corresponding to individual proposal IDs are queried through the Mikulski Archive for Space Telescopes (MAST) via the \texttt{astroquery} interface. Products of type \texttt{PREVIEW} are filtered in, corresponding to preview postcard images. Note that these are not science-grade observations, but rather low-resolution images used for quick-look purposes; given the nature of associations we aim to learn, we deem this adequate for our current purposes. A maximum of 20 images are downloaded per proposal ID, selected at random, in order to avoid biasing the model towards proposals with a larger number of observations. Images are centered and resized to a resolution per side of 512 pixels before saving. Color previews (i.e., observations taken with multiple wavelength filters assigned to individual RGB channels) are manually excluded via a filename filter in order to maintain consistency across the dataset; models trained on datasets with color images included were observed to show worse performance on generalization metrics. If no appropriate images corresponding to an abstract are found, the abstract is excluded from the dataset.
+Observations corresponding to individual proposal IDs are queried through the Mikulski Archive for Space Telescopes (MAST) via the \package{Astroquery} interface. Products of type \texttt{PREVIEW} are filtered in, corresponding to preview postcard images. We note that these are not science-grade observations, but rather lower-resolution images useful for quick-look purposes; given the nature of associations we aim to learn, this is adequate for our purposes. A maximum of 20 images are downloaded per proposal ID, selected at random, in order to avoid biasing the model towards proposals with a larger number of observations and survey-style campaigns. Images are centered and resized to a resolution-per-side of 512 pixels before. Color previews (i.e., observations taken with multiple wavelength filters assigned to individual RGB channels) are manually excluded via a filename filter in order to maintain consistency across the dataset; models trained on datasets with color images included were observed to show worse performance on generalization metrics. If no appropriate images corresponding to an abstract are found, is is excluded from the dataset.
 
-In total 31,859 images corresponding to 4,438 abstracts are included in the fine-tuning dataset. 3,194 images are held out for validation, with no abstract being common between training and validation sets in order to ensure an independent set of text-image pairs for testing.
+In total, 31,859 images corresponding to 4,438 abstracts are included in the fine-tuning dataset. 3,194 images are held out for validation, with no abstract being common between training and validation sets in order to ensure an independent set of text-image pairs for evaluation.
 
 % Mention that the signal is noisy!
 
 \subsection{Summarization via Guided Generation}
 \label{sec:summarization}
 
-Raw abstracts summarize the corresponding successful HST observing proposals, which intend to make the case for allocating \hubble telescope time towards a particular set of observations. These abstracts are written in a diversity of styles, formats, and lengths, being highly variable in the nature of content as well. Although the abstracts can be used as-is as image captions, we explore the use of summarization via guided LLM generation to standardize the captions used for fine-tuning the CLIP model. The goal is to summarize the objects and phenomena, as well as potential downstream science use cases corresponding to the HST observations in order to increase the signal between text and images.
+Raw abstracts summarize the corresponding successful HST observing proposals, which intend to make the case for allocating \hubble telescope time towards a particular set of observations. These abstracts are written in a diversity of styles, formats, and lengths, being highly variable in the nature of content as well. Although the abstracts can be used as-is as image captions, for our baseline model we summarize them via guided LLM generation to standardize the captions used for fine-tuning the CLIP model. The goal is to summarize the objects and phenomena, as well as potential downstream science use cases corresponding to the HST observations in order to increase the strength of the association signal between text and images.
 
-The method from \cite{willard2023efficient} is used to produce an LLM-generated summary of the abstract conforming to a particular schema, specified in JSON format. The schema is designed to represent a list of the objects (e.g., `Type Ia supernova') and phenomena (e.g., `gravitational lensing'), as well as potential downstream science uses cases (e.g., `set constraints on supernova explosion models') that could correspond to the eventual imaged observation given the abstract text.
+The method from \cite{willard2023efficient} is used to produce an LLM-generated summary of the abstract conforming to a particular schema, specified in JSON format. The schema is designed to represent a list of the objects (e.g., `Type Ia supernova') and phenomena (e.g., `gravitational lensing'), as well as potential downstream science uses cases (e.g., `set constraints on supernova explosion models') that could correspond to the eventual imaged observation given the abstract text, with a minimum of 1 and a maximum of 5 elements per list.
 
 The procedure guides the generation of LLM outputs while ensuring that the schema is respected at every point in the generation by masking out tokens that would violate the intended format. By framing the problem in terms of transitions between a set of finite-state machines, \cite{willard2023efficient} showed that guided generation can be performed with negligible overhead compared to unconstrained generation. This ensures that the output of the LLM strictly conforms to the format of the following example:
 \begin{lstlisting}[language=Python]
@@ -167,13 +163,11 @@ The procedure guides the generation of LLM outputs while ensuring that the schem
   'science_use_cases': ['measure lensing magnification', 'probe spectral energy distributions', ...]
 }
 \end{lstlisting}
-which is then used to construct the summarized caption by combining the two key elements. Examples of raw abstracts and corresponding LLM-generated summaries are shown in Tab.~\ref{tab:datasetsumm}. Further details on the summarization procedure, including the prompts used and a more detailed description of guided generation, are provided in App.~\ref{app:summarization}.
+which is then used to construct the summarized caption by combining the two key elements. Examples of raw abstracts and corresponding LLM-generated summaries are shown in Tab.~\ref{tab:datasetsumm}.
 
-The open-weights, instruction-tuned model \textsc{Mixtral-8x7B}\footnote{\url{https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1}} is used to generate the summaries, with guided generation performed using the \texttt{outlines}\footnote{\url{https://github.com/outlines-dev/outlines}} package.
+We use the open-weights, instruction-tuned model \textsc{Mixtral-8x7B-Instruct}\footnote{\url{https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1}} to generate the summaries, with guided generation performed using the \package{Outlines}\footnote{\url{https://github.com/outlines-dev/outlines}} package. Further details on the summarization procedure, including the prompts used and a more detailed description of guided generation, are provided in App.~\ref{app:summarization}.
 
-The goal if summarization-via-guided-generation is to increase the signal between text and images by standardizing the captions used for fine-tuning the CLIP model. 
-
-% Note that the signal is very imperfect!
+We emphasize that the goal of summarization-via-guided-generation is to increase the signal between text and images by standardizing the captions used for fine-tuning the CLIP model, and compare the quantitative performance of the model vs using the raw abstracts in Sec.\ref{sec:results}. We also note that, even after summarization, the association signal is expected to be noisy, since the summarized caption may not always be usefully descriptive of the observed images.
 
 \datafolder{./plots/data/}
  
@@ -192,7 +186,7 @@ The goal if summarization-via-guided-generation is to increase the signal betwee
           \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_3.pdf} & \centering \input{\thedatafolder/cycle_3.txt} & \centering \input{\thedatafolder/id_3.txt} &  {\scriptsize \input{\thedatafolder/sum_3.txt}} \tabularnewline
           \bottomrule
       \end{tabular}
-      \caption{Examples of images and corresponding captions, constructed using the LLM-extracted summaries. The CLIP model is fine-tuned on these text-image associations.}
+      \caption{Examples of images and corresponding captions, constructed using the LLM-extracted summaries. The CLIP model is fine-tuned on these text-image associations. \SM{Can add another row to fill the page}}
       \label{tab:dataset}
   \end{table}
 
@@ -222,86 +216,89 @@ The goal if summarization-via-guided-generation is to increase the signal betwee
 \section{Methodology}
 \label{sec:methodology}
 
-Our goal is to learn a semantically  meaningful joint representation of HST image observations and natural language, with the intention of using it for a variety of downstream tasks. We leverage the strong generalization capabilities demonstrated by CLIP (Contrastive Language-Image Pretraining) and adapt these to work with domain-specific \hubble data via fine-tuning; we describe these below.
+Our goal is to learn a semantically  meaningful joint representation between HST image observations and natural language. We leverage the strong generalization capabilities demonstrated by pre-trained CLIP models and adapt these to work with domain-specific \hubble data via fine-tuning.
 
-\subsection{Language-Image Pre-training}
-\label{sec:pretraining}
+\paragraph*{Pre-trained CLIP model}
 
-CLIP \citep[Contrastive Language-Image Pretraining;][]{radford2021learning} is a multi-modal model pre-trained on a large corpus of image-text pairs via weak supervision using a contrastive loss. Given a minibatch $\mathcal{B}$ of $|\mathcal{B}|$ image-text pairs $\{(I_i, T_i)\}$, the goal is to align the learned representations of corresponding (positive) pairs $(I_i, T_i)$ while repelling the representations of unaligned (negative) pairs $(I_i, T_{j\neq i})$. Image and text encoders $f(\cdot)$ and $g(\cdot)$ are used to map images and text to a common embedding space. The standard softmax-based bidirectional variation of the InfoNCE~\citep{oord2018representation} contrastive loss function, as used by CLIP, is particularly effective for multimodal learning. This bidirectionality is crucial as it ensures the model learns to map both images to text and text to images with equal importance. This symmetry in learning is essential for tasks that require a mutual understanding and interchangeability between visual and textual representations, such as image captioning, text-to-image synthesis, and cross-modal retrieval. The bidirectional loss is given by \citep{radford2021learning}
+CLIP \citep[Contrastive Language-Image Pretraining;][]{radford2021learning} is a multi-modal model pre-trained on a large corpus of image-text pairs via weak supervision using a contrastive loss. Given a minibatch $\mathcal{B}$ of $|\mathcal{B}|$ image-text pairs $\{(I_i, T_i)\}$, the goal is to align the learned representations of corresponding (positive) pairs $(I_i, T_i)$ while repelling the representations of unaligned (negative) pairs $(I_i, T_{j\neq i})$. Image and text encoders $f: I \rightarrow \mathbb R^{n_\text{emb}}$ and $g: T \rightarrow \mathbb R^{n_\text{emb}}$ are used to map images and text to a common embedding space of dimension $n_\text{emb}$. The standard softmax-based bidirectional variation of the InfoNCE~\citep{oord2018representation} contrastive loss function was introduce for training CLIP-style architectures\citep{radford2021learning}
 \begin{equation}
-\mathcal L(\mathcal B) = -\frac{1}{2|\mathcal{B}|} \sum_{i=1}^{|\mathcal{B}|}\left(\overbrace{\log \frac{e^{{x}_i \cdot {y}_i / \tau}}{\sum_{j=1}^{|\mathcal{B}|} e^{{x}_i \cdot {y}_j / \tau}}}^{\text {image } \rightarrow \text { text softmax }}+\overbrace{\log \frac{e^{{x}_i \cdot {y}_i / \tau}}{\sum_{j=1}^{|\mathcal{B}|} e^{{x}_j \cdot {y}_i / \tau}}}^{\text {text } \rightarrow \text { image softmax }}\right)
+  \mathcal{L}(\mathcal{B})=-\frac{1}{2|\mathcal{B}|} \sum_{i=1}^{|\mathcal{B}|}\left(\log \frac{e^{x_i \cdot y_i / \tau}}{\sum_{j=1}^{|\mathcal{B}|} e^{x_i \cdot y_j / \tau}}+\log \frac{e^{x_i \cdot y_i / \tau}}{\sum_{j=1}^{|\mathcal{B}|} e^{x_j \cdot y_i / \tau}}\right)\label{eq:softmax_loss}
 \end{equation}
-where ${x}_i=\frac{f\left(I_i\right)}{\left\|f\left(I_i\right)\right\|_2}$ and ${y}_i=\frac{g\left(T_i\right)}{\left\|g\left(T_i\right)\right\|_2}$ are the normalized representations of the $i$-th image and text, respectively, and $\tau$ is a (typically learnable) temperature hyperparameter. 
-% This bidirectional approach not only enhances the model's ability to create robust and versatile embeddings but also aligns with the intuitive understanding of how humans interact with and interpret multimodal information, further bridging the gap between artificial and natural intelligence in multimodal contexts.
+where ${x}_i={f\left(I_i\right)}/{\left\|f\left(I_i\right)\right\|}$ and ${y}_i={g\left(T_i\right)}/{\left\|g\left(T_i\right)\right\|}$ are the normalized representations of the $i$-th image and text, respectively, and $\tau$ is a learnable temperature hyperparameter. Note that this loss treats the image and text representations symmetrically, ensuring that the two modalities are on the same footing.
 
-As the base model, we use the CLIP-ViT-B/16 \citep{radford2021learning} variant trained by OpenAI. This model uses a (12-layer, 12-head, 768-embedding dimension) vision transformer as the image encoder and a (12-layer, 8-head, 512-embedding dimension) sequence transformer as the text backbone. The text encoder has a maximum length of 77 tokens and the image encoder a native resolution of $224\times224$. Linear projection layers map the outputs of the image and text encoders to a common embedding space of dimension 512. In total, the model has 149,620,737 trainable parameters. The model was trained on 400 million image-text pairs from the internet. 
+We use the CLIP-ViT-B/16 \citep{radford2021learning} variant as the base pre-trained CLIP model. This model uses a 12-layer, 12-head, 768-embedding dimension vision transformer as the image encoder and a 12-layer, 8-head, 512-embedding dimension sequence transformer as the text backbone. The text encoder has a maximum length of 77 tokens and the image encoder a native resolution of $224\times224$. Linear projection layers map the outputs of the image and text encoders to a common embedding space of dimension 512. In total, the model has 149,620,737 trainable parameters. The model was originally trained on 400 million image-text pairs from internet data. 
 
-\subsection{Fine-tuning Procedure and Evaluation}
-\label{sec:finetuning}
+\paragraph*{Fine-tuning procedure}
 
-The base CLIP model is fine-tuned using the dataset described in Sec.~\ref{sec:dataset}, using either the LLM-summarized data or the raw proposal abstracts. When using raw proposal abstracts, random chunks of the text delimited by periods are selected on the fly to fit within the maximum token length of the text encoder. Images are randomly cropped to the native resolution of the image encoder and randomly rotated at each training step. Given the relatively modest size of the fine-tuning set, a batch size $|\mathcal B| = 32$ is used throughout. We note that the positive and negative image-text association is noisy and imperfect, since multiple images can be associated with the same abstract.
+The base CLIP model is fine-tuned using the dataset described in Sec.~\ref{sec:dataset}, using either the LLM-summarized data or the raw proposal abstracts. When using raw proposal abstracts, random chunks of the text delimited by periods are selected on the fly to fit within the maximum token length of the text encoder. Images are randomly cropped to the native resolution of the image encoder and randomly rotated at each training step. Given the relatively modest size of the fine-tuning set, a batch size $|\mathcal B| = 32$ is used throughout; larger batch sizes were seen to susceptible to overfitting. We note that the positive and negative image-text association is noisy and imperfect, since multiple images can be associated with the same abstract.
 
-We explore three different methods of training the model on our domain dataset: \emph{(1)} Fine-tuning the entire network, starting from the pre-trained base model; \emph{(2)} Freezing the base image and text encoders, and training a small projection head on top of these; and \emph{(3)} Training the entire model from scratch.
+We explore three different methods of training the model on our domain dataset: \emph{(1)} Fine-tuning the entire network, starting from the pre-trained base model; \emph{(2)} Freezing the base image and text encoders, and training a small projection head; and \emph{(3)} Training the entire model from scratch. For \emph{(2)}, we use a 2-layer MLP with 1024 units and a GELU activation layer, projecting onto the 512-dimensional embedding space.
 
-Models were instantiated and trained using the \package{Jax} \citep{jax2018github} ecosystem. The model is trained over 50,000 steps with 5000 linear warmup steps and cosine decay using the AdamW optimizer \citep{DBLP:conf/iclr/LoshchilovH19,DBLP:journals/corr/KingmaB14} with peak learning rate of either $10^{-5}$ or $10^{-6}$ and weight decay $10^{-3}$. Training takes approximately 6 hours on 4 Nvidia A100 GPUs.
+Models were instantiated and trained using the \package{Jax} \citep{jax2018github} ecosystem. Models were trained over 20,000 steps with 2000 linear warmup steps 
+% and cosine decay 
+using the AdamW optimizer \citep{DBLP:conf/iclr/LoshchilovH19,DBLP:journals/corr/KingmaB14} with  %peak 
+learning rate of $10^{-5}$ and weight decay $10^{-3}$. Training takes approximately 3 hours on 4 Nvidia A100 GPUs.
+
+\paragraph*{Evaluation}
+
+The model is evaluated by tracking the loss in Eq.~\ref{eq:softmax_loss} as well as the top-$k\%$ retrieval accuracy on the held out validation set over the course of training. The retrieval accuracy is defined as the fraction of associated captions which fall within the top $k\%$ of captions by cosine similarity of the (normalized) embeddings $(x_i \cdot y_j)$, averaged over the images in the validation set.
+
+We also qualitatively evaluate the learned embeddings through image retrieval (i.e., retrieving the most relevant images from a set using natural language queries) and description retrieval (i.e., querying the astrophysical object classes and science use cases most relevant to a given observation) experiments.
 
 \section{Results and Discussion}
 \label{sec:results}
 
-% Effect of using summarization
-% Effect of using a base model vs fine-tuning from scratch
+\paragraph*{Validation metrics}
 
-\subsection{Fine-tuned Retrieval Accuracy}
-\label{sec:retrieval_acc}
+Figure~\ref{fig:retrieval_acc} shows the contrastive loss (left) and the top-10\% retrieval accuracy on the held out validation set over the course of training, for different variations considered. The red lines show the metrics evaluated when training with batches where the image-text associations are randomly shuffled, serving as a baseline. This baseline is seen to do on par with random expectation, unlike the others, validating the presence of a significant association signal in the dataset.
+%
+Interestingly, the base model performs better than random expectation, with a top-10\% retrieval accuracy of $\sim 15\%$. We therefore compare the qualitative performance of the base model with the fine-tuned model on downstream retrieval tasks.
 
-\subsection{`Zero-shot' Hypothesis and Object Retrieval}
-\label{sec:zero_shot}
-
-\subsection{Text-to-Image Retrieval}
-\label{sec:tti}
-
-\section{Outlook and Conclusions}
-\label{sec:conclusion}
-
-% \begin{figure*}[!h]
-% \includegraphics[width=0.95\textwidth]{example-image-a}
-% \caption{Overview of dataset}
-% \label{fig:dataset}
-% \end{figure*}
-
-
-  
+The fiducial model with LLM-guided summarization (orange lines) is seen to perform significantly better than the model using raw abstracts as captions (purple line), validating the stronger association signal in the summarized dataset curated. Fine-tuning a small MLP head over frozen vision and text backbones (green lines) and training from scratch (blue lines) show a non-trivial improvement compared to the random baseline as well as base model, but with deteriorated performance compared to the fiducial set-up.
 
 \begin{figure*}[!h]
-      \includegraphics[width=0.95\textwidth]{plots/val_metrics.pdf}
-      \caption{Retrieval accuracy}
-      \label{fig:retrieval_acc}
-      \end{figure*}
-      
+  \includegraphics[width=0.95\textwidth]{plots/val_metrics.pdf}
+  \caption{The CLIP-contrastive loss from Eq.~\ref{eq:softmax_loss} and the top-10\% retrieval accuracy computed on the validation set over the course of training. Shown for the fiducial set-up (orange), dataset using raw proposal abstracts (purple), only fine-tuning a small MLP head (green), training from scratch (blue), and a baseline trained with shuffled image-text pairs.}
+  \label{fig:retrieval_acc}
+  \end{figure*}
 
-\begin{figure*}[!h]
-\includegraphics[width=0.95\textwidth]{plots/retrieval_acc.pdf}
-\caption{Retrieval accuracy}
-\label{fig:retrieval_acc}
-\end{figure*}
+\paragraph*{Image retrieval}
 
-\begin{figure*}[!h]
-\includegraphics[width=0.95\textwidth]{plots/itt.pdf}
-\caption{Retrieval accuracy}
-\label{fig:itt}
-\end{figure*}
+Having aligned the image and text representations, we can query the validation set using natural language and show the most ``relevant'' images when ranked by cosine similarity. We show these in Figs.~\ref{fig:tti_base} and \ref{fig:tti} for the base model and fine-tuned model respectively using four simple curated queries: `globular clusters', `dwarf galaxy', `SN1987A' (a specific, flagship supernova), and `cluster lensing'.
+
+The base model shows signs of meaningful retrieval -- it returns observations that clearly visually resemble globular clusters (first row of Fig.~\ref{fig:tti_base}), for example. Beyond this, the `dwarf galaxy' query returns a mix of galaxies and globular clusters, and it is challenging to discern meaningful associations between the other retrieved images and corresponding query.
+
+The fine-tuned model (Fig.~\ref{fig:tti}), meanwhile, shows strikingly different behavior. For example, it is able to return images with processing and assembly artifacts particular to HST (e.g., the lines through the middle in some images), which typically receive low similarity scores when using the base model. The `dwarf galaxy' images correspond to proposals aiming to measure the kinematics of the stellar cores of dwarf galaxies. Supernova SN1987 itself can be seen as the most relevant image for the `SN1987A' query. Cluster-scale gravitational lenses are returned by the `cluster lensing' query, with lensing patterns visible in the images.
+
+\paragraph*{Text retrieval}
+
+Finally, we can use images from the validation set as queries and retrieve the most relevant text chunks (e.g., contained objects and use cases) from a curated list. We show the result of image-to-text retrieval in Fig.~\ref{fig:itt}, for the base as well as fine-tuned models, using the same genre of observations as for the text-to-image retrieval examples. We curate a list of possible text associations by querying the \textsc{Claude} large language model for such a list, which we show in App.~\ref{app:categories}.
+
+The top 3 text associations are shown for each image query. The `ground truth' summarized abstract is shown in the right column. The base model is seen to return a mix of relevant and less-relevant associations. While it can often return the nature of objects imaged, we observe it to seldom return scientific phenomena (e.g., `dark matter' as successfully done by the fine-tuned model in the second row). The third row (supernova 1987A) highlights interesting behavior -- the base model erroneously attributes the object at the center of the image to a gravitational lens or protoplanetary disk, while the fine-tuned model correctly identifies it as a supernova remnant (which play a crucial role for interstellar chemistry -- another returned snippet).
+
 
 \begin{figure*}[!h]
 \includegraphics[width=0.95\textwidth]{plots/tti_base.pdf}
-\caption{Retrieval accuracy}
-\label{fig:tti}
+\caption{Image retrieval using the base CLIP model on four curated queries.}
+\label{fig:tti_base}
 \end{figure*}
 
 \begin{figure*}[!h]
 \includegraphics[width=0.95\textwidth]{plots/tti.pdf}
-\caption{Retrieval accuracy}
-\label{fig:tti_base}
+\caption{Image retrieval using the fine-tuned CLIP model on four curated queries.}
+\label{fig:tti}
 \end{figure*}
+
+\begin{figure*}[!h]
+\includegraphics[width=0.95\textwidth]{plots/itt.pdf}
+\caption{Text associations from a curated list most closely matching a given image query, for both the fine-tuned and base models. The `ground truth' LLM-summarized abstract is shown in the right column.}
+\label{fig:itt}
+\end{figure*}
+
+\section{Outlook and Conclusions}
+\label{sec:conclusion}
+
+We present \textsc{HubbleCLIP}, a multi-modal fountation model that associates observations imaged by the \hubble Space Telescope with natural language in a common, semantically-meaningful embedding space. The model is fine-tuned from a pre-trained CLIP model on LLM-summarized versions of \hubble proposal abstracts, leveraging a noisy signal associating text and images. We show that \textsc{HubbleCLIP} significantly outperforms the base CLIP model in quantitative metrics, such as retrieval accuracy, as well as quality of text-to-image and image-to-text retrieval. The procedure demonstrates the efficacy on fine-tuning generalist pre-trained models on small amounts of domain-specific data, in particular astronomical datasets.
 
 % \subsubsection*{Broader Impact Statement}
 % In this optional section, TMLR encourages authors to discuss possible repercussions of their work,
@@ -316,17 +313,20 @@ Models were instantiated and trained using the \package{Jax} \citep{jax2018githu
 % in many journals. This is optional and at the discretion of the authors. Only add
 % this information once your submission is accepted and deanonymized. 
 
-\subsubsection*{Code}
+\paragraph*{Code and data availability}
 
 The code, dataset, and models used in this work is available at \url{https://www.github.com/smsharma/HubbleCLIP}.
 
-This work relied on the \package{Astroquery} \citep{2019AJ....157...98G}, \package{bitsandbytes} \citep{dettmers2022llmint8}, \package{Flax} \citep{flax2020github}, \package{Jax} \citep{jax2018github}, \package{Jupyter} \citep{Kluyver2016jupyter}, \package{Matplotlib} \citep{Hunter:2007}, \package{Numpy} \citep{harris2020array}, \package{Optax} \citep{deepmind2020jax}, \package{Outlines}, \package{Pandas}, \package{Pydantic}, \package{PyTorch} \citep{paszke2019pytorch}, \package{SciPy} \citep{2020SciPy-NMeth}, \package{Transformers} \citep{wolf2019huggingface}, and \package{wandb} \citep{wandb} software packages.
+\paragraph*{Software}
+
+This work relied on the \package{Astroquery} \citep{2019AJ....157...98G}, \package{BitsAndBytes} \citep{dettmers2022llmint8}, \package{Flax} \citep{flax2020github}, \package{Jax} \citep{jax2018github}, \package{Jupyter} \citep{Kluyver2016jupyter}, \package{Matplotlib} \citep{Hunter:2007}, \package{Numpy} \citep{harris2020array}, \package{Optax} \citep{deepmind2020jax}, \package{Outlines}, \package{Pandas} \citep{2020SciPy-NMeth}, \package{Pydantic}, \package{PyTorch} \citep{paszke2019pytorch}, \package{SciPy} \citep{2020SciPy-NMeth}, \package{Transformers} \citep{wolf2019huggingface}, and \package{Wandb} \citep{wandb} software packages.
 
 
 % Code repo and package cites.
 % Dataset availability
 
-\subsubsection*{Acknowledgments}
+\paragraph*{Acknowledgments}
+
 This work is supported by the National Science Foundation under Cooperative Agreement PHY-2019786 (The NSF AI Institute for Artificial Intelligence and Fundamental Interactions, \url{http://iaifi.org/}). This material is based upon work supported by the U.S. Department of Energy, Office of Science, Office of High Energy Physics of U.S. Department of Energy under grant Contract Number  DE-SC0012567. YS was supported by the Research Science Institute (RSI) program at MIT. The computations in this paper were run on the FASRC Cannon cluster supported by the FAS Division of Science Research Computing Group at Harvard University.
 
 This research is based on observations made with the NASA/ESA Hubble Space Telescope obtained from the Space Telescope Science Institute, which is operated by the Association of Universities for Research in Astronomy, Inc., under NASA contract NAS 5-26555.
@@ -341,12 +341,13 @@ Based on observations made with the NASA/ESA Hubble Space Telescope, and obtaine
 \section{Summarization via Regex-Guided Generation}
 \label{app:summarization}
 
-The following prompt is used to summarize the abstracts.
+The following prompt is used to summarize the abstracts using the \package{Outlines} package interfacing with \textsc{Mixtral-8x7B-Instruct}.
 
 \begin{lstlisting}[language=Python]
+import outlines 
+
 @outlines.prompt
 def prompt_fn(abstract):
-            
       """<s>[INST] You are an expert astrophysicist, with broad expertise across observational and theoretical astrophysics. You are able to extract core information from astrophysical texts.
 
 Abstract: "{{abstract}}"
@@ -375,8 +376,30 @@ Answer in JSON format. The JSON should be a dictionary with keys "objects_and_ph
 """
 \end{lstlisting}
 
+The following schema is used to guide the generation of the summaries.
+
+\begin{lstlisting}[language=Python]
+from pydantic import BaseModel, conlist
+
+class ConstrainedResponseHST(BaseModel):
+      objects_and_phenomena: conlist(str, min_length=1, max_length=5)
+      science_use_cases: conlist(str, min_length=1, max_length=5)
+\end{lstlisting}
+
+\section{List of Categories}
+\label{app:categories}
+
+\begin{lstlisting}[language=Python]
+  ["star forming galaxies", "lyman alpha", "dust", "crowded stellar field", "core-collapse supernova", "cosmology", "gravitational lensing", "supernovae", "diffuse galaxies", "globular clusters", "stellar populations", "interstellar medium", "black holes", "dark matter", "galaxy clusters", "galaxy evolution", "galaxy formation", "quasars", "circumstellar disks", "exoplanets", "Kuiper Belt objects", "solar system objects", "cosmic web structure", "distant galaxies", "galaxy mergers", "galaxy interactions", "star formation", "stellar winds", "brown dwarfs", "white dwarfs", "nebulae", "star clusters", "galaxy archeology", "galactic structure", "active galactic nuclei", "gamma-ray bursts", "stellar nurseries", "intergalactic medium", "dark energy", "dwarf galaxies", "barred spiral galaxies", "irregular galaxies", "starburst galaxies", "low surface brightness galaxies", "ultra diffuse galaxies", "circumgalactic medium", "intracluster medium", "cosmic dust", "interstellar chemistry", "star formation histories", "initial mass function", "stellar proper motions", "binary star systems", "open clusters", "pre-main sequence stars", "protostars", "protoplanetary disks", "jets and outflows", "interstellar shocks", "planetary nebulae", "supernova remnants", "red giants", "Cepheid variables", "RR Lyrae variables", "stellar abundances", "stellar dynamics", "compact stellar remnants", "Einstein rings", "trans-Neptunian objects", "cosmic microwave background", "reionization epoch", "first stars", "first galaxies", "high-redshift quasars", "primordial black holes", "resolved binaries", "binary stars"]
+\end{lstlisting}
+
 \section{Additional Evaluation Metrics and Ablations}
 \label{app:ablations}
 
-
+\begin{figure*}[!h]
+\includegraphics[width=0.95\textwidth]{plots/retrieval_acc.pdf}
+\caption{Retrieval accuracy}
+\label{fig:retrieval_acc_supp}
+\end{figure*}
+  
 \end{document}
