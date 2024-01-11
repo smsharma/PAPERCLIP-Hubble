@@ -11,6 +11,8 @@ from ml_collections import config_flags, ConfigDict
 from clu import metric_writers
 import wandb
 
+import pandas as pd
+
 import jax
 import jax.numpy as np
 import optax
@@ -73,6 +75,9 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     batches = iter(train_ds)
 
+    # Convert to jnp type
+    dtype = getattr(np, config.clip.dtype)
+
     logging.info("Loaded the dataset")
 
     # # Model configs
@@ -83,7 +88,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     # Use pre-trained model or train from scratch
     if config.clip.use_pretrained:
-        model = FlaxCLIPModel.from_pretrained(config.clip.pretrained_model_name, dtype=config.clip.dtype)
+        model = FlaxCLIPModel.from_pretrained(config.clip.pretrained_model_name, dtype=dtype)
         processor = AutoProcessor.from_pretrained(config.clip.pretrained_model_name)
     else:
         raise NotImplementedError
@@ -127,7 +132,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     if config.clip.transfer_head:
 
-        model_transfer = FlaxCLIPModelTransfer(config=model.config, dtype=config.clip.dtype, d_head=config.clip.d_transfer_head)
+        model_transfer = FlaxCLIPModelTransfer(config=model.config, dtype=dtype, d_head=config.clip.d_transfer_head)
         
         # Transfer text and vision backbones
         model_transfer.params['text_model']['text_backbone'] = model.params['text_model']
@@ -193,6 +198,21 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
     if config.data.shuffle_within_batch:
         logging.info(f"Shuffling images within batch")
 
+    # If matching to sum1 summary
+    if config.sum1.use_sum1:
+        logging.info(f"Matching to summary {config.sum1.summaries_filename} with sum1 {config.sum1.sum1_filename}")
+        # Combine with data dir and add .csv extension
+        summaries_filename = os.path.join(config.data.data_dir, f"{config.sum1.summaries_filename}.csv")
+        sum1_filename = os.path.join(config.data.data_dir, f"{config.sum1.sum1_filename}.csv")
+
+        # Open dataframes
+        df_summaries = pd.read_csv(summaries_filename)
+        df_sum1 = pd.read_csv(sum1_filename)
+
+        # Merge on proposal ID
+        df_sum_merged = pd.merge(df_summaries, df_sum1, on='proposal_id')
+
+
     logging.info("Starting training...")
 
     train_metrics = []
@@ -245,13 +265,13 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
                         images = jax.vmap(random_crop, in_axes=(None,0,None))(rng_eval, images, (model.config.vision_config.image_size, model.config.vision_config.image_size, 3))
 
                     # NOTE: Image arrays should be ints in the range [0, 255] here
-                    captions = process_truncate_captions(captions, rng_eval, max_length_words=max_length_words)
+                    captions = process_truncate_captions(captions, rng_eval, max_length_words=max_length_words, use_sum1=config.sum1.use_sum1, df_sum_merged=df_sum_merged)
                     inputs = processor(text=captions, images=(images * 255.).astype(np.uint8),  return_tensors="np", padding="max_length", truncation=True, max_length=model.config.text_config.max_length)
                     batch = inputs.data
 
                     # Split batch across devices
                     batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
-                    batch = jax.tree_map(lambda x: np.array(x, dtype=config.clip.dtype), batch)
+                    batch = jax.tree_map(lambda x: np.array(x, dtype=dtype), batch)
 
                     metrics = eval_step(pstate, np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]), config.training.loss_type)
                     val_metrics.append(metrics)
@@ -308,7 +328,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
                 images = jax.vmap(random_crop, in_axes=(None,0,None))(rng_aug, images, (model.config.vision_config.image_size, model.config.vision_config.image_size, 3))
 
             # NOTE: Image arrays should be ints in the range [0, 255] here
-            captions = process_truncate_captions(captions, rng_aug, max_length_words=max_length_words)
+            captions = process_truncate_captions(captions, rng_aug, max_length_words=max_length_words, use_sum1=config.sum1.use_sum1, df_sum_merged=df_sum_merged)
             inputs = processor(text=captions, images=(images * 255.).astype(np.uint8),  return_tensors="np", padding="max_length", truncation=True, max_length=model.config.text_config.max_length)
             batch = inputs.data
             
@@ -318,7 +338,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
             # Split batch across devices
             batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
-            batch = jax.tree_map(lambda x: np.array(x, dtype=config.clip.dtype), batch)
+            batch = jax.tree_map(lambda x: np.array(x, dtype=dtype), batch)
 
             pstate, metrics = train_step(pstate, np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]), config.training.loss_type)
             steps.set_postfix(val=unreplicate(metrics["loss"]))

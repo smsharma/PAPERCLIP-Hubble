@@ -1,13 +1,27 @@
 import nltk
 import jax
+import pandas as pd
 
-def process_truncate_captions(captions, key, max_length_words=None):
+
+def process_truncate_captions(captions, key, max_length_words=None, use_sum1=False, df_sum_merged=None):
     """ Process and truncate captions
     """
     captions = captions.numpy().tolist()
     captions = [c.decode("utf-8") for c in captions]
+
+    def get_objects_phenomena(caption):
+        first_part = caption.split(';')[0]
+        match = df_sum_merged[df_sum_merged['objects_phenomena_x'] == first_part]['objects_phenomena_y']
+        return match.values[0] if not (match.empty or pd.isna(match.values[0])) else "None"
+
+    # Get sum1 summaries by matching
+    if use_sum1 and df_sum_merged is not None:
+        results = pd.Series(captions).apply(get_objects_phenomena)
+        captions = list(results.values)
+
     if max_length_words is not None:
         captions = sample_and_pad(captions, key, max_length=max_length_words)
+
     return captions
 
 

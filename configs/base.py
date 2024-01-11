@@ -52,6 +52,12 @@ def get_config():
     training.ckpt_best_metric_best_mode = "min"  # "max" or "min" 
     training.ckpt_keep_top_n = 3  # Save the top `ckpt_keep_top_n` checkpoints based on `ckpt_best_metric`
 
+    # Sum1 options
+    config.sum1 = sum1 = ml_collections.ConfigDict()
+    sum1.use_sum1 = True
+    sum1.summaries_filename = "summary_v2"
+    sum1.sum1_filename = "summary_sum1_v2"
+
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
     optim.schedule = "constant"
