@@ -54,7 +54,7 @@ def get_config():
 
     # Sum1 options
     config.sum1 = sum1 = ml_collections.ConfigDict()
-    sum1.use_sum1 = True
+    sum1.use_sum1 = False
     sum1.summaries_filename = "summary_v2"
     sum1.sum1_filename = "summary_sum1_v2"
 

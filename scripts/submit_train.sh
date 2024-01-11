@@ -2,7 +2,7 @@
 
 #SBATCH --job-name=train
 #SBATCH --nodes=1
-#SBATCH --mem=200GB
+#SBATCH --mem=100GB
 #SBATCH --time=48:00:00
 #SBATCH --gres=gpu:4
 #SBATCH --account=iaifi_lab
@@ -27,7 +27,7 @@ alias jupyter=/n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/jupyter
 
 cd /n/holystore01/LABS/iaifi_lab/Users/smsharma/multimodal-data/
 
-/n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py  # Base config, with summary captions
+# /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py  # Base config, with summary captions
 # /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.optim.learning_rate=1e-6  # Lower LR
 
 # /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.clip.transfer_head=True  # Fine-tune just head
@@ -37,3 +37,5 @@ cd /n/holystore01/LABS/iaifi_lab/Users/smsharma/multimodal-data/
 # /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.training.loss_type="sigmoid"
 # /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.data.shuffle_within_batch=True  # Shuffle within batch
 # /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.training.batch_size=64  # Larger batch size
+
+/n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py  --config.sum1.use_sum1=True  # Base config, with summary captions
