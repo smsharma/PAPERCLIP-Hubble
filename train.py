@@ -211,7 +211,8 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
         # Merge on proposal ID
         df_sum_merged = pd.merge(df_summaries, df_sum1, on='proposal_id')
-
+    else:
+        df_sum_merged = None
 
     logging.info("Starting training...")
 
