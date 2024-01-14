@@ -163,11 +163,13 @@ The procedure guides the generation of LLM outputs while ensuring that the schem
   'science_use_cases': ['measure lensing magnification', 'probe spectral energy distributions', ...]
 }
 \end{lstlisting}
-which is then used to construct the summarized caption by combining the two key elements. Examples of raw abstracts and corresponding LLM-generated summaries are shown in Tab.~\ref{tab:datasetsumm}.
+which is then used to construct the summarized caption by combining the two key elements. Examples of raw abstract snippets and corresponding LLM-generated summaries are shown in Tab.~\ref{tab:datasetsumm}. See App.~\ref{app:guided-generation} for a more detailed description of this guidance generation process.
 
-We use the open-weights, instruction-tuned model \textsc{Mixtral-8x7B-Instruct}\footnote{\url{https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1}} to generate the summaries, with guided generation performed using the \package{Outlines}\footnote{\url{https://github.com/outlines-dev/outlines}} package. Further details on the summarization procedure, including the prompts used and a more detailed description of guided generation, are provided in App.~\ref{app:summarization}.
+We use the open-weights, instruction-tuned model \textsc{Mixtral-8x7B-Instruct}~\citep{jiang2024mixtral} to generate the summaries, with guided generation performed using the \package{Outlines}\footnote{\url{https://github.com/outlines-dev/outlines}} package. Further details on the summarization procedure, including the prompts and schema used, are provided in App.~\ref{app:summarization}.
 
-We emphasize that the goal of summarization-via-guided-generation is to increase the signal between text and images by standardizing the captions used for fine-tuning the CLIP model, and compare the quantitative performance of the model vs using the raw abstracts in Sec.\ref{sec:results}. We also note that, even after summarization, the association signal is expected to be noisy, since the summarized caption may not always be usefully descriptive of the observed images.
+We emphasize that the goal of summarization-via-guided-generation is to increase the signal between text and images by standardizing the captions used for fine-tuning the CLIP model, and compare the quantitative performance of the model vs using the raw abstracts in Sec.~\ref{sec:results}. We also note that, even after summarization, the association signal is expected to be noisy, since the summarized caption may not always be usefully descriptive of the observed images.
+
+Finally, in order to test a further compression of the proposal abstracts, we use LLM-guided generation to also produce a list of single-concept summaries (e.g., `irregular galaxy', `quasars', `Galactic bulge', \ldots), and test whether this can lead to meaningful, generalizable learned associations with observations. The prompts and schemata for generating and assigning these are described in Apps.~\ref{app:singleconcept} and \ref{app:singleconceptassignments} respectively.
 
 \datafolder{./plots/data/}
  
@@ -282,7 +284,7 @@ The top row of Fig.~\ref{fig:sim_valtrain} shows the distribution of cosine simi
 
 Distributions for a set of training samples (top right) are visible more peaked towards higher values compared to those evaluated on validation samples (top left), indicating potential distribution shift and/or a degree of overfitting.
 
-Finally, in Fig.~\ref{fig:sim_valtrain} (bottom) we show the distribution of corresponding image-text pair cosine similarities for the single-concept summaries, evaluated using the CLIP model fine-tuned on summarized abstracts (red) and on the single-concept summaries themselves (purple). These distributions are peaked towards only marginally higher values compared to the baseline shuffled version, indicating that assigning $\mathcal O(100)$ labels to the images results in a relatively weak association signal compared to using noisy captions.
+Finally, in Fig.~\ref{fig:sim_valtrain} (bottom) we show the distribution of corresponding image-text pair cosine similarities for the single-concept summaries, evaluated using the CLIP model fine-tuned on summarized abstracts (red) and on the single-concept summaries themselves (purple). These distributions are peaked towards only marginally higher values compared to a baseline shuffled version, indicating that assigning $\mathcal O(100)$ labels to the images using an LLM results in a relatively weak association signal compared to using noisy captions.
 
 
 \begin{figure*}[!h]
@@ -330,7 +332,7 @@ We present \textsc{HubbleCLIP}, a multi-modal fountation model that associates o
 
 \paragraph*{Code and data availability}
 
-The code, dataset, and models used in this work is available at \url{https://www.github.com/smsharma/HubbleCLIP}.
+The code, dataset, and fine-tuned models used in this work is available at \url{https://www.github.com/smsharma/HubbleCLIP}.
 
 \paragraph*{Software}
 
@@ -342,7 +344,7 @@ This work relied on the \package{Astroquery} \citep{2019AJ....157...98G}, \packa
 
 \paragraph*{Acknowledgments}
 
-This work is supported by the National Science Foundation under Cooperative Agreement PHY-2019786 (The NSF AI Institute for Artificial Intelligence and Fundamental Interactions, \url{http://iaifi.org/}). This material is based upon work supported by the U.S. Department of Energy, Office of Science, Office of High Energy Physics of U.S. Department of Energy under grant Contract Number  DE-SC0012567. YS was supported by the Research Science Institute (RSI) program at MIT. The computations in this paper were run on the FASRC Cannon cluster supported by the FAS Division of Science Research Computing Group at Harvard University.
+We thank Michael Brenner for helpful conversations. This work is supported by the National Science Foundation under Cooperative Agreement PHY-2019786 (The NSF AI Institute for Artificial Intelligence and Fundamental Interactions, \url{http://iaifi.org/}). This material is based upon work supported by the U.S. Department of Energy, Office of Science, Office of High Energy Physics of U.S. Department of Energy under grant Contract Number  DE-SC0012567. YS was supported by the Research Science Institute (RSI) program at MIT. The computations in this paper were run on the FASRC Cannon cluster supported by the FAS Division of Science Research Computing Group at Harvard University.
 
 This research is based on observations made with the NASA/ESA Hubble Space Telescope obtained from the Space Telescope Science Institute, which is operated by the Association of Universities for Research in Astronomy, Inc., under NASA contract NAS 5-26555.
 
@@ -354,9 +356,19 @@ Based on observations made with the NASA/ESA Hubble Space Telescope, and obtaine
 
 \appendix
 \section{Summarization via Regex-Guided Generation}
+\label{app:guided-generation}
+
+\SM{Technical description of regex-guided generation.}
+
+\section{Prompts and Schema Used for Summarization}
+\label{app:prompts}
+
+We list here the prompts and schemata (i.e. desired output formats) used at various stages for guided text generation via \package{Outlines} package interfacing with the \textsc{Mixtral-8x7B-Instruct} LLM.
+
+\subsection{Abstract summarization into objects, phenomena, and science use cases}
 \label{app:summarization}
 
-The following prompt is used to summarize the abstracts using the \package{Outlines} package interfacing with \textsc{Mixtral-8x7B-Instruct}.
+The following prompt is used to produce a list of possible objects and phenomena shown in HST observations downstream of a proposal abstract, as well as one to five possible science use cases.
 
 \begin{lstlisting}[language=Python]
 import outlines 
@@ -391,7 +403,7 @@ Answer in JSON format. The JSON should be a dictionary with keys "objects_and_ph
 """
 \end{lstlisting}
 
-The following schema is used to guide the generation of the summaries.
+The following schema is used to guide the generation of the summaries, intended to produce between one and five objects and hypotheses, as well as science use cases.
 
 \begin{lstlisting}[language=Python]
 from pydantic import BaseModel, conlist
@@ -401,20 +413,100 @@ class ConstrainedResponseHST(BaseModel):
       science_use_cases: conlist(str, min_length=1, max_length=5)
 \end{lstlisting}
 
-\section{List of Categories}
+\subsection{Generation of single-concept summaries}
+\label{app:singleconcept}
+
+The following prompt is used to generate a list of diverse single-concept summaries informed by a list of summarized abstracts:
+
+\begin{lstlisting}[language=Python]
+import outlines   
+
+@outlines.prompt
+def prompt_fn(objects):
+    """<s>[INST] Please produce a list of around concepts characterizing prominent objects, phenomena, and science use cases of images observed by the Hubble Space Telescope.
+
+Here are some examples of objects:
+
+{{objects}}
+
+Follow these instructions exactly in your answer:
+- Do not output empty strings as elements.
+- Make sure that the list covers a diverse range of astronomical concepts, with items as different from each other as possible. 
+- Do not give specific names of objects, to make sure you span the widest possible range of concepts (e.g., "dwarf galaxy" is allowed, but NOT "Fornax", "Terzan 5", or  "NGC6440").
+- Do not return terms undescriptive of observations, e.g. "sloshing", "adiabatic", "interactions". Returning concrete physics objects, concepts, or phenomena.
+- Only output scientifically meaningful terms. E.g., NO "Cosmic Dance".
+- Do not duplicate entries. Do not reference any telescopes, observatories, or surveys.
+- Do not include units like "angular diameter distance", "parsec", or any other concepts that will not correlate with images of observations.
+- Use the above example list of objects only as inspiration to infer broad classes of objects.
+- Make sure each concept is succint, never more than 5 words.
+- Answer in JSON format.
+- The JSON should have the following keys {"galaxies", "stellar_physics", "exoplanets_planet_formation", "stellar_populations", "supermassive_black_holes", "solar_system", "integalactic_medium", "large_scale_structure"} reflecting rough observation categories.
+- Each category will have a list of objects and/or astronomical concepts.
+- Output up to 20 items and no more in each category
+[/INST]
+"""
+\end{lstlisting}
+
+The following schema guides generation, intended to produce 100 concepts reflecting the science categories of successful proposals\footnote{\url{https://www.stsci.edu/contents/newsletters/2023-volume-40-issue-02/hubble-cycle-31-proposal-selection}}. 
+
+\begin{lstlisting}[language=Python]
+from pydantic import BaseModel, conlist
+  
+class ScienceCategoriesHST(BaseModel):
+    galaxies: conlist(str, min_length=15, max_length=15)
+    stellar_physics: conlist(str, min_length=15, max_length=15)
+    exoplanets_planet_formation: conlist(str, min_length=15, max_length=15)
+    stellar_populations: conlist(str, min_length=10, max_length=10)
+    supermassive_black_holes: conlist(str, min_length=15, max_length=15)
+    solar_system: conlist(str, min_length=10, max_length=10)
+    integalactic_medium: conlist(str, min_length=10, max_length=10)
+    large_scale_structure: conlist(str, min_length=10, max_length=10)
+  \end{lstlisting}
+
+The output is then constrained to be one of the fixed number of concepts.
+  
+\subsection{Assignment of abstracts to single-concept categories}
+\label{app:singleconceptassignments}
+
+Finally, the following prompt is used to assign concepts inferred in \ref{app:singleconcept} to each abstract:
+
+\begin{lstlisting}[language=Python]
+import outlines 
+
+@outlines.prompt
+def prompt_fn(abs, cats):
+    """<s>[INST] The following is a successful proposal abstract for the Hubble Space Telescope: "{{abs}}"
+
+The following is a list of categories (astronomical concepts) that this abstract could correspond to.
+
+{{cats}}
+
+Please answer which of these listed concepts best describes this proposal, based on the objects and phenomena mentioned in the abstract.
+The concept should meaningfully be present in the abstract and the eventual observation.
+
+- For example, "The locations of supernovae {SNe} in the local stellar and gaseous environment in galaxies, as measured in high spatial resolution WFPC2 and ACS images, contain important clues to their progenitor stars." should return "supernova".
+- If the abstract centers calibration and/or instrumentation efforts, return calibration or instrumention".
+
+If no concept make sense, return "None". [/INST]
+"""
+\end{lstlisting}
+
+\section{List of Categories for Text Retrieval Task}
 \label{app:categories}
+
+The following curated categories are used in the text retrieval experiment in Sec.~\ref{sec:results}. These are intended to be broader than the single-concept summaries inferred in Sec.~\ref{app:singleconcept} and are derived by prompting \textsc{Claude}, without any external input e.g. proposal abstracts. \SM{Try to just use the single-concept summaries here to avoid the extra step}.
 
 \begin{lstlisting}[language=Python]
   ["star forming galaxies", "lyman alpha", "dust", "crowded stellar field", "core-collapse supernova", "cosmology", "gravitational lensing", "supernovae", "diffuse galaxies", "globular clusters", "stellar populations", "interstellar medium", "black holes", "dark matter", "galaxy clusters", "galaxy evolution", "galaxy formation", "quasars", "circumstellar disks", "exoplanets", "Kuiper Belt objects", "solar system objects", "cosmic web structure", "distant galaxies", "galaxy mergers", "galaxy interactions", "star formation", "stellar winds", "brown dwarfs", "white dwarfs", "nebulae", "star clusters", "galaxy archeology", "galactic structure", "active galactic nuclei", "gamma-ray bursts", "stellar nurseries", "intergalactic medium", "dark energy", "dwarf galaxies", "barred spiral galaxies", "irregular galaxies", "starburst galaxies", "low surface brightness galaxies", "ultra diffuse galaxies", "circumgalactic medium", "intracluster medium", "cosmic dust", "interstellar chemistry", "star formation histories", "initial mass function", "stellar proper motions", "binary star systems", "open clusters", "pre-main sequence stars", "protostars", "protoplanetary disks", "jets and outflows", "interstellar shocks", "planetary nebulae", "supernova remnants", "red giants", "Cepheid variables", "RR Lyrae variables", "stellar abundances", "stellar dynamics", "compact stellar remnants", "Einstein rings", "trans-Neptunian objects", "cosmic microwave background", "reionization epoch", "first stars", "first galaxies", "high-redshift quasars", "primordial black holes", "resolved binaries", "binary stars"]
 \end{lstlisting}
 
-\section{Additional Evaluation Metrics and Ablations}
-\label{app:ablations}
+% \section{Additional Evaluation Metrics and Ablations}
+% \label{app:ablations}
 
-\begin{figure*}[!h]
-\includegraphics[width=0.95\textwidth]{plots/retrieval_acc.pdf}
-\caption{Retrieval accuracy}
-\label{fig:retrieval_acc_supp}
-\end{figure*}
+% \begin{figure*}[!h]
+% \includegraphics[width=0.95\textwidth]{plots/retrieval_acc.pdf}
+% \caption{Retrieval accuracy}
+% \label{fig:retrieval_acc_supp}
+% \end{figure*}
   
 \end{document}
