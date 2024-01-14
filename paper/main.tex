@@ -241,7 +241,7 @@ learning rate of $10^{-5}$ and weight decay $10^{-3}$. Training takes approximat
 
 \paragraph*{Evaluation}
 
-The model is evaluated by tracking the loss in Eq.~\ref{eq:softmax_loss} as well as the top-$k\%$ retrieval accuracy on the held out validation set over the course of training. The retrieval accuracy is defined as the fraction of associated captions which fall within the top $k\%$ of captions by cosine similarity of the (normalized) embeddings $(x_i \cdot y_j)$, averaged over the images in the validation set.
+The model is evaluated by tracking the loss in Eq.~\ref{eq:softmax_loss} as well as the top-$k\%$ retrieval accuracy on the held out validation set over the course of training. The retrieval accuracy is defined as the fraction of associated captions which fall within the top $k\%$ of captions by cosine similarity of the (normalized) embeddings $x_i \cdot y_j$, averaged over the images in the validation set.
 
 We also qualitatively evaluate the learned embeddings through image retrieval (i.e., retrieving the most relevant images from a set using natural language queries) and description retrieval (i.e., querying the astrophysical object classes and science use cases most relevant to a given observation) experiments.
 
@@ -276,6 +276,11 @@ Finally, we can use images from the validation set as queries and retrieve the m
 
 The top 3 text associations are shown for each image query. The `ground truth' summarized abstract is shown in the right column. The base model is seen to return a mix of relevant and less-relevant associations. While it can often return the nature of objects imaged, we observe it to seldom return scientific phenomena (e.g., `dark matter' as successfully done by the fine-tuned model in the second row). The third row (supernova 1987A) highlights interesting behavior -- the base model erroneously attributes the object at the center of the image to a gravitational lens or protoplanetary disk, while the fine-tuned model correctly identifies it as a supernova remnant (which play a crucial role for interstellar chemistry -- another returned snippet).
 
+\paragraph*{Cosine similarity distribution}
+
+The top row of Figure~\ref{fig:sim_valtrain} shows the distribution of cosine similarities between corresponding image and text embeddings, $x_i$ and $y_i$, for the LLM-summarized abstracts using the fine-tuned CLIP model (red line), with the ordering of text embeddings shuffled (dashed red line), and for the base CLIP model (blue line), shown for the set of validation pairs (top left) and same number of training set pairs (top right). The distribution for the base model is seen to be sharply peaked at a specific value, showing little diversity and being
+
+
 
 \begin{figure*}[!h]
 \includegraphics[width=0.95\textwidth]{plots/tti_base.pdf}
@@ -298,7 +303,7 @@ The top 3 text associations are shown for each image query. The `ground truth' s
 \begin{figure*}[!h]
 \includegraphics[width=0.95\textwidth]{plots/sim_valtrain.pdf}
 \centering\includegraphics[width=0.45\textwidth]{plots/sim_summ1.pdf}
-\caption{.}
+\caption{Distribution of cosine similarities between corresponding image and text embeddings, $x_i$ and $y_i$. (Top row) For the LLM-summarized abstracts using the fine-tuned CLIP model (red line), with the ordering of text embeddings shuffled (dashed red line), and for the base CLIP model (blue line), shown for (top left) the set of validation pairs and (top right) same number of training set pairs. (Bottom) For the single-concept summaries, when evaluated using the CLIP model fine-tuned on LLM-summarized abstracts (red) and fine-tuned on the single-concept summaries themselves.}
 \label{fig:sim_valtrain}
 \end{figure*}
 
