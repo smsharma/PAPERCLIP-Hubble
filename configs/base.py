@@ -56,7 +56,7 @@ def get_config():
     config.sum1 = sum1 = ml_collections.ConfigDict()
     sum1.use_sum1 = False
     sum1.summaries_filename = "summary_v2"
-    sum1.sum1_filename = "summary_sum1_v2"
+    sum1.sum1_filename = "summary_sum1_v3"
 
     # Optimizer (AdamW)
     config.optim = optim = ml_collections.ConfigDict()
