@@ -71,7 +71,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
     train_ds = make_dataloader(files_train, batch_size=config.training.batch_size, seed=config.seed, split='train', caption_type=config.data.caption_type, shuffle=True)
 
     files_val = tf.io.gfile.glob(f"{config.data.data_dir}/{config.data.tfrecords_dir}/*val*.tfrecord")
-    val_ds = make_dataloader(files_val, batch_size=config.training.batch_size_val, seed=config.seed, split='val', caption_type=config.data.caption_type, shuffle=False)
+    val_ds = make_dataloader(files_val, batch_size=config.training.batch_size_val, seed=config.seed, split='val', caption_type=config.data.caption_type, shuffle=True)
 
     batches = iter(train_ds)
 
