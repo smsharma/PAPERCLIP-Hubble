@@ -47,7 +47,6 @@ def get_config():
     training.log_every_steps = 100
     training.eval_every_steps = 200
     training.loss_type = "softmax"  # "sigmoid" or "softmax"
-    training.n_eval_batches = 20  # How many batches to use for evaluation
     training.ckpt_best_metric = "loss"  # "loss" or "top_xx_accuracy"
     training.ckpt_best_metric_best_mode = "min"  # "max" or "min" 
     training.ckpt_keep_top_n = 3  # Save the top `ckpt_keep_top_n` checkpoints based on `ckpt_best_metric`

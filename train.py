@@ -234,9 +234,16 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
                 val_metrics = []
                 val_batches = iter(val_ds)
 
+                total_batches = sum(1 for _ in val_ds) - 1
+                current_batch = 0
+
                 # Validate on 10 batches
-                for _ in range(config.training.n_eval_batches):
-                    images, captions = next(val_batches)
+                for (images, captions) in val_batches:
+
+                    # Break if we've reached the end of the dataset (except for the last batch, which is likely partial)
+                    if current_batch == total_batches - 1:
+                        break
+
                     images = np.array(images)
 
                     # NOTE: Don't augment images for eval! NOTE: Changed my mind.
@@ -276,6 +283,9 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
                     metrics = eval_step(pstate, np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]), config.training.loss_type)
                     val_metrics.append(metrics)
+
+                    current_batch += 1  # Increment batch counter
+
 
                 def serialize_metrics(metrics):
                     """Convert all values in the metrics dict to Python standard types."""
