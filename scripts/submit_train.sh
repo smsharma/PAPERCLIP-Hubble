@@ -31,8 +31,8 @@ cd /n/holystore01/LABS/iaifi_lab/Users/smsharma/multimodal-data/
 # /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py  # Base config, with summary captions
 # /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.clip.transfer_head=True  # Fine-tune just head
 
-# /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.data.caption_type="abstract"  --config.data.augment_subsample_text=True  # Full abstract
-# /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.clip.random_init_text=True --config.clip.random_init_vision=True  # From scratch
+/n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.data.caption_type="abstract"  --config.data.augment_subsample_text=True  # Full abstract
+/n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.clip.random_init_text=True --config.clip.random_init_vision=True  # From scratch
 
 # /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.data.shuffle_within_batch=True  # Shuffle within batch
 # /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py  --config.sum1.use_sum1=True --config.sum1.sum1_filename="summary_sum1_v3" # Base config, with summary captions
