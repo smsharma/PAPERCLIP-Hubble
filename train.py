@@ -49,7 +49,13 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
             config=wandb_config,
         )
         wandb.define_metric("*", step_metric="train/step")  # Set default x-axis as 'train/step'
-        workdir = os.path.join(workdir, run.group, run.name)
+        
+        # If load model from checkpoint, set from config file
+        if config.training.load_ckpt:
+            workdir = os.path.join(workdir, run.group, config.training.ckpt_run_name)
+            logging.info(f"Loading checkpoint from run {config.training.ckpt_run_name}")
+        else:
+            workdir = os.path.join(workdir, run.group, run.name)
 
         # Recursively create workdir
         os.makedirs(workdir, exist_ok=True)
@@ -188,6 +194,18 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     # State
     state = train_state.TrainState.create(apply_fn=model.__call__ if (config.clip.use_pretrained) else model.apply, params=params, tx=tx)
+
+    # Load checkpoint
+    if config.training.load_ckpt:
+        restore_args = flax.training.orbax_utils.restore_args_from_target(state, mesh=None)
+        restored_state = ckpt_mgr.restore(ckpt_mgr.latest_step(), items=state, restore_kwargs={'restore_args': restore_args})
+
+        if state is restored_state:
+            raise FileNotFoundError(f"Did not load checkpoint correctly")
+        else:
+            state = restored_state
+            logging.info(f"Loaded checkpoint from step {ckpt_mgr.latest_step()}")
+
     pstate = replicate(state)
 
     # Log info about augmentations
@@ -221,6 +239,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
         for step in steps:
 
             # Use same rng for eval every time
+            # NOTE: Should move this down inside the eval if
             rng_eval = jax.random.PRNGKey(config.seed)
 
             # Eval portion
