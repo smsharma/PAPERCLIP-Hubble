@@ -32,7 +32,7 @@ def get_config():
     data.augment_subsample_text = False
     data.max_length_words = 77
     data.tfrecords_dir = "tfrecords_v5"
-    data.caption_type = "summary"  # "abstract" or "summary"
+    data.caption_type = "abstract"  # "abstract" or "summary"
     data.shuffle_within_batch = False
     data.data_dir = "/n/holyscratch01/iaifi_lab/smsharma/hubble_data/"
 
