@@ -50,8 +50,8 @@ def get_config():
     training.ckpt_best_metric = "loss"  # "loss" or "top_xx_accuracy"
     training.ckpt_best_metric_best_mode = "min"  # "max" or "min" 
     training.ckpt_keep_top_n = 3  # Save the top `ckpt_keep_top_n` checkpoints based on `ckpt_best_metric`
-    training.load_ckpt = True
-    training.ckpt_run_name = "vermilion-lantern-101"
+    training.load_ckpt = False
+    training.ckpt_run_name = "scintillating-rat-118"
 
 
     # Sum1 options

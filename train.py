@@ -20,7 +20,7 @@ import flax
 from flax.core import FrozenDict
 from flax.training import common_utils, train_state, orbax_utils
 from flax import traverse_util
-import orbax
+import orbax.checkpoint as ocp
 from dm_pix import rotate, random_crop, random_flip_up_down, random_flip_left_right
 import tensorflow as tf
 from tqdm import trange
@@ -53,12 +53,12 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
             "*", step_metric="train/step"
         )  # Set default x-axis as 'train/step'
 
-        # If load model from checkpoint, set from config file
+        # If loading ckpt, set the dir for that run
         if config.training.load_ckpt:
-            workdir = os.path.join(workdir, run.group, config.training.ckpt_run_name)
-            logging.info(f"Loading checkpoint from run {config.training.ckpt_run_name}")
-        else:
-            workdir = os.path.join(workdir, run.group, run.name)
+            workdir_load_ckpt = os.path.join(workdir, run.group, config.training.ckpt_run_name)
+
+        workdir = os.path.join(workdir, run.group, run.name)
+
 
         # Recursively create workdir
         os.makedirs(workdir, exist_ok=True)
@@ -207,18 +207,16 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
     # Checkpoint manager
 
     best_fn = lambda metrics: metrics[f"val/{config.training.ckpt_best_metric}"]
-    mgr_options = orbax.checkpoint.CheckpointManagerOptions(
-        create=True,
+    mgr_options = ocp.CheckpointManagerOptions(
         step_prefix=f"step",
         max_to_keep=config.training.ckpt_keep_top_n,
         best_fn=best_fn,
         best_mode=config.training.ckpt_best_metric_best_mode,
     )
 
-    ckpt_mgr = orbax.checkpoint.CheckpointManager(
-        f"{workdir}/ckpts/",
-        orbax.checkpoint.Checkpointer(orbax.checkpoint.PyTreeCheckpointHandler()),
-        mgr_options,
+    ckpt_mgr = ocp.CheckpointManager(
+        ocp.test_utils.create_empty(f"{workdir}/ckpts/"),
+        options=mgr_options,
     )
 
     # Optimizer and schedule
@@ -269,20 +267,24 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     # Load checkpoint
     if config.training.load_ckpt:
-        restore_args = flax.training.orbax_utils.restore_args_from_target(
-            state, mesh=None
+
+        ckpt_mgr_load_ckpt = ocp.CheckpointManager(
+            f"{workdir_load_ckpt}/ckpts/",
+            options=mgr_options,
         )
-        restored_state = ckpt_mgr.restore(
-            ckpt_mgr.latest_step(),
-            items=state,
-            restore_kwargs={"restore_args": restore_args},
+
+        logging.info(f"Loading checkpoint from run {config.training.ckpt_run_name}")
+
+        restored_state = ckpt_mgr_load_ckpt.restore(
+            ckpt_mgr_load_ckpt.latest_step(),
+            args=ocp.args.StandardRestore(state)
         )
 
         if state is restored_state:
             raise FileNotFoundError(f"Did not load checkpoint correctly")
         else:
             state = restored_state
-            logging.info(f"Loaded checkpoint from step {ckpt_mgr.latest_step()}")
+            logging.info(f"Loaded checkpoint from step {ckpt_mgr_load_ckpt.latest_step()}")
 
     pstate = replicate(state)
 
@@ -458,14 +460,13 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
                 # Save checkpoints periodically
                 state_ckpt = unreplicate(pstate)
-                save_args = orbax_utils.save_args_from_target(state_ckpt)
 
                 ckpt_mgr.save(
                     step,
-                    state_ckpt,
-                    save_kwargs={"save_args": save_args},
-                    metrics=summary,
+                    args=ocp.args.StandardSave(state_ckpt),
+                    metrics=summary
                 )
+                ckpt_mgr.wait_until_finished()
 
             # Train portion
 
