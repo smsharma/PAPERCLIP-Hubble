@@ -37,6 +37,7 @@ unreplicate = flax.jax_utils.unreplicate
 
 logging.set_verbosity(logging.INFO)
 
+
 def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainState:
     # Set up wandb run
     if config.wandb.log_train and jax.process_index() == 0:
@@ -48,8 +49,10 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
             group=config.wandb.group,
             config=wandb_config,
         )
-        wandb.define_metric("*", step_metric="train/step")  # Set default x-axis as 'train/step'
-        
+        wandb.define_metric(
+            "*", step_metric="train/step"
+        )  # Set default x-axis as 'train/step'
+
         # If load model from checkpoint, set from config file
         if config.training.load_ckpt:
             workdir = os.path.join(workdir, run.group, config.training.ckpt_run_name)
@@ -68,23 +71,44 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
     with open(os.path.join(workdir, "config.yaml"), "w") as f:
         yaml.dump(config.to_dict(), f)
 
-    writer = metric_writers.create_default_writer(logdir=workdir, just_logging=jax.process_index() != 0)
+    writer = metric_writers.create_default_writer(
+        logdir=workdir, just_logging=jax.process_index() != 0
+    )
 
     # Set up data
 
     # Find all TFRecord files and make datasets
-    files_train = tf.io.gfile.glob(f"{config.data.data_dir}/{config.data.tfrecords_dir}/*train*.tfrecord")
-    train_ds = make_dataloader(files_train, batch_size=config.training.batch_size, seed=config.seed, split='train', caption_type=config.data.caption_type, shuffle=True)
+    files_train = tf.io.gfile.glob(
+        f"{config.data.data_dir}/{config.data.tfrecords_dir}/*train*.tfrecord"
+    )
+    train_ds = make_dataloader(
+        files_train,
+        batch_size=config.training.batch_size,
+        seed=config.seed,
+        split="train",
+        caption_type=config.data.caption_type,
+        shuffle=True,
+    )
 
-    files_val = tf.io.gfile.glob(f"{config.data.data_dir}/{config.data.tfrecords_dir}/*val*.tfrecord")
-    val_ds = make_dataloader(files_val, batch_size=config.training.batch_size_val, seed=config.seed, split='val', caption_type=config.data.caption_type, shuffle=True)
-
+    files_val = tf.io.gfile.glob(
+        f"{config.data.data_dir}/{config.data.tfrecords_dir}/*val*.tfrecord"
+    )
+    val_ds = make_dataloader(
+        files_val,
+        batch_size=config.training.batch_size_val,
+        seed=config.seed,
+        split="val",
+        caption_type=config.data.caption_type,
+        shuffle=True,
+    )
+    
     batches = iter(train_ds)
 
     # Convert to jnp type
     dtype = getattr(np, config.clip.dtype)
 
     logging.info("Loaded the dataset")
+    logging.info(f"Using caption type: {config.data.caption_type}")
 
     # # Model configs
     # # NOTE: From legacy code; not used currently, but potentially useful if options are fed to create custom CLIP model
@@ -94,40 +118,54 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     # Use pre-trained model or train from scratch
     if config.clip.use_pretrained:
-        model = FlaxCLIPModel.from_pretrained(config.clip.pretrained_model_name, dtype=dtype)
+        model = FlaxCLIPModel.from_pretrained(
+            config.clip.pretrained_model_name, dtype=dtype
+        )
         processor = AutoProcessor.from_pretrained(config.clip.pretrained_model_name)
     else:
         raise NotImplementedError
 
     rng = jax.random.PRNGKey(config.seed)
     rng, rng_aug = jax.random.split(rng)
-    
+
     # Potentially randomly sample a subset of the text for training
-    max_length_words = config.data.max_length_words if config.data.augment_subsample_text else None
+    max_length_words = (
+        config.data.max_length_words if config.data.augment_subsample_text else None
+    )
 
     # Rotation angles in rad
-    rot_angles_90 = np.array([0.0, np.pi/2, np.pi, 3 * np.pi/2])
+    rot_angles_90 = np.array([0.0, np.pi / 2, np.pi, 3 * np.pi / 2])
 
     # Pre-trained model or train from scratch
     if config.clip.use_pretrained:
         # Optionally, randomly initialize the vision and/or text models
-        if (config.clip.random_init_vision or config.clip.random_init_text):
-            
+        if config.clip.random_init_vision or config.clip.random_init_text:
+
             # Get randomly-initialized params
-            params_init = model.module.init(rng, input_ids=np.zeros((1, model.config.text_config.max_length)), 
-                            attention_mask=np.zeros((1, model.config.text_config.max_length)),
-                            pixel_values=np.zeros((1, model.config.vision_config.image_size, model.config.vision_config.image_size, 3)),
-                            position_ids=np.zeros((1, model.config.text_config.max_length)))['params']
-            
+            params_init = model.module.init(
+                rng,
+                input_ids=np.zeros((1, model.config.text_config.max_length)),
+                attention_mask=np.zeros((1, model.config.text_config.max_length)),
+                pixel_values=np.zeros(
+                    (
+                        1,
+                        model.config.vision_config.image_size,
+                        model.config.vision_config.image_size,
+                        3,
+                    )
+                ),
+                position_ids=np.zeros((1, model.config.text_config.max_length)),
+            )["params"]
+
             if config.clip.random_init_vision:
-                model.params['vision_model'] = params_init['vision_model']
-                model.params['visual_projection'] = params_init['visual_projection']
+                model.params["vision_model"] = params_init["vision_model"]
+                model.params["visual_projection"] = params_init["visual_projection"]
 
                 logging.info("Randomly initialized vision model")
-            
+
             if config.clip.random_init_text:
-                model.params['text_model'] = params_init['text_model']
-                model.params['text_projection'] = params_init['text_projection']
+                model.params["text_model"] = params_init["text_model"]
+                model.params["text_projection"] = params_init["text_projection"]
 
                 logging.info("Randomly initialized text model")
 
@@ -138,15 +176,23 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     if config.clip.transfer_head:
 
-        model_transfer = FlaxCLIPModelTransfer(config=model.config, dtype=dtype, d_head=config.clip.d_transfer_head)
-        
+        model_transfer = FlaxCLIPModelTransfer(
+            config=model.config, dtype=dtype, d_head=config.clip.d_transfer_head
+        )
+
         # Transfer text and vision backbones
-        model_transfer.params['text_model']['text_backbone'] = model.params['text_model']
-        model_transfer.params['vision_model']['vision_backbone'] = model.params['vision_model']
+        model_transfer.params["text_model"]["text_backbone"] = model.params[
+            "text_model"
+        ]
+        model_transfer.params["vision_model"]["vision_backbone"] = model.params[
+            "vision_model"
+        ]
 
         # Complete transfer
         model = model_transfer
-        logging.info(f"Transferred pretrained model {config.clip.pretrained_model_name} with {config.clip.d_transfer_head}-dim head")
+        logging.info(
+            f"Transferred pretrained model {config.clip.pretrained_model_name} with {config.clip.d_transfer_head}-dim head"
+        )
 
     # Optionally convert type
     if config.clip.dtype == "bfloat16":
@@ -157,13 +203,23 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
     params = model.params  # FrozenDict(model.params)
 
     ## Training config and loop
-    
+
     # Checkpoint manager
 
     best_fn = lambda metrics: metrics[f"val/{config.training.ckpt_best_metric}"]
-    mgr_options = orbax.checkpoint.CheckpointManagerOptions(create=True, step_prefix=f'step', max_to_keep=config.training.ckpt_keep_top_n, best_fn=best_fn, best_mode=config.training.ckpt_best_metric_best_mode)
+    mgr_options = orbax.checkpoint.CheckpointManagerOptions(
+        create=True,
+        step_prefix=f"step",
+        max_to_keep=config.training.ckpt_keep_top_n,
+        best_fn=best_fn,
+        best_mode=config.training.ckpt_best_metric_best_mode,
+    )
 
-    ckpt_mgr = orbax.checkpoint.CheckpointManager(f"{workdir}/ckpts/", orbax.checkpoint.Checkpointer(orbax.checkpoint.PyTreeCheckpointHandler()), mgr_options)
+    ckpt_mgr = orbax.checkpoint.CheckpointManager(
+        f"{workdir}/ckpts/",
+        orbax.checkpoint.Checkpointer(orbax.checkpoint.PyTreeCheckpointHandler()),
+        mgr_options,
+    )
 
     # Optimizer and schedule
 
@@ -182,23 +238,45 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
         )
     else:
         raise ValueError(f"Invalid schedule: {config.optim.schedule}")
-    
+
     if config.clip.transfer_head:
         # Partition optimizer into trainable and frozen
-        partition_optimizers = {'trainable': optax.adamw(learning_rate=schedule, weight_decay=config.optim.weight_decay), 'frozen': optax.set_to_zero()}
-        param_partitions = traverse_util.path_aware_map(lambda path, v: 'frozen' if (('vision_backbone' in path) or ('text_backbone' in path)) else 'trainable', params)
+        partition_optimizers = {
+            "trainable": optax.adamw(
+                learning_rate=schedule, weight_decay=config.optim.weight_decay
+            ),
+            "frozen": optax.set_to_zero(),
+        }
+        param_partitions = traverse_util.path_aware_map(
+            lambda path, v: (
+                "frozen"
+                if (("vision_backbone" in path) or ("text_backbone" in path))
+                else "trainable"
+            ),
+            params,
+        )
 
         tx = optax.multi_transform(partition_optimizers, param_partitions)
     else:
         tx = optax.adamw(learning_rate=schedule, weight_decay=config.optim.weight_decay)
 
     # State
-    state = train_state.TrainState.create(apply_fn=model.__call__ if (config.clip.use_pretrained) else model.apply, params=params, tx=tx)
+    state = train_state.TrainState.create(
+        apply_fn=model.__call__ if (config.clip.use_pretrained) else model.apply,
+        params=params,
+        tx=tx,
+    )
 
     # Load checkpoint
     if config.training.load_ckpt:
-        restore_args = flax.training.orbax_utils.restore_args_from_target(state, mesh=None)
-        restored_state = ckpt_mgr.restore(ckpt_mgr.latest_step(), items=state, restore_kwargs={'restore_args': restore_args})
+        restore_args = flax.training.orbax_utils.restore_args_from_target(
+            state, mesh=None
+        )
+        restored_state = ckpt_mgr.restore(
+            ckpt_mgr.latest_step(),
+            items=state,
+            restore_kwargs={"restore_args": restore_args},
+        )
 
         if state is restored_state:
             raise FileNotFoundError(f"Did not load checkpoint correctly")
@@ -210,25 +288,35 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
 
     # Log info about augmentations
     logging.info(f"Augment crop: {config.data.augment_crop}")
-    logging.info(f"Augment rotate: {config.data.augment_rotate}, {config.data.augment_rotate_type}")
-    logging.info(f"Subsample text: {config.data.augment_subsample_text}. Max length: {max_length_words} words")
+    logging.info(
+        f"Augment rotate: {config.data.augment_rotate}, {config.data.augment_rotate_type}"
+    )
+    logging.info(
+        f"Subsample text: {config.data.augment_subsample_text}. Max length: {max_length_words} words"
+    )
 
     if config.data.shuffle_within_batch:
         logging.info(f"Shuffling images within batch")
 
     # If matching to sum1 summary
     if config.sum1.use_sum1:
-        logging.info(f"Matching to summary {config.sum1.summaries_filename} with sum1 {config.sum1.sum1_filename}")
+        logging.info(
+            f"Matching to summary {config.sum1.summaries_filename} with sum1 {config.sum1.sum1_filename}"
+        )
         # Combine with data dir and add .csv extension
-        summaries_filename = os.path.join(config.data.data_dir, f"{config.sum1.summaries_filename}.csv")
-        sum1_filename = os.path.join(config.data.data_dir, f"{config.sum1.sum1_filename}.csv")
+        summaries_filename = os.path.join(
+            config.data.data_dir, f"{config.sum1.summaries_filename}.csv"
+        )
+        sum1_filename = os.path.join(
+            config.data.data_dir, f"{config.sum1.sum1_filename}.csv"
+        )
 
         # Open dataframes
         df_summaries = pd.read_csv(summaries_filename)
         df_sum1 = pd.read_csv(sum1_filename)
 
         # Merge on proposal ID
-        df_sum_merged = pd.merge(df_summaries, df_sum1, on='proposal_id')
+        df_sum_merged = pd.merge(df_summaries, df_sum1, on="proposal_id")
     else:
         df_sum_merged = None
 
@@ -241,14 +329,16 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
             # Eval portion
 
             # Evaluate before starting, hence no `and (step != 0)`
-            if (step % config.training.eval_every_steps == 0) and (jax.process_index() == 0):
+            if (step % config.training.eval_every_steps == 0) and (
+                jax.process_index() == 0
+            ):
 
                 # Use same rng for eval every time
                 rng_eval = jax.random.PRNGKey(config.seed)
 
-                # Log step at which evaluating 
+                # Log step at which evaluating
                 logging.info(f"Evaluating at step {step}")
-                
+
                 val_metrics = []
                 val_batches = iter(val_ds)
 
@@ -256,7 +346,7 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
                 current_batch = 0
 
                 # Validate on 10 batches
-                for (images, captions) in val_batches:
+                for images, captions in val_batches:
 
                     # Break if we've reached the end of the dataset (except for the last batch, which is likely partial)
                     if current_batch == total_batches - 1:
@@ -271,118 +361,223 @@ def train(config: ConfigDict, workdir: str = "./logging/") -> train_state.TrainS
                         # Rotations
                         rng_eval, _ = jax.random.split(rng_eval)
                         if config.data.augment_rotate_type == "continuous":
-                            rotation_angles = jax.random.uniform(rng_eval, shape=(images.shape[0],)) * 2 * np.pi  # Angles in radians
+                            rotation_angles = (
+                                jax.random.uniform(rng_eval, shape=(images.shape[0],))
+                                * 2
+                                * np.pi
+                            )  # Angles in radians
                         elif config.data.augment_rotate_type == "discrete":
-                            rotation_angles = jax.random.choice(rng_eval, rot_angles_90, shape=(images.shape[0],))  # Angles in radians
+                            rotation_angles = jax.random.choice(
+                                rng_eval, rot_angles_90, shape=(images.shape[0],)
+                            )  # Angles in radians
                         else:
-                            raise ValueError(f"Invalid augment_rotate_type: {config.data.augment_rotate_type}")
-                        images = jax.vmap(partial(rotate, mode='constant', cval=1.))(images, rotation_angles)
-                        
+                            raise ValueError(
+                                f"Invalid augment_rotate_type: {config.data.augment_rotate_type}"
+                            )
+                        images = jax.vmap(partial(rotate, mode="constant", cval=1.0))(
+                            images, rotation_angles
+                        )
+
                         # Flips
                         rng_eval, _ = jax.random.split(rng_eval)
-                        images = jax.vmap(partial(random_flip_up_down, key=rng_eval))(image=images)
+                        images = jax.vmap(partial(random_flip_up_down, key=rng_eval))(
+                            image=images
+                        )
 
                         rng_eval, _ = jax.random.split(rng_eval)
-                        images = jax.vmap(partial(random_flip_left_right, key=rng_eval))(image=images)
+                        images = jax.vmap(
+                            partial(random_flip_left_right, key=rng_eval)
+                        )(image=images)
 
                     # Augment images through random crops
                     # Otherwise, they'll be downsampled to the vision model's image size
                     if config.data.augment_crop:
-                        images = jax.vmap(random_crop, in_axes=(None,0,None))(rng_eval, images, (model.config.vision_config.image_size, model.config.vision_config.image_size, 3))
+                        images = jax.vmap(random_crop, in_axes=(None, 0, None))(
+                            rng_eval,
+                            images,
+                            (
+                                model.config.vision_config.image_size,
+                                model.config.vision_config.image_size,
+                                3,
+                            ),
+                        )
 
                     # NOTE: Image arrays should be ints in the range [0, 255] here
-                    captions = process_truncate_captions(captions, rng_eval, max_length_words=max_length_words, use_sum1=config.sum1.use_sum1, df_sum_merged=df_sum_merged)
-                    inputs = processor(text=captions, images=(images * 255.).astype(np.uint8),  return_tensors="np", padding="max_length", truncation=True, max_length=model.config.text_config.max_length)
+                    captions = process_truncate_captions(
+                        captions,
+                        rng_eval,
+                        max_length_words=max_length_words,
+                        use_sum1=config.sum1.use_sum1,
+                        df_sum_merged=df_sum_merged,
+                    )
+                    inputs = processor(
+                        text=captions,
+                        images=(images * 255.0).astype(np.uint8),
+                        return_tensors="np",
+                        padding="max_length",
+                        truncation=True,
+                        max_length=model.config.text_config.max_length,
+                    )
                     batch = inputs.data
 
                     # Split batch across devices
-                    batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
+                    batch = jax.tree_map(
+                        lambda x: np.split(x, num_local_devices, axis=0), batch
+                    )
                     batch = jax.tree_map(lambda x: np.array(x, dtype=dtype), batch)
 
-                    metrics = eval_step(pstate, np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]), config.training.loss_type)
+                    metrics = eval_step(
+                        pstate,
+                        np.array(batch["input_ids"]),
+                        np.array(batch["pixel_values"]),
+                        np.array(batch["attention_mask"]),
+                        config.training.loss_type,
+                    )
                     val_metrics.append(metrics)
 
                     current_batch += 1  # Increment batch counter
 
-
                 def serialize_metrics(metrics):
                     """Convert all values in the metrics dict to Python standard types."""
-                    return {k: float(v) if isinstance(v, (np.float32, np.float64)) else v for k, v in metrics.items()}
+                    return {
+                        k: float(v) if isinstance(v, (np.float32, np.float64)) else v
+                        for k, v in metrics.items()
+                    }
 
                 val_metrics = common_utils.get_metrics(val_metrics)
-                summary = {f"val/{k}": v for k, v in jax.tree_map(lambda x: x.mean(), val_metrics).items()}
+                summary = {
+                    f"val/{k}": v
+                    for k, v in jax.tree_map(lambda x: x.mean(), val_metrics).items()
+                }
                 summary = serialize_metrics(summary)
 
                 writer.write_scalars(step, summary)
 
-                if config.wandb.log_train:
-                    wandb.log({"val/step": step, **summary})
+                # if config.wandb.log_train:
+                #     wandb.log({"val/step": step, **summary})
 
-                # Save checkpoints periodically
-                state_ckpt = unreplicate(pstate)
-                save_args = orbax_utils.save_args_from_target(state_ckpt)
+                # # Save checkpoints periodically
+                # state_ckpt = unreplicate(pstate)
+                # save_args = orbax_utils.save_args_from_target(state_ckpt)
 
-                ckpt_mgr.save(step, state_ckpt, save_kwargs={'save_args': save_args}, metrics=summary)
+                # ckpt_mgr.save(
+                #     step,
+                #     state_ckpt,
+                #     save_kwargs={"save_args": save_args},
+                #     metrics=summary,
+                # )
 
-            # Train portion
+            # # Train portion
 
-            rng, rng_aug = jax.random.split(rng)
-            images, captions = next(batches)
-            images = np.array(images)
+            # rng, rng_aug = jax.random.split(rng)
+            # images, captions = next(batches)
+            # images = np.array(images)
 
-            # Augment images through random rotations and flips
-            if config.data.augment_rotate:
+            # # Augment images through random rotations and flips
+            # if config.data.augment_rotate:
 
-                # Rotations
-                rng_aug, _ = jax.random.split(rng_aug)
-                if config.data.augment_rotate_type == "continuous":
-                    rotation_angles = jax.random.uniform(rng_aug, shape=(images.shape[0],)) * 2 * np.pi  # Angles in radians
-                elif config.data.augment_rotate_type == "discrete":
-                    rotation_angles = jax.random.choice(rng_aug, rot_angles_90, shape=(images.shape[0],))  # Angles in radians
-                else:
-                    raise ValueError(f"Invalid augment_rotate_type: {config.data.augment_rotate_type}")
-                images = jax.vmap(partial(rotate, mode='constant', cval=1.))(images, rotation_angles)
+            #     # Rotations
+            #     rng_aug, _ = jax.random.split(rng_aug)
+            #     if config.data.augment_rotate_type == "continuous":
+            #         rotation_angles = (
+            #             jax.random.uniform(rng_aug, shape=(images.shape[0],))
+            #             * 2
+            #             * np.pi
+            #         )  # Angles in radians
+            #     elif config.data.augment_rotate_type == "discrete":
+            #         rotation_angles = jax.random.choice(
+            #             rng_aug, rot_angles_90, shape=(images.shape[0],)
+            #         )  # Angles in radians
+            #     else:
+            #         raise ValueError(
+            #             f"Invalid augment_rotate_type: {config.data.augment_rotate_type}"
+            #         )
+            #     images = jax.vmap(partial(rotate, mode="constant", cval=1.0))(
+            #         images, rotation_angles
+            #     )
 
-                # Flips
-                rng_aug, _ = jax.random.split(rng_aug)
-                images = jax.vmap(partial(random_flip_up_down, key=rng_aug))(image=images)
+            #     # Flips
+            #     rng_aug, _ = jax.random.split(rng_aug)
+            #     images = jax.vmap(partial(random_flip_up_down, key=rng_aug))(
+            #         image=images
+            #     )
 
-                rng_aug, _ = jax.random.split(rng_aug)
-                images = jax.vmap(partial(random_flip_left_right, key=rng_aug))(image=images)
+            #     rng_aug, _ = jax.random.split(rng_aug)
+            #     images = jax.vmap(partial(random_flip_left_right, key=rng_aug))(
+            #         image=images
+            #     )
 
-            # Augment images through random crops
-            # Otherwise, they'll be downsampled to the vision model's image size
-            if config.data.augment_crop:
-                rng_aug, _ = jax.random.split(rng_aug)
-                images = jax.vmap(random_crop, in_axes=(None,0,None))(rng_aug, images, (model.config.vision_config.image_size, model.config.vision_config.image_size, 3))
+            # # Augment images through random crops
+            # # Otherwise, they'll be downsampled to the vision model's image size
+            # if config.data.augment_crop:
+            #     rng_aug, _ = jax.random.split(rng_aug)
+            #     images = jax.vmap(random_crop, in_axes=(None, 0, None))(
+            #         rng_aug,
+            #         images,
+            #         (
+            #             model.config.vision_config.image_size,
+            #             model.config.vision_config.image_size,
+            #             3,
+            #         ),
+            #     )
 
-            # NOTE: Image arrays should be ints in the range [0, 255] here
-            captions = process_truncate_captions(captions, rng_aug, max_length_words=max_length_words, use_sum1=config.sum1.use_sum1, df_sum_merged=df_sum_merged)
-            inputs = processor(text=captions, images=(images * 255.).astype(np.uint8),  return_tensors="np", padding="max_length", truncation=True, max_length=model.config.text_config.max_length)
-            batch = inputs.data
-            
-            # Optionally shuffle "pixel_values" within batch
-            if config.data.shuffle_within_batch:
-                batch["pixel_values"] = jax.random.permutation(rng, batch["pixel_values"], axis=0)
+            # # NOTE: Image arrays should be ints in the range [0, 255] here
+            # captions = process_truncate_captions(
+            #     captions,
+            #     rng_aug,
+            #     max_length_words=max_length_words,
+            #     use_sum1=config.sum1.use_sum1,
+            #     df_sum_merged=df_sum_merged,
+            # )
+            # inputs = processor(
+            #     text=captions,
+            #     images=(images * 255.0).astype(np.uint8),
+            #     return_tensors="np",
+            #     padding="max_length",
+            #     truncation=True,
+            #     max_length=model.config.text_config.max_length,
+            # )
+            # batch = inputs.data
 
-            # Split batch across devices
-            batch = jax.tree_map(lambda x: np.split(x, num_local_devices, axis=0), batch)
-            batch = jax.tree_map(lambda x: np.array(x, dtype=dtype), batch)
+            # # Optionally shuffle "pixel_values" within batch
+            # if config.data.shuffle_within_batch:
+            #     batch["pixel_values"] = jax.random.permutation(
+            #         rng, batch["pixel_values"], axis=0
+            #     )
 
-            pstate, metrics = train_step(pstate, np.array(batch["input_ids"]), np.array(batch["pixel_values"]), np.array(batch["attention_mask"]), config.training.loss_type)
-            steps.set_postfix(val=unreplicate(metrics["loss"]))
-            train_metrics.append(metrics)
+            # # Split batch across devices
+            # batch = jax.tree_map(
+            #     lambda x: np.split(x, num_local_devices, axis=0), batch
+            # )
+            # batch = jax.tree_map(lambda x: np.array(x, dtype=dtype), batch)
 
-            # Log periodically
-            if (step % config.training.log_every_steps == 0) and (step != 0) and (jax.process_index() == 0):
-                train_metrics = common_utils.get_metrics(train_metrics)
-                summary = {f"train/{k}": v for k, v in jax.tree_map(lambda x: x.mean(), train_metrics).items()}
+            # pstate, metrics = train_step(
+            #     pstate,
+            #     np.array(batch["input_ids"]),
+            #     np.array(batch["pixel_values"]),
+            #     np.array(batch["attention_mask"]),
+            #     config.training.loss_type,
+            # )
+            # steps.set_postfix(val=unreplicate(metrics["loss"]))
+            # train_metrics.append(metrics)
 
-                writer.write_scalars(step, summary)
-                train_metrics = []
+            # # Log periodically
+            # if (
+            #     (step % config.training.log_every_steps == 0)
+            #     and (step != 0)
+            #     and (jax.process_index() == 0)
+            # ):
+            #     train_metrics = common_utils.get_metrics(train_metrics)
+            #     summary = {
+            #         f"train/{k}": v
+            #         for k, v in jax.tree_map(lambda x: x.mean(), train_metrics).items()
+            #     }
 
-                if config.wandb.log_train:
-                    wandb.log({"train/step": step, **summary})
+            #     writer.write_scalars(step, summary)
+            #     train_metrics = []
+
+            #     if config.wandb.log_train:
+            #         wandb.log({"train/step": step, **summary})
 
     logging.info("All done! Have a great day.")
 

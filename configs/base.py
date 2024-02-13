@@ -32,7 +32,7 @@ def get_config():
     data.augment_subsample_text = False
     data.max_length_words = 77
     data.tfrecords_dir = "tfrecords_v5"
-    data.caption_type = "abstract"  # "abstract" or "summary"
+    data.caption_type = "summary"  # "abstract" or "summary"
     data.shuffle_within_batch = False
     data.data_dir = "/n/holyscratch01/iaifi_lab/smsharma/hubble_data/"
 
@@ -51,7 +51,7 @@ def get_config():
     training.ckpt_best_metric_best_mode = "min"  # "max" or "min" 
     training.ckpt_keep_top_n = 3  # Save the top `ckpt_keep_top_n` checkpoints based on `ckpt_best_metric`
     training.load_ckpt = True
-    training.ckpt_run_name = "ancient-pine-88"
+    training.ckpt_run_name = "vermilion-lantern-101"
 
 
     # Sum1 options
