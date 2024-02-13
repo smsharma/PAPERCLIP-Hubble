@@ -30,7 +30,7 @@ def get_config():
     data.augment_rotate_type = "discrete"  # "continuous" rotation angles or "discrete" 90-deg flips
     data.augment_crop = True
     data.augment_subsample_text = False
-    data.max_length_words = 77
+    data.max_length_words = 77  # Max words used in subsampling
     data.tfrecords_dir = "tfrecords_v5"
     data.caption_type = "summary"  # "abstract" or "summary"
     data.shuffle_within_batch = False
