@@ -111,15 +111,16 @@ final=true,
 
 \thispagestyle{firstpage}
 
+
 \begin{abstract}
 We present PAPERCLIP (Proposal Abstracts Provide an Effective Representation for Contrastive Language-Image Pretraining), a method which associates astronomical observations imaged by astronomical surveys like the \hubble Space Telescope (HST) with natural language. The model is fine-tuned from a pre-trained Contrastive Language–Image Pre-training (CLIP) model using successful proposal abstracts corresponding to HST observations, optionally summarized via guided generation using large language models (LLMs). We show that the model embodies a meaningful joint representation between observations and text through experiments targeting image retrieval (i.e., retrieving the most relevant observations from a set using natural language queries) and description retrieval (i.e., querying the astrophysical object classes and science use cases most relevant to a given observation). Our study demonstrates the potential for using generalist rather than task-specific models for astrophysics research, in particular by leveraging text as an interface.
 \end{abstract}
 
+\tableofcontents
+
 \section{Introduction}
 \label{sec:intro}
 
-\SM{Add TOC.}
-\SM{Change PAPERCLIP everywhere.}
 \SM{Add some qualitative evals with the abstract model.}
 
 Machine learning (ML) is beginning to have a significant impact in the sciences, with astrophysics being no exception.
@@ -130,7 +131,7 @@ Until recently, most applications of ML within astrophysics have focused on repl
 %
 The \emph{Foundation Model} paradigm, in contrast, seeks to develop generalist models which can be deployed to tackle a wide range of tasks.
 %
-The paradigm has been highly successful in domains like computer vision and natural language processing, as demonstrated by the widespread adoption of tools like ChatGPT, Dall-E, Stable Diffusion, and CLIP.
+The paradigm has been highly successful in domains like computer vision and natural language processing, as demonstrated by the widespread use and adoption of tools like ChatGPT, Dall-E, Stable Diffusion, and CLIP.
 %
 These models are typically pre-trained on massive amounts of unlabeled data using self-supervised learning techniques, enabling them to learn powerful representations which can be deployed on different tasks across domains.
 %
@@ -146,19 +147,20 @@ This multi-modality was recently exploited in \textsc{AstroCLIP}~\citep{lanusse2
 %
 \textsc{AstroLLaMA}~\citep{nguyen2023astrollama,perkowski2024astrollama} is another recent effort to fine-tune a publicly-available model (\textsc{Llama-2}) on astrophysics-specific textual data from the arXiv.
 
-The Contrastive Language-Image Pre-training~\citep[CLIP;][]{radford2021learning} family of foundation models, which in their original instantiation embed images and associated captions into a common embedding space via contrastive learning, have shown strong performance and generalization capabilities on a variety of downstream tasks including zero-shot classification and image retrieval.
+In this paper we describe \text{PAPERCLIP} (Proposal Abstracts Provide an Effective Representation for Contrastive Language-Image Pretraining\footnote{Technically we fine tune rather than pretrain, but ``PAPERCLIFT'' was rejected by the senior author of this paper.}), a method that connects astronomical image observations with natural language by leveraging the association between abstracts of successful observing proposals and corresponding downstream image observations. 
+%
+Concretely, here we showcase the method using observations imaged by the \hubble Space Telescope (HST).
+%
+We show that fine-tuning a pre-trained CLIP (Contrastive Language-Image Pre-training)~\cite{radford2021learning} image-text model on observation-abstract associations results in meaningful joint representations through quantitative and qualitative evaluation.
+%
+This opens up the possibility of interacting with astronomical survey data using free-form natural language as an interface, which is a cornerstone of the success of the modern foundation model paradigm.
+%
+
+The CLIP family of foundation models, which in their original instantiation embed images and associated captions into a common embedding space via contrastive learning, have shown strong performance and generalization capabilities on a variety of downstream tasks including zero-shot classification and image retrieval.
 %
 The concept of associating diverse modalities via contrastive training has been used on other scientific domains~\citep[e.g.,][]{liu2023text,Sanchez-Fernandez2022.11.17.516915,lanusse2023astroclip,cepeda2023geoclip}, and has been shown to be effective in learning semantically meaningful joint representations.
 
-\SM{Put in this work we at the start of the paragraph. Also put the paragraph right after AstroLlama, reworking some of the logic.} \SM{Define PAPERCLIP, funny footnote about PAPERCLIFT.}
-
-The success of the foundation model paradigm relies in part on the ability to flexibly leverage text as a \emph{universal interface} for interacting with models.
-%
-In this work, we take this outlook and train a joint representation between observations taken by the \hubble Space Telescope (HST) and natural language.
-%
-We do so by leveraging associations between LLM-summarized abstracts of successful observing proposals and corresponding downstream image observations.
-%
-We show that fine-tuning a pre-trained CLIP image-text model on this data results in meaningful joint representations through quantitative and qualitative evaluation.
+% \SM{Put in this work we at the start of the paragraph. Also put the paragraph right after AstroLlama, reworking some of the logic.} \SM{Define PAPERCLIP, funny footnote about PAPERCLIFT.}
 
 The paper is organized as follows.
 %
@@ -181,11 +183,37 @@ The HST has been operational since its launch on April 24, 1990, and we use avai
 %
 
 
-Examples of images and corresponding (summarized) captions are shown in Tab.~\ref{tab:dataset}. \SM{Push table earlier.}
+Examples of images and corresponding (summarized) captions are shown in Tab.~\ref{tab:dataset}. % \SM{Push table earlier.}
 %
 It can be seen that these images have specific characteristics as well as artifacts particular to the nature of data-taking and processing which distinguish them from the distribution of natural images typically used for large-scale pre-training of foundation models.
 %
 This further motivates the need for fine-tuning on domain-specific data.
+
+
+\datafolder{./plots/data/}
+
+\begin{table}[h!]
+  \centering
+  \begin{tabular}{m{0.21\textwidth} p{1.9cm} p{1.9cm} m{8cm}}
+      \toprule
+      \centering \bfseries Image & \centering \bfseries Obs. cycle \\ (Year) & \centering \bfseries Prop. ID & \centering \bfseries LLM-extracted summary \tabularnewline
+      \midrule
+      \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_0.pdf} & \centering \input{\thedatafolder/cycle_0.txt} \\ (2019) & \centering \input{\thedatafolder/id_0.txt} &  {\scriptsize \input{\thedatafolder/sum_0.txt}} \tabularnewline
+      \midrule
+      \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_1.pdf} & \centering \input{\thedatafolder/cycle_1.txt} \\ (2013) & \centering \input{\thedatafolder/id_1.txt} &  {\scriptsize \input{\thedatafolder/sum_1.txt}} \tabularnewline
+      \midrule
+      \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_2.pdf} & \centering \input{\thedatafolder/cycle_2.txt} \\ (1999) & \centering \input{\thedatafolder/id_2.txt} &  {\scriptsize \input{\thedatafolder/sum_2.txt}} \tabularnewline
+      \midrule
+      \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_3.pdf} & \centering \input{\thedatafolder/cycle_3.txt} \\ (2016) & \centering \input{\thedatafolder/id_3.txt} &  {\scriptsize \input{\thedatafolder/sum_3.txt}} \tabularnewline
+      \bottomrule
+  \end{tabular}
+  \caption{Examples of images and corresponding captions, constructed using the LLM-extracted summaries.
+%
+The CLIP model is fine-tuned using these text-image associations.
+%
+Although the summarized abstract is extracted as two parts (objects/phenomena and science use cases), the model is trained using the entire summary as a single caption.}
+  \label{tab:dataset}
+\end{table}
 
 \subsection{Data Selection and Pre-Processing}
 
@@ -205,7 +233,7 @@ If no appropriate images corresponding to an abstract are found, it is excluded 
 
 In total, 31,859 images corresponding to 4,438 abstracts are included in the fine-tuning dataset.
 %
-3,194 images are held out for validation, with no abstract being common between training and validation sets in order to ensure an independent set of text-image pairs for evaluation. \SM{Put number of held out abstracts here}
+3,194 images are held out for validation, with no abstract being common between training and validation sets in order to ensure an independent set of text-image pairs for evaluation. The held out images correspond to 438 unique abstracts.  % Double check numbers in final version.
 
 We note that some fraction of the image-caption pairs in the constructed dataset will primarily concern instrumentation and/or calibration rather than scientific content.
 %
@@ -226,7 +254,7 @@ The goal is to summarize the objects and phenomena, as well as potential downstr
 
 The method from \cite{willard2023efficient} is used to produce an LLM-generated summary of the abstract conforming to a particular schema, specified in JSON format.
 %
-The schema is designed to represent a list of the objects (e.g., `Type Ia supernova') and phenomena (e.g., `gravitational lensing'), as well as potential downstream science uses cases (e.g., `set constraints on supernova explosion models') that could correspond to the eventual imaged observation given the abstract text, with a minimum of 1 and a maximum of 5 elements per list. \SM{Emphasize that the schema ensures the format, but the prompt is necessary for it to make sense.}
+The schema is designed to represent a list of the objects (e.g., `Type Ia supernova') and phenomena (e.g., `gravitational lensing'), as well as potential downstream science uses cases (e.g., `set constraints on supernova explosion models') that could correspond to the eventual imaged observation given the abstract text, with a minimum of 1 and a maximum of 5 elements per list.
 
 The procedure guides the generation of LLM outputs while ensuring that the schema is respected at every step in the autoregressive generation process by masking out tokens that would violate the intended format.
 %
@@ -247,6 +275,8 @@ See App.~\ref{app:guided-generation} for a more detailed description of the guid
 
 We use the open-weights, instruction-tuned model \textsc{Mixtral-8x7B-Instruct}~\citep{jiang2024mixtral} to generate the summaries, with guided generation performed using the \package{Outlines}\footnote{\url{https://github.com/outlines-dev/outlines}} package.
 %
+While the schema-guided generation ensures the format of the output, the prompt and choice of LLM will influence the content of the generated summaries.
+%
 Further details on the summarization procedure, including the prompts and schema used, are provided in App.~\ref{app:summarization}.
 
 We emphasize that the goal of summarization-via-guided-generation is to increase the signal between text and images by standardizing the captions used for fine-tuning the CLIP model, and compare the quantitative performance of the model vs using the raw abstracts in Sec.~\ref{sec:results}.
@@ -257,28 +287,6 @@ Finally, in order to test a further compression of the proposal abstracts, we us
 %
 The prompts and schemata for generating these discrete categories and assigning observations to them are described in Apps.~\ref{app:singleconcept} and \ref{app:singleconceptassignments} respectively. \SM{Each abstract is assigned one summary. The generation of the single concepts is different }
 
-\datafolder{./plots/data/}
- 
-\begin{table}[h!]
-      \centering
-      \begin{tabular}{m{0.21\textwidth} p{1.9cm} p{1.9cm} m{8cm}}
-          \toprule
-          \centering \bfseries Image & \centering \bfseries Obs. cycle & \centering \bfseries Prop. ID & \centering \bfseries LLM-extracted summary \tabularnewline
-          \midrule
-          \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_0.pdf} & \centering \input{\thedatafolder/cycle_0.txt} & \centering \input{\thedatafolder/id_0.txt} &  {\scriptsize \input{\thedatafolder/sum_0.txt}} \tabularnewline
-          \midrule
-          \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_1.pdf} & \centering \input{\thedatafolder/cycle_1.txt} & \centering \input{\thedatafolder/id_1.txt} &  {\scriptsize \input{\thedatafolder/sum_1.txt}} \tabularnewline
-          \midrule
-          \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_2.pdf} & \centering \input{\thedatafolder/cycle_2.txt} & \centering \input{\thedatafolder/id_2.txt} &  {\scriptsize \input{\thedatafolder/sum_2.txt}} \tabularnewline
-          \midrule
-          \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_3.pdf} & \centering \input{\thedatafolder/cycle_3.txt} & \centering \input{\thedatafolder/id_3.txt} &  {\scriptsize \input{\thedatafolder/sum_3.txt}} \tabularnewline
-          \bottomrule
-      \end{tabular}
-      \caption{Examples of images and corresponding captions, constructed using the LLM-extracted summaries.
-%
-The CLIP model is fine-tuned using these text-image associations. \SM{Semicolon separates, but the model doesn't know about it.}}
-      \label{tab:dataset}
-  \end{table}
 
 \begin{landscape}
       \begin{table}[h!]
@@ -298,7 +306,7 @@ The CLIP model is fine-tuned using these text-image associations. \SM{Semicolon 
               \input{\thedatafolder/id1_3.txt} & {\scriptsize \input{\thedatafolder/abs1_3.txt}} & {\scriptsize \input{\thedatafolder/obj1_3.txt}} & {\scriptsize \input{\thedatafolder/sci1_3.txt}} \tabularnewline
               \bottomrule
           \end{tabular}
-          \caption{Examples of the initial parts of raw proposal abstracts (second column) and LLM (\textsc{Mixtral-8x7B})-extracted summaries (rightmost two columns), separately extracting objects and phenomena as well as potential downstream science use cases. \SM{Cite all proposal.} \SM{Add a year with the obs. cycle.}.}
+          \caption{Examples of the initial parts of raw proposal abstracts (second column) and LLM (\textsc{Mixtral-8x7B})-extracted summaries (rightmost two columns), separately extracting objects and phenomena as well as potential downstream science use cases.}
           \label{tab:datasetsumm}
       \end{table}
   \end{landscape}
@@ -310,9 +318,9 @@ Our goal is to learn a semantically  meaningful joint representation between HST
 %
 We leverage the strong generalization capabilities demonstrated by pre-trained CLIP models and adapt these to work with domain-specific \hubble data via fine tuning.
 
-\paragraph*{Pre-trained CLIP model}
+\subsection{Contrastive Language-Image Pretraining (CLIP)}
 
-CLIP \citep[Contrastive Language-Image Pretraining;][]{radford2021learning} is a multi-modal model pre-trained on a large corpus of image-text pairs via weak supervision using a contrastive loss.
+Contrastive Language-Image Pretraining \citep[CLIP;][]{radford2021learning} is a multi-modal model pre-trained on a large corpus of image-text pairs via weak supervision using a contrastive loss.
 %
 Given a minibatch $\mathcal{B}$ of $|\mathcal{B}|$ image-text pairs $\{(I_i, T_i)\}$, the goal is to align the learned representations of corresponding (positive) pairs $(I_i, T_i)$ while repelling the representations of unaligned (negative) pairs $(I_i, T_{j\neq i})$.
 %
@@ -339,7 +347,7 @@ In total, the model has 149,620,737 trainable parameters.
 The model was originally trained on 400 million image-text pairs from internet data. \SM{$\tau$ was initialized to the pre-trained value.} \SM{HuggingFace link?} \SM{What area is maintained.} \SM{It's only 90 deg rotations.}
 %
 
-\paragraph*{Fine-tuning procedure}
+\subsection{Fine-tuning procedure}
 
 The base CLIP model is fine-tuned using the dataset described in Sec.~\ref{sec:dataset}, using either the LLM-summarized data, the raw proposal abstracts, or single-concept summaries.
 %
@@ -365,7 +373,7 @@ Models were instantiated and trained using packages from the \package{Jax} \cite
 %
 
 
-\paragraph*{Evaluation metrics}
+\subsection{Evaluation metrics}
 
 The model is evaluated by tracking the loss in Eq.~\ref{eq:softmax_loss} as well as the top-$k\%$ retrieval accuracy on the held out validation set over the course of training.
 %
@@ -380,7 +388,7 @@ We also qualitatively evaluate the learned embeddings through image retrieval (i
 \section{Results and Discussion}
 \label{sec:results}
 
-\paragraph*{Validation metrics}
+\subsection{Validation metrics over training}
 
 Figure~\ref{fig:retrieval_acc} shows the contrastive loss (left) and the top-10\% retrieval accuracy (right) on the held out validation set over the course of training, for different training configurations considered.
 %
@@ -402,7 +410,7 @@ Fine-tuning a small MLP head over frozen vision and text backbones (green lines)
   \label{fig:retrieval_acc}
   \end{figure*}
 
-\paragraph*{Image retrieval}
+\subsection{Image retrieval task}
 
 Having aligned the image and text representations, we can query the validation set using natural language and show the most `relevant' images when ranked by cosine similarity.
 %
@@ -422,7 +430,7 @@ Supernova SN1987 itself can be seen in the most relevant images for the `SN1987A
 %
 Cluster-scale as well as galaxy-scale gravitational lenses are returned by the `strong lensing' query, with lensing patterns visible in the images.
 
-\paragraph*{Text retrieval}
+\subsection{Text retrieval task}
 
 We can use images from the validation set as queries and retrieve the most relevant text chunks (e.g., contained objects and use cases) from a curated list.
 %
@@ -439,7 +447,7 @@ The base as well as fine-tuned models are seen to return a mix of relevant and l
 
 The second row (supernova 1987A) highlights an interesting pattern -- the base model erroneously attributes the object at the center of the image to a gravitational lens, while the fine-tuned model correctly identifies it as a supernova remnant.
 
-\paragraph*{Statistical distributions on the validation set}
+\subsection{Distribution of learned representations}
 
 Figure~\ref{fig:sim_valtrain} (top left) shows the distribution of cosine similarities between corresponding image and text embeddings, $x_i$ and $y_i$, for the LLM-summarized abstracts using the fine-tuned CLIP model (red line), and for the base CLIP model (blue line).
 %
@@ -493,11 +501,11 @@ Remarkably, the model trained on raw abstracts shows very similar performance on
 \section{Outlook and Conclusions}
 \label{sec:conclusion}
 
-We present \textsc{HubbleCLIP}, a multi-modal fountation model that associates observations imaged by the \hubble Space Telescope with natural language in a common, semantically-meaningful embedding space.
+We present \textsc{PAPERCLIP}, a multi-modal fountation model that associates observations imaged by the \hubble Space Telescope with natural language in a common, semantically-meaningful embedding space.
 %
 The model is fine-tuned from a pre-trained CLIP model on summarized versions of \hubble proposal abstracts, leveraging a noisy association signal between text and images.
 %
-We show that \textsc{HubbleCLIP} significantly outperforms the base CLIP model in quantitative metrics, such as retrieval accuracy, as well as quality of text-to-image and image-to-text retrieval.
+We show that \textsc{PAPERCLIP} significantly outperforms the base CLIP model in quantitative metrics, such as retrieval accuracy, as well as quality of text-to-image and image-to-text retrieval.
 %
 We also introduce a novel LLM summarization process which leverages constrained generation to increase the association strength between images and captions while preserving salient information.
 %
