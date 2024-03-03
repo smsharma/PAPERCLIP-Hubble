@@ -1,5 +1,1 @@
-<<<<<<< HEAD
-13768
-=======
 \href{https://archive.stsci.edu/proposal_search.php?id=13768&mission=hst}{13768}
->>>>>>> 8c858a990719ff23c04ebaa75031b375710adc79

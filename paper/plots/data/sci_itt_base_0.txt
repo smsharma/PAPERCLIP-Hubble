@@ -1,4 +1,4 @@
 1. high-redshift quasars
 2. gravitational lensing
-3. low surface brightness galaxies
+3. LSBGs
 4. white dwarfs

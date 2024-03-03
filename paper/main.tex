@@ -18,6 +18,7 @@
 \usepackage{multirow} 
 \usepackage{multicol}
 \usepackage{listings}
+\usepackage{verbatim}
 
 % Custom colors
 \usepackage{color}
@@ -480,12 +481,30 @@ In this case, we evaluate three models -- fine tuned on raw abstracts (red), fin
 %
 Remarkably, the model trained on raw abstracts shows very similar performance on the summarized abstracts compared to that trained on the summarized abstracts themselves, indicating that \emph{(1)} the association signal is preserved in the summarization process, and \emph{(2)} the model is able to effectively leverage meaningful concepts in the noisy raw abstracts through weak supervision.
 
+\begin{table}[h!]
+  \centering
+  \begin{tabular}{m{3cm} p{3cm} p{3cm} p{3cm} p{3cm}}
+      \toprule
+      \centering \bfseries Query & \multicolumn{4}{c}{\bfseries{Top-4 most similar images}} \tabularnewline
+      \midrule
+       \texttt{\input{\thedatafolder/query_tti_base_0.txt}} \vspace{20mm} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_base_0_0.pdf} \\ \input{\thedatafolder/propid_tti_base_0_0.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_base_0_1.pdf} \\ \input{\thedatafolder/propid_tti_base_0_1.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_base_0_2.pdf} \\ \input{\thedatafolder/propid_tti_base_0_2.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_base_0_3.pdf} \\ \input{\thedatafolder/propid_tti_base_0_3.txt}  \tabularnewline
+      \midrule
+      \texttt{\input{\thedatafolder/query_tti_base_1.txt}} \vspace{20mm} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_base_1_0.pdf} \\ \input{\thedatafolder/propid_tti_base_1_0.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_base_1_1.pdf} \\ \input{\thedatafolder/propid_tti_base_1_1.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_base_1_2.pdf} \\ \input{\thedatafolder/propid_tti_base_1_2.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_base_1_3.pdf} \\ \input{\thedatafolder/propid_tti_base_1_3.txt}  \tabularnewline
+      \midrule
+      \texttt{\input{\thedatafolder/query_tti_base_2.txt}} \vspace{20mm} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_base_2_0.pdf} \\ \input{\thedatafolder/propid_tti_base_2_0.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_base_2_1.pdf} \\ \input{\thedatafolder/propid_tti_base_2_1.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_base_2_2.pdf} \\ \input{\thedatafolder/propid_tti_base_2_2.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_base_2_3.pdf} \\ \input{\thedatafolder/propid_tti_base_2_3.txt}  \tabularnewline
+      \midrule
+      \texttt{\input{\thedatafolder/query_tti_base_3.txt}} \vspace{20mm} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_base_3_0.pdf} \\ \input{\thedatafolder/propid_tti_base_3_0.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_base_3_1.pdf} \\ \input{\thedatafolder/propid_tti_base_3_1.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_base_3_2.pdf} \\ \input{\thedatafolder/propid_tti_base_3_2.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_base_3_3.pdf} \\ \input{\thedatafolder/propid_tti_base_3_3.txt}  \tabularnewline
+      \bottomrule
+  \end{tabular}
+  \caption{Image retrieval using the base CLIP model on four curated queries. \SM{Horizontal lines} \SM{Query not rotated} \SM{Same for next Figure.} \SM{Put text ``Base Model'' in consistent colour to legend.} \SM{Say top 4} \SM{Say that for science we care about the distributions of things.}}
+  \label{tab:tti_base}
+\end{table}
 
-\begin{figure*}[!h]
-\includegraphics[width=0.95\textwidth]{plots/tti_base.pdf}
-\caption{Image retrieval using the base CLIP model on four curated queries. \SM{Horizontal lines} \SM{Query not rotated} \SM{Same for next Figure.} \SM{Put text ``Base Model'' in consistent colour to legend.} \SM{Say top 4} \SM{Say that for science we care about the distributions of things.}}
-\label{fig:tti_base}
-\end{figure*}
+% \begin{figure*}[!h]
+% \includegraphics[width=0.95\textwidth]{plots/tti_base.pdf}
+% \caption{Image retrieval using the base CLIP model on four curated queries. \SM{Horizontal lines} \SM{Query not rotated} \SM{Same for next Figure.} \SM{Put text ``Base Model'' in consistent colour to legend.} \SM{Say top 4} \SM{Say that for science we care about the distributions of things.}}
+% \label{fig:tti_base}
+% \end{figure*}
 
 % \begin{figure*}[!h]
 % \includegraphics[width=0.95\textwidth]{plots/tti.pdf}
@@ -512,11 +531,33 @@ Remarkably, the model trained on raw abstracts shows very similar performance on
   \label{tab:tti}
 \end{table}
 
-\begin{figure*}[!h]
-\includegraphics[width=0.95\textwidth]{plots/itt.pdf}
-\caption{Text associations from a curated list most closely matching a given image query, for both the fine-tuned and base models. The `ground truth' LLM-summarized abstract is shown in the right column. \SM{Say ground truth summarized abstract in the column}\SM{Swap order of cols 2 and 3.}}
-\label{fig:itt}
-\end{figure*}
+% \begin{figure*}[!h]
+% \includegraphics[width=0.95\textwidth]{plots/itt.pdf}
+% \caption{Text associations from a curated list most closely matching a given image query, for both the fine-tuned and base models. The `ground truth' LLM-summarized abstract is shown in the right column. \SM{Say ground truth summarized abstract in the column}\SM{Swap order of cols 2 and 3.}}
+% \label{fig:itt}
+% \end{figure*}
+
+% Set line spacing to 0.5
+
+\begin{table}[h!]
+  \centering
+  \renewcommand{\arraystretch}{0.1}
+  \begin{tabular}{m{3cm} m{3cm} m{3cm} m{6cm}}
+      \toprule
+      \centering \bfseries \hubble Image & \centering \bfseries Obs. cycle \\ (Year) & \centering \bfseries Prop. ID & \centering \bfseries Proposal abstract (clipped) \tabularnewline
+      \midrule
+      \centering \includegraphics[width=0.15\textwidth]{\thedatafolder/img_itt_0.pdf} & \centering \scriptsize \verbatiminput{\thedatafolder/sci_itt_base_0.txt} & \centering  \scriptsize \verbatiminput{\thedatafolder/sci_itt_0.txt} &  {\scriptsize \input{\thedatafolder/abs_itt_0.txt}} \tabularnewline
+      \midrule
+      \centering \includegraphics[width=0.15\textwidth]{\thedatafolder/img_itt_1.pdf} & \centering \scriptsize \verbatiminput{\thedatafolder/sci_itt_base_1.txt} & \centering  \scriptsize \verbatiminput{\thedatafolder/sci_itt_1.txt} &  {\scriptsize \input{\thedatafolder/abs_itt_1.txt}} \tabularnewline
+      \midrule
+      \centering \includegraphics[width=0.15\textwidth]{\thedatafolder/img_itt_2.pdf} & \centering \scriptsize \verbatiminput{\thedatafolder/sci_itt_base_2.txt} & \centering  \scriptsize \verbatiminput{\thedatafolder/sci_itt_2.txt} &  {\scriptsize \input{\thedatafolder/abs_itt_2.txt}} \tabularnewline
+      \midrule
+      \centering \includegraphics[width=0.15\textwidth]{\thedatafolder/img_itt_3.pdf} & \centering \scriptsize \verbatiminput{\thedatafolder/sci_itt_base_3.txt} & \centering  \scriptsize \verbatiminput{\thedatafolder/sci_itt_3.txt} &  {\scriptsize \input{\thedatafolder/abs_itt_3.txt}} \tabularnewline
+      \bottomrule
+  \end{tabular}
+  \caption{Text associations from a curated list most closely matching a given image query, for both the fine-tuned and base models. The `ground truth' LLM-summarized abstract is shown in the right column. \SM{Say ground truth summarized abstract in the column}\SM{Swap order of cols 2 and 3.}}
+  \label{tab:itt}
+\end{table}
 
 \begin{figure*}[!h]
 \includegraphics[width=0.45\textwidth]{plots/sim_val.pdf}
@@ -640,92 +681,92 @@ class ConstrainedResponseHST(BaseModel):
       science_use_cases: conlist(str, min_length=1, max_length=5)
 \end{lstlisting}
 
-\subsection{Generation of single-concept summaries}
-\label{app:singleconcept}
+% \subsection{Generation of single-concept summaries}
+% \label{app:singleconcept}
 
-The following prompt is used to generate a list of diverse single-concept summaries informed by a list of summarized abstracts:
+% The following prompt is used to generate a list of diverse single-concept summaries informed by a list of summarized abstracts:
 
-\begin{lstlisting}[language=Python]
-import outlines   
+% \begin{lstlisting}[language=Python]
+% import outlines   
 
-@outlines.prompt
-def prompt_fn(objects):
-    """<s>[INST] Please produce a list of around concepts characterizing prominent objects, phenomena, and science use cases of images observed by the Hubble Space Telescope.
+% @outlines.prompt
+% def prompt_fn(objects):
+%     """<s>[INST] Please produce a list of around concepts characterizing prominent objects, phenomena, and science use cases of images observed by the Hubble Space Telescope.
 
-Here are some examples of objects:
+% Here are some examples of objects:
 
-{{objects}}
+% {{objects}}
 
-Follow these instructions exactly in your answer:
-- Do not output empty strings as elements.
-- Make sure that the list covers a diverse range of astronomical concepts, with items as different from each other as possible. 
-- Do not give specific names of objects, to make sure you span the widest possible range of concepts (e.g., "dwarf galaxy" is allowed, but NOT "Fornax", "Terzan 5", or  "NGC6440").
-- Do not return terms undescriptive of observations, e.g. "sloshing", "adiabatic", "interactions". Returning concrete physics objects, concepts, or phenomena.
-- Only output scientifically meaningful terms. E.g., NO "Cosmic Dance".
-- Do not duplicate entries. Do not reference any telescopes, observatories, or surveys.
-- Do not include units like "angular diameter distance", "parsec", or any other concepts that will not correlate with images of observations.
-- Use the above example list of objects only as inspiration to infer broad classes of objects.
-- Make sure each concept is succint, never more than 5 words.
-- Answer in JSON format.
-- The JSON should have the following keys {"galaxies", "stellar_physics", "exoplanets_planet_formation", "stellar_populations", "supermassive_black_holes", "solar_system", "integalactic_medium", "large_scale_structure"} reflecting rough observation categories.
-- Each category will have a list of objects and/or astronomical concepts.
-- Output up to 20 items and no more in each category
-[/INST]
-"""
-\end{lstlisting}
+% Follow these instructions exactly in your answer:
+% - Do not output empty strings as elements.
+% - Make sure that the list covers a diverse range of astronomical concepts, with items as different from each other as possible. 
+% - Do not give specific names of objects, to make sure you span the widest possible range of concepts (e.g., "dwarf galaxy" is allowed, but NOT "Fornax", "Terzan 5", or  "NGC6440").
+% - Do not return terms undescriptive of observations, e.g. "sloshing", "adiabatic", "interactions". Returning concrete physics objects, concepts, or phenomena.
+% - Only output scientifically meaningful terms. E.g., NO "Cosmic Dance".
+% - Do not duplicate entries. Do not reference any telescopes, observatories, or surveys.
+% - Do not include units like "angular diameter distance", "parsec", or any other concepts that will not correlate with images of observations.
+% - Use the above example list of objects only as inspiration to infer broad classes of objects.
+% - Make sure each concept is succint, never more than 5 words.
+% - Answer in JSON format.
+% - The JSON should have the following keys {"galaxies", "stellar_physics", "exoplanets_planet_formation", "stellar_populations", "supermassive_black_holes", "solar_system", "integalactic_medium", "large_scale_structure"} reflecting rough observation categories.
+% - Each category will have a list of objects and/or astronomical concepts.
+% - Output up to 20 items and no more in each category
+% [/INST]
+% """
+% \end{lstlisting}
 
-The following schema guides generation, intended to produce 100 concepts reflecting the science categories of successful proposals\footnote{\url{https://www.stsci.edu/contents/newsletters/2023-volume-40-issue-02/hubble-cycle-31-proposal-selection}}.
-%
+% The following schema guides generation, intended to produce 100 concepts reflecting the science categories of successful proposals\footnote{\url{https://www.stsci.edu/contents/newsletters/2023-volume-40-issue-02/hubble-cycle-31-proposal-selection}}.
+% %
 
 
-\begin{lstlisting}[language=Python]
-from pydantic import BaseModel, conlist
+% \begin{lstlisting}[language=Python]
+% from pydantic import BaseModel, conlist
   
-class ScienceCategoriesHST(BaseModel):
-    galaxies: conlist(str, min_length=15, max_length=15)
-    stellar_physics: conlist(str, min_length=15, max_length=15)
-    exoplanets_planet_formation: conlist(str, min_length=15, max_length=15)
-    stellar_populations: conlist(str, min_length=10, max_length=10)
-    supermassive_black_holes: conlist(str, min_length=15, max_length=15)
-    solar_system: conlist(str, min_length=10, max_length=10)
-    integalactic_medium: conlist(str, min_length=10, max_length=10)
-    large_scale_structure: conlist(str, min_length=10, max_length=10)
-  \end{lstlisting}
+% class ScienceCategoriesHST(BaseModel):
+%     galaxies: conlist(str, min_length=15, max_length=15)
+%     stellar_physics: conlist(str, min_length=15, max_length=15)
+%     exoplanets_planet_formation: conlist(str, min_length=15, max_length=15)
+%     stellar_populations: conlist(str, min_length=10, max_length=10)
+%     supermassive_black_holes: conlist(str, min_length=15, max_length=15)
+%     solar_system: conlist(str, min_length=10, max_length=10)
+%     integalactic_medium: conlist(str, min_length=10, max_length=10)
+%     large_scale_structure: conlist(str, min_length=10, max_length=10)
+%   \end{lstlisting}
 
-The output is then constrained to be one of the fixed number of concepts.
+% The output is then constrained to be one of the fixed number of concepts.
   
-\subsection{Assignment of abstracts to single-concept categories}
-\label{app:singleconceptassignments}
+% \subsection{Assignment of abstracts to single-concept categories}
+% \label{app:singleconceptassignments}
 
-Finally, the following prompt is used to assign concepts inferred in \ref{app:singleconcept} to each abstract:
+% Finally, the following prompt is used to assign concepts inferred in \ref{app:singleconcept} to each abstract:
 
-\begin{lstlisting}[language=Python]
-import outlines 
+% \begin{lstlisting}[language=Python]
+% import outlines 
 
-@outlines.prompt
-def prompt_fn(abs, cats):
-    """<s>[INST] The following is a successful proposal abstract for the Hubble Space Telescope: "{{abs}}"
+% @outlines.prompt
+% def prompt_fn(abs, cats):
+%     """<s>[INST] The following is a successful proposal abstract for the Hubble Space Telescope: "{{abs}}"
 
-The following is a list of categories (astronomical concepts) that this abstract could correspond to.
+% The following is a list of categories (astronomical concepts) that this abstract could correspond to.
 
-{{cats}}
+% {{cats}}
 
-Please answer which of these listed concepts best describes this proposal, based on the objects and phenomena mentioned in the abstract.
-The concept should meaningfully be present in the abstract and the eventual observation.
+% Please answer which of these listed concepts best describes this proposal, based on the objects and phenomena mentioned in the abstract.
+% The concept should meaningfully be present in the abstract and the eventual observation.
 
-- For example, "The locations of supernovae {SNe} in the local stellar and gaseous environment in galaxies, as measured in high spatial resolution WFPC2 and ACS images, contain important clues to their progenitor stars." should return "supernova".
-- If the abstract centers calibration and/or instrumentation efforts, return calibration or instrumention".
+% - For example, "The locations of supernovae {SNe} in the local stellar and gaseous environment in galaxies, as measured in high spatial resolution WFPC2 and ACS images, contain important clues to their progenitor stars." should return "supernova".
+% - If the abstract centers calibration and/or instrumentation efforts, return calibration or instrumention".
 
-If no concept make sense, return "None". [/INST]
-"""
-\end{lstlisting}
+% If no concept make sense, return "None". [/INST]
+% """
+% \end{lstlisting}
 
 \section{List of Categories for Text Retrieval Task}
 \label{app:categories}
 
 The following curated categories are used in the text retrieval experiment in Sec.~\ref{sec:results}.
 %
-These are intended to be broader than the single-concept summaries inferred in Sec.~\ref{app:singleconcept} and are derived by prompting \textsc{Claude}, without any external input e.g.
+These are derived by prompting \textsc{Claude}, without any external input e.g.
 %
 proposal abstracts, to produce a list of categories corresponding to HST observations.
 
