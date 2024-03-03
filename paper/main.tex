@@ -16,6 +16,7 @@
 \usepackage{xspace}
 \usepackage{pdflscape} 
 \usepackage{multirow} 
+\usepackage{multicol}
 \usepackage{listings}
 
 % Custom colors
@@ -196,24 +197,25 @@ This further motivates the need for fine-tuning on domain-specific data.
   \centering
   \begin{tabular}{m{0.21\textwidth} p{1.9cm} p{1.9cm} m{8cm}}
       \toprule
-      \centering \bfseries Image & \centering \bfseries Obs. cycle \\ (Year) & \centering \bfseries Prop. ID & \centering \bfseries LLM-extracted summary \tabularnewline
+      \centering \bfseries \hubble Image & \centering \bfseries Obs. cycle \\ (Year) & \centering \bfseries Prop. ID & \centering \bfseries Proposal abstract (clipped) \tabularnewline
       \midrule
-      \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_0.pdf} & \centering \input{\thedatafolder/cycle_0.txt} \\ (2019) & \centering \input{\thedatafolder/id_0.txt} &  {\scriptsize \input{\thedatafolder/sum_0.txt}} \tabularnewline
+      \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_0.pdf} & \centering \input{\thedatafolder/cycle_0.txt} \\ (2019) & \centering \input{\thedatafolder/id_0.txt} &  {\scriptsize \input{\thedatafolder/abs1_0.txt}} \tabularnewline
       \midrule
-      \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_1.pdf} & \centering \input{\thedatafolder/cycle_1.txt} \\ (2013) & \centering \input{\thedatafolder/id_1.txt} &  {\scriptsize \input{\thedatafolder/sum_1.txt}} \tabularnewline
+      \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_1.pdf} & \centering \input{\thedatafolder/cycle_1.txt} \\ (2013) & \centering \input{\thedatafolder/id_1.txt} &  {\scriptsize \input{\thedatafolder/abs1_1.txt}} \tabularnewline
       \midrule
-      \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_2.pdf} & \centering \input{\thedatafolder/cycle_2.txt} \\ (1999) & \centering \input{\thedatafolder/id_2.txt} &  {\scriptsize \input{\thedatafolder/sum_2.txt}} \tabularnewline
+      \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_2.pdf} & \centering \input{\thedatafolder/cycle_2.txt} \\ (1999) & \centering \input{\thedatafolder/id_2.txt} &  {\scriptsize \input{\thedatafolder/abs1_2.txt}} \tabularnewline
       \midrule
-      \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_3.pdf} & \centering \input{\thedatafolder/cycle_3.txt} \\ (2016) & \centering \input{\thedatafolder/id_3.txt} &  {\scriptsize \input{\thedatafolder/sum_3.txt}} \tabularnewline
+      \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_3.pdf} & \centering \input{\thedatafolder/cycle_3.txt} \\ (2016) & \centering \input{\thedatafolder/id_3.txt} &  {\scriptsize \input{\thedatafolder/abs1_3.txt}} \tabularnewline
       \bottomrule
   \end{tabular}
   \caption{Examples of images and corresponding captions, constructed using the LLM-extracted summaries.
 %
 The CLIP model is fine-tuned using these text-image associations.
 %
-Although the summarized abstract is extracted as two parts (objects/phenomena and science use cases), the model is trained using the entire summary as a single caption. \SM{\hubble image should be mentioned (maybe in column title)} \SM{Just have the raw abstract, not summarized here.}}
+Although the summarized abstract is extracted as two parts (objects/phenomena and science use cases), the model is trained using the entire summary as a single caption.}
   \label{tab:dataset}
 \end{table}
+
 
 \subsection{\hubble Data Selection and Pre-Processing}
 
@@ -261,12 +263,14 @@ The procedure guides the generation of LLM outputs while ensuring that the schem
 By framing the problem in terms of transitions between a set of finite-state machines, \cite{willard2023efficient} showed that guided generation can be performed with negligible overhead compared to unconstrained generation.
 %
 This ensures that the output of the LLM strictly conforms to the format of the following example:
+
 \begin{lstlisting}[language=Python]
 {
   'objects_and_phenomena': ['star forming galaxy', 'lensed galaxy', ...], 
   'science_use_cases': ['measure lensing magnification', 'probe spectral energy distributions', ...]
 }
 \end{lstlisting}
+
 which is then used to construct the summarized caption by combining the two key elements.
 %
 Examples of raw abstract snippets and corresponding LLM-generated summaries are shown in Tab.~\ref{tab:datasetsumm}.
@@ -283,13 +287,14 @@ We emphasize that the goal of summarization-via-guided-generation is to increase
 %
 We also note that, even after summarization, the association signal is expected to be noisy, since aspects of the summarized caption may not be directly descriptive of the observed images, as can be seen from Tab.~\ref{tab:dataset}.
 
-Finally, in order to test a further compression of the proposal abstracts, we use LLM-guided generation to also produce a list of single-concept summaries (e.g., `irregular galaxy', `quasars', `Galactic bulge', \ldots), and test whether this can lead to meaningful, generalizable learned associations with observations.
-%
-The prompts and schemata for generating these discrete categories and assigning observations to them are described in Apps.~\ref{app:singleconcept} and \ref{app:singleconceptassignments} respectively. \SM{Each abstract is assigned one summary. The generation of the single concepts is different }
+% Finally, in order to test a further compression of the proposal abstracts, we use LLM-guided generation to also produce a list of single-concept summaries (e.g., `irregular galaxy', `quasars', `Galactic bulge', \ldots), and test whether this can lead to meaningful, generalizable learned associations with observations.
+% %
+% The prompts and schemata for generating these discrete categories and assigning observations to them are described in Apps.~\ref{app:singleconcept} and \ref{app:singleconceptassignments} respectively. \SM{Each abstract is assigned one summary. The generation of the single concepts is different }
 
 
 \begin{landscape}
       \begin{table}[h!]
+        \renewcommand{\arraystretch}{2}
           \centering
           \begin{tabular}{m{1.8cm} m{8cm} m{5cm} m{6cm}}
               \toprule
@@ -306,7 +311,7 @@ The prompts and schemata for generating these discrete categories and assigning 
               \input{\thedatafolder/id1_3.txt} & {\scriptsize \input{\thedatafolder/abs1_3.txt}} & {\scriptsize \input{\thedatafolder/obj1_3.txt}} & {\scriptsize \input{\thedatafolder/sci1_3.txt}} \tabularnewline
               \bottomrule
           \end{tabular}
-          \caption{Examples of the initial parts of raw proposal abstracts (second column) and LLM (\textsc{Mixtral-8x7B})-extracted summaries (rightmost two columns), separately extracting objects and phenomena as well as potential downstream science use cases. \SM{No need to have the raw abstracts here now, just the summaries.}}
+          \caption{Examples of the initial parts of raw proposal abstracts (second column) and LLM (\textsc{Mixtral-8x7B})-extracted summaries (rightmost two columns), separately extracting objects and phenomena as well as potential downstream science use cases.}
           \label{tab:datasetsumm}
       \end{table}
   \end{landscape}
@@ -482,11 +487,30 @@ Remarkably, the model trained on raw abstracts shows very similar performance on
 \label{fig:tti_base}
 \end{figure*}
 
-\begin{figure*}[!h]
-\includegraphics[width=0.95\textwidth]{plots/tti.pdf}
-\caption{Image retrieval using the fine-tuned CLIP model on four curated queries.}
-\label{fig:tti}
-\end{figure*}
+% \begin{figure*}[!h]
+% \includegraphics[width=0.95\textwidth]{plots/tti.pdf}
+% \caption{Image retrieval using the fine-tuned CLIP model on four curated queries.}
+% \label{fig:tti}
+% \end{figure*}
+
+\begin{table}[h!]
+  \centering
+  \begin{tabular}{m{3cm} p{3cm} p{3cm} p{3cm} p{3cm}}
+      \toprule
+      \centering \bfseries Query & \multicolumn{4}{c}{\bfseries{Top-4 most similar images}} \tabularnewline
+      \midrule
+       \texttt{\input{\thedatafolder/query_tti_0.txt}} \vspace{20mm} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_0_0.pdf} \\ \input{\thedatafolder/propid_tti_0_0.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_0_1.pdf} \\ \input{\thedatafolder/propid_tti_0_1.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_0_2.pdf} \\ \input{\thedatafolder/propid_tti_0_2.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_0_3.pdf} \\ \input{\thedatafolder/propid_tti_0_3.txt}  \tabularnewline
+      \midrule
+      \texttt{\input{\thedatafolder/query_tti_1.txt}} \vspace{20mm} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_1_0.pdf} \\ \input{\thedatafolder/propid_tti_1_0.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_1_1.pdf} \\ \input{\thedatafolder/propid_tti_1_1.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_1_2.pdf} \\ \input{\thedatafolder/propid_tti_1_2.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_1_3.pdf} \\ \input{\thedatafolder/propid_tti_1_3.txt}  \tabularnewline
+      \midrule
+      \texttt{\input{\thedatafolder/query_tti_2.txt}} \vspace{20mm} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_2_0.pdf} \\ \input{\thedatafolder/propid_tti_2_0.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_2_1.pdf} \\ \input{\thedatafolder/propid_tti_2_1.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_2_2.pdf} \\ \input{\thedatafolder/propid_tti_2_2.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_2_3.pdf} \\ \input{\thedatafolder/propid_tti_2_3.txt}  \tabularnewline
+      \midrule
+      \texttt{\input{\thedatafolder/query_tti_3.txt}} \vspace{20mm} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_3_0.pdf} \\ \input{\thedatafolder/propid_tti_3_0.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_3_1.pdf} \\ \input{\thedatafolder/propid_tti_3_1.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_3_2.pdf} \\ \input{\thedatafolder/propid_tti_3_2.txt} & \centering \includegraphics[width=0.2\textwidth]{\thedatafolder/img_tti_3_3.pdf} \\ \input{\thedatafolder/propid_tti_3_3.txt}  \tabularnewline
+      \bottomrule
+  \end{tabular}
+  \caption{Image retrieval using the fine-tuned CLIP model on four curated queries}
+  \label{tab:tti}
+\end{table}
 
 \begin{figure*}[!h]
 \includegraphics[width=0.95\textwidth]{plots/itt.pdf}
@@ -496,9 +520,9 @@ Remarkably, the model trained on raw abstracts shows very similar performance on
 
 \begin{figure*}[!h]
 \includegraphics[width=0.45\textwidth]{plots/sim_val.pdf}
-\includegraphics[width=0.45\textwidth]{plots/sim_summ1.pdf}
-\centering\includegraphics[width=0.45\textwidth]{plots/retrieval.pdf}
-\caption{Distribution of cosine similarities between corresponding image and text embeddings, $x_i$ and $y_i$. (Top row) For the LLM-summarized abstracts using the fine-tuned CLIP model (red line), and for the base CLIP model (blue line), shown for (top left) the set of validation pairs and (top right) same number of training set pairs. Versions with the ordering of text embeddings shuffled are shown in dashed. (Bottom) For the single-concept summaries, when evaluated using the CLIP model fine-tuned on LLM-summarized abstracts (red) and fine-tuned on the single-concept summaries themselves (purple). \SM{Make the colours here consistent with previous Figure.} \SM{Language should be correct pairs and incorrect pairs in top left.} \SM{Totally axe single concept.}}
+% \includegraphics[width=0.45\textwidth]{plots/sim_summ1.pdf}
+\includegraphics[width=0.45\textwidth]{plots/retrieval.pdf}
+\caption{Distribution of cosine similarities between corresponding image and text embeddings, $x_i$ and $y_i$. (Top row) For the LLM-summarized abstracts using the fine-tuned CLIP model (red line), and for the base CLIP model (blue line), shown for (top left) the set of validation pairs and (top right) same number of training set pairs. Versions with the ordering of text embeddings shuffled are shown in dashed. \SM{Make the colours here consistent with previous Figure.} \SM{Language should be correct pairs and incorrect pairs in top left.}}
 \label{fig:sim_valtrain}
 \end{figure*}
 
