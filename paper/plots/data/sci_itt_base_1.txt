@@ -1,4 +1,4 @@
-1. supernovae
-2. high-redshift quasars
-3. gravitational lensing
-4. ultra diffuse galaxies
+1. gravitational lensing
+2. supernovae
+3. binary star systems
+4. circumstellar disks

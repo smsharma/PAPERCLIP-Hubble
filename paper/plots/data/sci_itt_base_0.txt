@@ -1,4 +1,4 @@
-1. dwarf galaxies
-2. globular clusters
+1. high-redshift quasars
+2. gravitational lensing
 3. low surface brightness galaxies
-4. ultra diffuse galaxies
+4. white dwarfs

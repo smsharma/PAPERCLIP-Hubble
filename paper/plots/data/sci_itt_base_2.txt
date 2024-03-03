@@ -1,4 +1,4 @@
 1. gravitational lensing
-2. Kuiper Belt objects
-3. gamma-ray bursts
-4. high-redshift quasars
+2. high-redshift quasars
+3. ultra diffuse galaxies
+4. galaxy clusters

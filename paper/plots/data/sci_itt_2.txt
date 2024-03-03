@@ -1,4 +1,4 @@
-1. first galaxies
-2. black holes
-3. galaxy archeology
-4. galaxy evolution
+1. galaxy clusters
+2. lyman alpha
+3. intracluster medium
+4. dark energy
