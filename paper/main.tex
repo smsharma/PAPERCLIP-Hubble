@@ -211,11 +211,11 @@ This further motivates the need for fine-tuning on domain-specific data.
 %
 The CLIP model is fine-tuned using these text-image associations.
 %
-Although the summarized abstract is extracted as two parts (objects/phenomena and science use cases), the model is trained using the entire summary as a single caption.}
+Although the summarized abstract is extracted as two parts (objects/phenomena and science use cases), the model is trained using the entire summary as a single caption. \SM{\hubble image should be mentioned (maybe in column title)} \SM{Just have the raw abstract, not summarized here.}}
   \label{tab:dataset}
 \end{table}
 
-\subsection{Data Selection and Pre-Processing}
+\subsection{\hubble Data Selection and Pre-Processing}
 
 Observations corresponding to individual proposal IDs are queried through the Mikulski Archive for Space Telescopes (MAST)\footnote{\url{https://mast.stsci.edu/}} via the \package{Astroquery} \citep{2019AJ....157...98G} interface.
 %
@@ -306,7 +306,7 @@ The prompts and schemata for generating these discrete categories and assigning 
               \input{\thedatafolder/id1_3.txt} & {\scriptsize \input{\thedatafolder/abs1_3.txt}} & {\scriptsize \input{\thedatafolder/obj1_3.txt}} & {\scriptsize \input{\thedatafolder/sci1_3.txt}} \tabularnewline
               \bottomrule
           \end{tabular}
-          \caption{Examples of the initial parts of raw proposal abstracts (second column) and LLM (\textsc{Mixtral-8x7B})-extracted summaries (rightmost two columns), separately extracting objects and phenomena as well as potential downstream science use cases.}
+          \caption{Examples of the initial parts of raw proposal abstracts (second column) and LLM (\textsc{Mixtral-8x7B})-extracted summaries (rightmost two columns), separately extracting objects and phenomena as well as potential downstream science use cases. \SM{No need to have the raw abstracts here now, just the summaries.}}
           \label{tab:datasetsumm}
       \end{table}
   \end{landscape}
@@ -344,7 +344,7 @@ Linear projection layers map the outputs of the image and text encoders to a com
 %
 In total, the model has 149,620,737 trainable parameters.
 %
-The model was originally trained on 400 million image-text pairs from internet data. \SM{$\tau$ was initialized to the pre-trained value.} \SM{HuggingFace link?} \SM{What area is maintained.} \SM{It's only 90 deg rotations.}
+The model was originally trained on 400 million image-text pairs from internet data.
 %
 
 \subsection{Fine-tuning procedure}
@@ -353,11 +353,11 @@ The base CLIP model is fine-tuned using the dataset described in Sec.~\ref{sec:d
 %
 When using raw proposal abstracts, random chunks of the text delimited by periods are selected on the fly to fit within the maximum token length of the text encoder.
 %
-Images are randomly cropped to the native resolution of the image encoder and randomly rotated at each training step.
+Images are randomly cropped to the native resolution of the image encoder (maintaining $\sim 20\%$ of the area of the original image) and randomly rotated by discrete increments of $90^\circ$ at each training step.
 %
 Given the relatively modest size of the fine-tuning set, a batch size $|\mathcal B| = 32$ is used throughout; larger batch sizes were seen to be susceptible to overfitting.
 %
-We note that the positive and negative image-text association is noisy and imperfect, since multiple images can be associated with the same abstract.
+We note that the positive and negative image-text association is noisy and imperfect, since multiple images can be associated with the same abstract. The temperature hyperparameter $\tau$ was initialized to its pre-trained value.
 
 We explore three different methods of training the model on our domain dataset: \emph{(1)} Fine-tuning the entire network, starting from the pre-trained base model; \emph{(2)} Freezing the base image and text encoders, and training a small projection head; and \emph{(3)} Training the entire model from scratch.
 %
@@ -379,20 +379,22 @@ The model is evaluated by tracking the loss in Eq.~\ref{eq:softmax_loss} as well
 %
 The retrieval accuracy is defined as the fraction of associated captions which fall within the top $k\%$ of captions by cosine similarity of the normalized embeddings $x_i \cdot y_j$, averaged over the images in the validation set.
 
-We also qualitatively evaluate the learned embeddings through image retrieval (i.e., retrieving the most relevant images from a set using natural language queries) and description retrieval (i.e., querying the astrophysical object classes and science use cases most relevant to a given observation) experiments. \SM{Add some expressions.}
+We also qualitatively evaluate the learned embeddings through image retrieval (i.e., retrieving the most relevant images from the validation set using natural language queries) and description retrieval (i.e., querying the astrophysical object classes and science use cases most relevant to a given observation, akin to zero-shot classification) experiments. 
+%
+For the description/text retrieval evaluation, we curate a list of possible text associations (i.e., classes) by querying the \textsc{Claude}\footnote{\url{https://claude.ai/}} large language model for such a list, which we show in App.~\ref{app:categories}.
+
+\SM{Add some expressions.}
 
 \SM{Put in the Claude thing here also.}
-
-\SM{Numbered subsections.}
 
 \section{Results and Discussion}
 \label{sec:results}
 
-\subsection{Validation metrics over training}
+\subsection{Validation metrics during model training}
 
 Figure~\ref{fig:retrieval_acc} shows the contrastive loss (left) and the top-10\% retrieval accuracy (right) on the held out validation set over the course of training, for different training configurations considered.
 %
-The purple lines show the metrics evaluated when training with batches where the image-text associations are randomly shuffled, serving as a baseline.
+The purple lines show the metrics evaluated when training with batches where the image-text associations are randomly shuffled, serving as a baseline. \SM{Avoid the word baseline.}
 %
 This baseline is seen to do on par with random expectation, unlike the others, validating the presence of a significant association signal between images and text in the dataset.
 %
@@ -400,13 +402,13 @@ Interestingly, the base pre-trained model performs better than random expectatio
 %
 We therefore compare the qualitative performance of the base model with the fine-tuned model on downstream retrieval tasks.
 
-The model with LLM-guided summarization (yellow lines) is seen to perform on-par with the model using raw abstracts as captions (orange line), despite the stronger association signal in the summarized dataset curated.
+The model with LLM-guided summarization (yellow lines) is seen to perform on-par with the model using raw abstracts as captions (orange line), despite the stronger association signal in the summarized dataset curated. \SM{Version baseline}
 %
-Fine-tuning a small MLP head over frozen vision and text backbones (green lines), training from scratch (blue lines), and using the single-concept summaries (red lines) show a non-trivial improvement compared to the random baseline as well as base model, but with deteriorated performance compared to fine-tuning with either summarized or raw abstracts.
+Fine-tuning a small MLP head over frozen vision and text backbones (green lines), training from scratch (blue lines), and using the single-concept summaries (red lines) show a non-trivial improvement compared to the random baseline \SM{Maybe random baseline is okay} as well as base model, but with deteriorated performance compared to fine-tuning with either summarized or raw abstracts.
 
 \begin{figure*}[!h]
   \includegraphics[width=0.95\textwidth]{plots/val_metrics.pdf}
-  \caption{The CLIP contrastive loss from Eq.~\ref{eq:softmax_loss} (left) and the top-10\% retrieval accuracy (right) computed on the validation set over the course of training. Shown for the dataset with summarized abstracts (orange), dataset using raw proposal abstracts (yellow), dataset with single-concept summaries (red), only fine-tuning a small MLP head (green), training from scratch (blue), and trained with shuffled image-text pairs (purple). \SM{Try not splitting the legend.} \SM{Would dashing be useful at all as a way to signify relationships.}}
+  \caption{The CLIP contrastive loss from Eq.~\ref{eq:softmax_loss} (left) and the top-10\% retrieval accuracy (right) computed on the validation set over the course of training. Shown for the dataset with summarized abstracts (orange), dataset using raw proposal abstracts (yellow), dataset with single-concept summaries (red), only fine-tuning a small MLP head (green), training from scratch (blue), and trained with shuffled image-text pairs (purple). \SM{Try not splitting the legend.} \SM{Would dashing be useful at all as a way to signify relationships.} \SM{Put an arrow for what is better.} \SM{Mention that fine tuning head isn't that good.}}
   \label{fig:retrieval_acc}
   \end{figure*}
 
@@ -429,6 +431,8 @@ The `dwarf galaxy' images correspond to proposals aiming to measure the kinemati
 Supernova SN1987 itself can be seen in the most relevant images for the `SN1987A' query, with the fourth image corresponding to a supernova remnant.
 %
 Cluster-scale as well as galaxy-scale gravitational lenses are returned by the `strong lensing' query, with lensing patterns visible in the images.
+
+\SM{Describe science usefulness, see appendix.}
 
 \subsection{Text retrieval task}
 
@@ -453,7 +457,7 @@ Figure~\ref{fig:sim_valtrain} (top left) shows the distribution of cosine simila
 %
 Distributions after shuffling the order of text embeddings -- therefore randomizing the image-text correspondence -- are shown as dashed lines.
 %
-The distributions for the base model is seen to be sharply peaked at a specific value, showing little diversity and being very similar between the shuffled (dashed blue) and non-shuffled (solid blue) versions.
+The distributions for the base model is seen to be sharply peaked at a specific value, showing little diversity and being very similar between the shuffled (dashed blue) and non-shuffled (solid blue) versions. \SM{Make very clear that it is the evals that are shuffled, not batches during training.}
 %
 Histograms for the fine-tuned model, on the other hand, show a clear separation between the shuffled and corresponding text-image pair versions.
 
@@ -474,7 +478,7 @@ Remarkably, the model trained on raw abstracts shows very similar performance on
 
 \begin{figure*}[!h]
 \includegraphics[width=0.95\textwidth]{plots/tti_base.pdf}
-\caption{Image retrieval using the base CLIP model on four curated queries. \SM{Horizontal lines} \SM{Query not rotated} \SM{Same for next Figure.} \SM{Put text ``Base Model'' in consistent colour to legend.}}
+\caption{Image retrieval using the base CLIP model on four curated queries. \SM{Horizontal lines} \SM{Query not rotated} \SM{Same for next Figure.} \SM{Put text ``Base Model'' in consistent colour to legend.} \SM{Say top 4} \SM{Say that for science we care about the distributions of things.}}
 \label{fig:tti_base}
 \end{figure*}
 
@@ -486,7 +490,7 @@ Remarkably, the model trained on raw abstracts shows very similar performance on
 
 \begin{figure*}[!h]
 \includegraphics[width=0.95\textwidth]{plots/itt.pdf}
-\caption{Text associations from a curated list most closely matching a given image query, for both the fine-tuned and base models. The `ground truth' LLM-summarized abstract is shown in the right column. \SM{Swap order of cols 2 and 3.}}
+\caption{Text associations from a curated list most closely matching a given image query, for both the fine-tuned and base models. The `ground truth' LLM-summarized abstract is shown in the right column. \SM{Say ground truth summarized abstract in the column}\SM{Swap order of cols 2 and 3.}}
 \label{fig:itt}
 \end{figure*}
 
@@ -494,7 +498,7 @@ Remarkably, the model trained on raw abstracts shows very similar performance on
 \includegraphics[width=0.45\textwidth]{plots/sim_val.pdf}
 \includegraphics[width=0.45\textwidth]{plots/sim_summ1.pdf}
 \centering\includegraphics[width=0.45\textwidth]{plots/retrieval.pdf}
-\caption{Distribution of cosine similarities between corresponding image and text embeddings, $x_i$ and $y_i$. (Top row) For the LLM-summarized abstracts using the fine-tuned CLIP model (red line), and for the base CLIP model (blue line), shown for (top left) the set of validation pairs and (top right) same number of training set pairs. Versions with the ordering of text embeddings shuffled are shown in dashed. (Bottom) For the single-concept summaries, when evaluated using the CLIP model fine-tuned on LLM-summarized abstracts (red) and fine-tuned on the single-concept summaries themselves (purple). \SM{Make the colours here consistent with previous Figure.}}
+\caption{Distribution of cosine similarities between corresponding image and text embeddings, $x_i$ and $y_i$. (Top row) For the LLM-summarized abstracts using the fine-tuned CLIP model (red line), and for the base CLIP model (blue line), shown for (top left) the set of validation pairs and (top right) same number of training set pairs. Versions with the ordering of text embeddings shuffled are shown in dashed. (Bottom) For the single-concept summaries, when evaluated using the CLIP model fine-tuned on LLM-summarized abstracts (red) and fine-tuned on the single-concept summaries themselves (purple). \SM{Make the colours here consistent with previous Figure.} \SM{Language should be correct pairs and incorrect pairs in top left.} \SM{Totally axe single concept.}}
 \label{fig:sim_valtrain}
 \end{figure*}
 
@@ -507,7 +511,7 @@ The model is fine-tuned from a pre-trained CLIP model on summarized versions of 
 %
 We show that \textsc{PAPERCLIP} significantly outperforms the base CLIP model in quantitative metrics, such as retrieval accuracy, as well as quality of text-to-image and image-to-text retrieval.
 %
-We also introduce a novel LLM summarization process which leverages constrained generation to increase the association strength between images and captions while preserving salient information.
+We also introduce a novel LLM summarization process which leverages constrained generation to increase the association strength between images and captions while preserving salient information. \SM{We don't actually show this.}
 %
 Overall, the procedure demonstrates the efficacy on fine-tuning generalist pre-trained models on small amounts of domain-specific data, in particular astronomical datasets.
 
