@@ -404,7 +404,9 @@ For the description/text retrieval evaluation, we curate a list of possible text
 \section{Results and Discussion}
 \label{sec:results}
 
-\subsection{Validation Metrics}
+\subsection{Quantitative Evaluation}
+
+\paragraph*{Validation metrics during training}
 
 Figure~\ref{fig:retrieval_acc} shows the contrastive loss (left) and the top-10\% retrieval accuracy (right) evaluated on the held out validation set over the course of training, for different training configurations considered.
 %
@@ -426,6 +428,40 @@ Fine-tuning a small MLP head over frozen vision and text backbones (dotted green
 \label{fig:retrieval_acc}
 \end{figure*}
 
+\paragraph*{Distribution of text-image cosine similarities}
+
+Figure~\ref{fig:sim_valtrain} (left) shows the distribution of cosine similarities between corresponding image and text embeddings, $x_i$ and $y_i$, for the LLM-summarized abstracts using the fine-tuned CLIP model (red line), and for the base CLIP model (purple line).
+%
+Distributions evaluated for a shuffled order of text embeddings -- therefore randomizing the image-text correspondence during evaluation -- are shown as dashed lines. We note that the shuffling here is performed at the evaluation stage, and not the training stage.
+%
+The distributions for the base model is seen to be sharply peaked at a specific value, showing little diversity and being very similar between the shuffled (dashed purple) and non-shuffled (solid purple) versions. 
+%
+Histograms for the fine-tuned model, on the other hand, show a clear separation when evaluated on shuffled (dashed red) and corresponding (solid red) text-image pairs.
+
+% Similarly, Fig.~\ref{fig:sim_valtrain} (top right) shows the distribution of cosine similarities between corresponding image-text pairs for the single-concept captions (solid red) and the shuffled versions (dashed red).
+% %
+% The distribution for corresponding pairs is only modestly shifted compared to the shuffled version, indicating that assigning $\mathcal O(400)$ labels to the images using an LLM results in a weaker association signal compared to using noisy captions.
+% %
+% The purple line shows the distribution of cosine similarities between corresponding pairs with single-concept summaries, but evaluated using a model trained on the LLM-summarized abstracts.
+% %
+% This distribution is more skewed towards higher similarity values, indicating that the model trained on diverse caption can still better capture the association signal in the single-concept summaries compared to one trained specifically using the single-concept summaries.
+
+\paragraph*{Retrieval accuracy}
+
+Finally, Fig.~\ref{fig:sim_valtrain} (right) shows the retrieval accuracy as defined in Eq.~\ref{eq:retrieval_accuracy} as a function of the retrieval fraction $k$.
+%
+In this case, we evaluate four models -- fine tuned on raw abstracts (blue), fine-tuned on LLM-summarized abstracts (red), trained on LLM-summarized abstracts from scratch (yellow), and the base model (purple) -- all on the summarized abstracts.
+%
+Remarkably, the model trained on raw abstracts shows very similar performance when evaluated on the summarized abstracts compared to that trained on the summarized abstracts themselves, indicating that \emph{(1)} the image-text association signal is preserved in the summarization process, and \emph{(2)} the model is able to effectively leverage meaningful concepts in the noisy raw abstracts through weak supervision.
+
+\begin{figure*}[!h]
+  \includegraphics[width=0.45\textwidth]{plots/sim_val.pdf}
+  % \includegraphics[width=0.45\textwidth]{plots/sim_summ1.pdf}
+  \includegraphics[width=0.45\textwidth]{plots/retrieval.pdf}
+  \caption{(Left) Distribution of cosine similarities between corresponding image and text embeddings, $x_i$ and $y_i$. (left) For the LLM-summarized abstracts using the fine-tuned CLIP model (red line), and for the base CLIP model (purple line). Versions with the ordering of text embeddings shuffled during evaluation are shown in dashed. (Right) Retrieval accuracy as a function of the retrieval fraction $k$ for the fine-tuned model on the summarized abstracts (red), fine-tuned on raw abstracts (blue), trained on LLM-summarized abstracts from scratch (yellow), and the base model (purple).}
+  \label{fig:sim_valtrain}
+  \end{figure*}
+
 \subsection{Image Retrieval}
 
 Having aligned the image and text representations, we can query the validation set using natural language and show the most `relevant' images when ranked by cosine similarity.
@@ -446,8 +482,6 @@ Supernova SN1987 itself can be seen in the most relevant images for the \texttt{
 %
 Cluster-scale as well as galaxy-scale gravitational lenses are returned by the \texttt{strong lensing} query, with lensing patterns visible in the images.
 
-\SM{Describe science usefulness, see appendix.}
-
 \subsection{Text Retrieval}
 
 We can use images from the validation set as queries and retrieve the most relevant text chunks (e.g., contained objects and use cases) from a curated list as described in Sec.~\ref{sec:eval}.
@@ -465,29 +499,8 @@ The base as well as fine-tuned models are seen to return a mix of relevant and l
 
 The second row (an image of supernova 1987A) highlights an interesting pattern -- the base model erroneously attributes the object at the center of the image to a gravitational lens, while the fine-tuned model correctly identifies it as a supernova remnant.
 
-\subsection{Distribution of Learned Representations}
+Note that we choose to illustrate qualitative performance on text and image retrieval using the model fine-tuned on summarized abstracts, rather than raw abstracts. We show analogous results for the model fine-tuned on raw abstracts in App.~\ref{app:eval_raw}. Although the two models show very similar quantitative performance on retrieval metrics (as shown in Fig.~\ref{fig:sim_valtrain}), they exhibit characteristic behavior in terms of objects (images/text) retrieved. We emphasize that for scientific usefulness, retrieving the `most similar' objects would not be the goal, but rather identifying interesting candidates to follow up on; both models perform sensibly in this regard.
 
-Figure~\ref{fig:sim_valtrain} (left) shows the distribution of cosine similarities between corresponding image and text embeddings, $x_i$ and $y_i$, for the LLM-summarized abstracts using the fine-tuned CLIP model (red line), and for the base CLIP model (purple line).
-%
-Distributions evaluated for a shuffled order of text embeddings -- therefore randomizing the image-text correspondence during evaluation -- are shown as dashed lines. We note that the shuffling here is performed at the evaluation stage, and not the training stage.
-%
-The distributions for the base model is seen to be sharply peaked at a specific value, showing little diversity and being very similar between the shuffled (dashed purple) and non-shuffled (solid purple) versions. 
-%
-Histograms for the fine-tuned model, on the other hand, show a clear separation when evaluated on shuffled (dashed red) and corresponding (solid red) text-image pairs.
-
-% Similarly, Fig.~\ref{fig:sim_valtrain} (top right) shows the distribution of cosine similarities between corresponding image-text pairs for the single-concept captions (solid red) and the shuffled versions (dashed red).
-% %
-% The distribution for corresponding pairs is only modestly shifted compared to the shuffled version, indicating that assigning $\mathcal O(400)$ labels to the images using an LLM results in a weaker association signal compared to using noisy captions.
-% %
-% The purple line shows the distribution of cosine similarities between corresponding pairs with single-concept summaries, but evaluated using a model trained on the LLM-summarized abstracts.
-% %
-% This distribution is more skewed towards higher similarity values, indicating that the model trained on diverse caption can still better capture the association signal in the single-concept summaries compared to one trained specifically using the single-concept summaries.
-
-Finally, Fig.~\ref{fig:sim_valtrain} (right) shows the retrieval accuracy as defined in Eq.~\ref{eq:retrieval_accuracy} as a function of the retrieval fraction $k$.
-%
-In this case, we evaluate four models -- fine tuned on raw abstracts (blue), fine-tuned on LLM-summarized abstracts (red), trained on LLM-summarized abstracts from scratch (yellow), and the base model (purple) -- all on the summarized abstracts.
-%
-Remarkably, the model trained on raw abstracts shows very similar performance when evaluated on the summarized abstracts compared to that trained on the summarized abstracts themselves, indicating that \emph{(1)} the image-text association signal is preserved in the summarization process, and \emph{(2)} the model is able to effectively leverage meaningful concepts in the noisy raw abstracts through weak supervision.
 
 \begin{table}[h!]
   \centering
@@ -566,14 +579,6 @@ Remarkably, the model trained on raw abstracts shows very similar performance wh
   \caption{Text associations from a curated list most closely matching a given image query, for both the \textcolor{deepred}{summary fine-tuned} and \textcolor{deeppurple}{base} (CLIP-ViT-B/16) models. The `ground truth' LLM-summarized abstract is shown in the right column.}
   \label{tab:itt}
 \end{table}
-
-\begin{figure*}[!h]
-\includegraphics[width=0.45\textwidth]{plots/sim_val.pdf}
-% \includegraphics[width=0.45\textwidth]{plots/sim_summ1.pdf}
-\includegraphics[width=0.45\textwidth]{plots/retrieval.pdf}
-\caption{(Left) Distribution of cosine similarities between corresponding image and text embeddings, $x_i$ and $y_i$. (left) For the LLM-summarized abstracts using the fine-tuned CLIP model (red line), and for the base CLIP model (purple line). Versions with the ordering of text embeddings shuffled during evaluation are shown in dashed. (Right) Retrieval accuracy as a function of the retrieval fraction $k$ for the fine-tuned model on the summarized abstracts (red), fine-tuned on raw abstracts (blue), trained on LLM-summarized abstracts from scratch (yellow), and the base model (purple).}
-\label{fig:sim_valtrain}
-\end{figure*}
 
 \section{Outlook and Conclusions}
 \label{sec:conclusion}
@@ -795,6 +800,9 @@ These are derived by prompting \textsc{Claude 2}, without any external input (e.
 % \label{app:ablations}
 
 \section{Evaluation of Model Trained on Raw Abstracts}
+\label{app:eval_raw}
+
+
 
 \begin{table}[h!]
   \centering
@@ -818,20 +826,20 @@ These are derived by prompting \textsc{Claude 2}, without any external input (e.
 \begin{table}[h!]
   \centering
   \renewcommand{\arraystretch}{0.1}
-  \begin{tabular}{m{3cm} m{3.2cm} m{3.2cm} m{5cm}}
+  \begin{tabular}{m{3cm} m{3.2cm} m{3.2cm} m{3.2cm}}
       \toprule
-      \centering \bfseries \hubble image & \centering \textbf{Top-4 text} \\ {\textcolor{deeppurple}{(base)}} & \centering  \textbf{Top-4 text} \\ {\textcolor{deepblue}{(abstract fine-tuned)}} & \centering \textbf{Summarized abstract} \\ (objects; `ground truth') \tabularnewline
+      \centering \bfseries \hubble image & \centering \textbf{Top-4 text} \\ {\textcolor{deeppurple}{(base)}} & \centering  \textbf{Top-4 text} \\ {\textcolor{deepblue}{(abstract fine-tuned)}} & \centering  \textbf{Top-4 text} \\ {\textcolor{deepred}{(summary fine-tuned)}} \tabularnewline
       \midrule
-      \centering \includegraphics[width=0.15\textwidth]{\thedatafolder/img_itt_abs_0.pdf} & \centering \scriptsize \verbatiminput{\thedatafolder/sci_itt_base_0.txt} & \centering  \scriptsize \verbatiminput{\thedatafolder/sci_itt_abs_0.txt} &  {\scriptsize \input{\thedatafolder/abs_itt_abs_0.txt}} \tabularnewline
+      \centering \includegraphics[width=0.15\textwidth]{\thedatafolder/img_itt_abs_0.pdf} & \centering \scriptsize \verbatiminput{\thedatafolder/sci_itt_base_0.txt} & \centering  \scriptsize \verbatiminput{\thedatafolder/sci_itt_abs_0.txt} &  {\scriptsize \verbatiminput{\thedatafolder/sci_itt_0.txt}} \tabularnewline
       \midrule
-      \centering \includegraphics[width=0.15\textwidth]{\thedatafolder/img_itt_abs_1.pdf} & \centering \scriptsize \verbatiminput{\thedatafolder/sci_itt_base_1.txt} & \centering  \scriptsize \verbatiminput{\thedatafolder/sci_itt_abs_1.txt} &  {\scriptsize \input{\thedatafolder/abs_itt_abs_1.txt}} \tabularnewline
+      \centering \includegraphics[width=0.15\textwidth]{\thedatafolder/img_itt_abs_1.pdf} & \centering \scriptsize \verbatiminput{\thedatafolder/sci_itt_base_1.txt} & \centering  \scriptsize \verbatiminput{\thedatafolder/sci_itt_abs_1.txt} &  {\scriptsize \verbatiminput{\thedatafolder/sci_itt_1.txt}} \tabularnewline
       \midrule
-      \centering \includegraphics[width=0.15\textwidth]{\thedatafolder/img_itt_abs_2.pdf} & \centering \scriptsize \verbatiminput{\thedatafolder/sci_itt_base_2.txt} & \centering  \scriptsize \verbatiminput{\thedatafolder/sci_itt_abs_2.txt} &  {\scriptsize \input{\thedatafolder/abs_itt_abs_2.txt}} \tabularnewline
+      \centering \includegraphics[width=0.15\textwidth]{\thedatafolder/img_itt_abs_2.pdf} & \centering \scriptsize \verbatiminput{\thedatafolder/sci_itt_base_2.txt} & \centering  \scriptsize \verbatiminput{\thedatafolder/sci_itt_abs_2.txt} &  {\scriptsize \verbatiminput{\thedatafolder/sci_itt_2.txt}} \tabularnewline
       \midrule
-      \centering \includegraphics[width=0.15\textwidth]{\thedatafolder/img_itt_abs_3.pdf} & \centering \scriptsize \verbatiminput{\thedatafolder/sci_itt_base_3.txt} & \centering  \scriptsize \verbatiminput{\thedatafolder/sci_itt_abs_3.txt} &  {\scriptsize \input{\thedatafolder/abs_itt_abs_3.txt}} \tabularnewline
+      \centering \includegraphics[width=0.15\textwidth]{\thedatafolder/img_itt_abs_3.pdf} & \centering \scriptsize \verbatiminput{\thedatafolder/sci_itt_base_3.txt} & \centering  \scriptsize \verbatiminput{\thedatafolder/sci_itt_abs_3.txt} &  {\scriptsize \verbatiminput{\thedatafolder/sci_itt_3.txt}} \tabularnewline
       \bottomrule
   \end{tabular}
-  \caption{Text associations from a curated list most closely matching a given image query, for both the \textcolor{deepblue}{abstract fine-tuned} and \textcolor{deeppurple}{base} (CLIP-ViT-B/16) models. The `ground truth' LLM-summarized abstract is shown in the right column.}
+  \caption{Text associations from a curated list most closely matching a given image query (first column), for the \textcolor{deeppurple}{base} (CLIP-ViT-B/16) model, \textcolor{deepblue}{abstract fine-tuned} model, and \textcolor{deepred}{summary fine-tuned} model.}
   \label{tab:itt_abs}
 \end{table}
   
