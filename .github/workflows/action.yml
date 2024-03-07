@@ -6,7 +6,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      MANUSCRIPT_PATH_1: paper/main # exclude the '.tex' / '.pdf' extension!
+      MANUSCRIPT_PATH_1: paper/hubble_paperclip # exclude the '.tex' / '.pdf' extension!
       LATEX: pdflatex -shell-escape
       BIBTEX: bibtex
     steps:
