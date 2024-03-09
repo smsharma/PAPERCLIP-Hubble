@@ -6,7 +6,7 @@
 #SBATCH --time=48:00:00
 #SBATCH --gres=gpu:4
 #SBATCH --account=iaifi_lab
-#SBATCH -p iaifi_gpu_requeue
+#SBATCH -p iaifi_gpu_priority
 
 export TF_CPP_MIN_LOG_LEVEL="2"
 
@@ -29,8 +29,8 @@ cd /n/holystore01/LABS/iaifi_lab/Users/smsharma/multimodal-data/
 
 # Core runs
 
-/n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.data.caption_type="summary"  # Base config, with summary captions
-/n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.clip.transfer_head=True  # Fine-tune just head
+# /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.data.caption_type="summary"  # Base config, with summary captions
+# /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.clip.transfer_head=True  # Fine-tune just head
 
 # /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.data.caption_type="abstract"  --config.data.augment_subsample_text=True  # Full abstract
 # /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.clip.random_init_text=True --config.clip.random_init_vision=True  # From scratch
@@ -45,3 +45,4 @@ cd /n/holystore01/LABS/iaifi_lab/Users/smsharma/multimodal-data/
 # /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.training.loss_type="sigmoid"
 # /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.training.batch_size=64  # Larger batch size
 # /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py  --config.training.n_train_steps=5000 --config.optim.learning_rate=1e-6  # Train for shorter
+# /n/holystore01/LABS/iaifi_lab/Users/smsharma/envs/$ENV/bin/python -u train.py --config ./configs/base.py --config.clip.pretrained_model_name="openai/clip-vit-large-patch14"  # Larger base model
