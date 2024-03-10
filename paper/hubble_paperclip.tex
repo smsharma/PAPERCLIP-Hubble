@@ -12,7 +12,6 @@
 \usepackage{graphicx}
 \usepackage{array}
 \usepackage{booktabs}
-\usepackage{lipsum}
 \usepackage{xspace}
 \usepackage{pdflscape} 
 \usepackage{multirow} 
@@ -27,40 +26,37 @@
 % For theorems and such
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage{mathtools}
 \usepackage{amsthm}
+\usepackage{mathtools}
 
 % Custom colors
 \usepackage{color}
 
+\definecolor{xlinkcolor}{rgb}{0.7752941176470588, 0.22078431372549023, 0.2262745098039215}
 
+% For model colours
 \definecolor{deepblue}{rgb}{0.29411765 0.45882353 0.61960784}
 \definecolor{deepred}{rgb}{0.74509804 0.21176471 0.23921569}
 \definecolor{deepgreen}{rgb}{0,0.5,0}
 \definecolor{deeppurple}{rgb}{0.52941176 0.32941176 0.56470588}
 
-\definecolor{xlinkcolor}{rgb}{0.7752941176470588, 0.22078431372549023, 0.2262745098039215}
-
+% For code listings
 \definecolor{codegreen}{rgb}{0,0.4,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
-
-% \definecolor{codegray}{RGB}{240,240,240}
-\definecolor{codeblue}{RGB}{0,0,255}
-% \definecolor{codegreen}{RGB}{0,150,0}
-% \definecolor{codepurple}{RGB}{150,0,150}
 
 \newcommand{\githubmaster}{\href{https://github.com/smsharma/HubbleCLIP}{\faGithub}\xspace}
 
 \newcommand{\package}[1]{\textsl{#1}\xspace}
 \newcommand{\eg}{{e.\,g.}\xspace}
 \newcommand{\ie}{{i.\,e.}\xspace}
-\newcommand{\SM}[1]{\textcolor{blue}{[SM: #1]}}
 \newcommand{\hubble}{\emph{Hubble}\xspace}
-
 \newcommand{\eqrefb}[1]{(\ref{#1})}
 
+\newcommand{\SM}[1]{\textcolor{blue}{[SM: #1]}}
+% Changes
+\newcommand{\changes}[1]{\textcolor{blue}{#1}}
 
 \def\preprintno{XXXX} % Insert correct preprint number
 
@@ -76,7 +72,7 @@ final=true,
 
 % Define a new fancy page style
 \fancypagestyle{firstpage}{
-    % \rhead{MIT-CTP/\preprintno}
+    \rhead{MIT-CTP/\preprintno}
 }
 
 \lstdefinestyle{mystyle}{ 
@@ -104,8 +100,23 @@ final=true,
    linewidth=\textwidth 
   }
 
-
 \lstset{style=mystyle}
+
+\newcommand{\datafolder}[1]{\def\thedatafolder{#1}}
+
+% Define Verbatim environment with custom style
+\DefineVerbatimEnvironment{jsoncode}{Verbatim}{
+  commandchars=\\\{\},
+  rulecolor=\color{codegray},
+  fillcolor=\color{codegray},
+  labelposition=topline,
+  fontsize=\small,
+  baselinestretch=1.1,
+  formatcom=\color{codegreen},
+  xleftmargin=15pt,
+  xrightmargin=15pt,
+  tabsize=2
+}
 
 \title{\textsc{PAPERCLIP}: Associating Astronomical Observations and Natural Language with Multi-Modal Models}
 
@@ -130,24 +141,6 @@ final=true,
 \def\year{YYYY} % Insert correct year for camera-ready version
 \def\openreview{\url{https://openreview.net/forum?id=XXXX}} % Insert correct link to OpenReview for camera-ready version
 
-\newcommand{\datafolder}[1]{\def\thedatafolder{#1}}
-
-% Define Verbatim environment with custom style
-\DefineVerbatimEnvironment{jsoncode}{Verbatim}{
-  commandchars=\\\{\},
-  % frame=single,
-  % framerule=0.5pt,
-  rulecolor=\color{codegray},
-  fillcolor=\color{codegray},
-  % label=JSON,
-  labelposition=topline,
-  fontsize=\small,
-  baselinestretch=1.1,
-  formatcom=\color{codeblue},
-  xleftmargin=15pt,
-  xrightmargin=15pt,
-  tabsize=2
-}
 
 \begin{document}
 
@@ -157,7 +150,7 @@ final=true,
 \thispagestyle{firstpage}
 
 \begin{abstract}
-We present PAPERCLIP (Proposal Abstracts Provide an Effective Representation for Contrastive Language-Image Pre-training), a method which associates astronomical observations imaged by surveys and telescopes with natural language  using a neural network model. The model is fine-tuned from a pre-trained Contrastive Language–Image Pre-training (CLIP) model using successful observing proposal abstracts, optionally summarized via guided generation using large language models (LLMs), and corresponding downstream observations. Using observations from the \hubble Space Telescope (HST) as an example, we show that the fine-tuned model embodies a meaningful joint representation between observations and text through tests targeting image retrieval (i.e., finding the most relevant observations using natural language queries) and description retrieval (i.e., querying for astrophysical object classes and science use cases most relevant to a given observation). Our study demonstrates the potential for using generalist rather than task-specific models for finding patterns in astronomical data, in particular by leveraging text as an interface. \githubmaster
+We present PAPERCLIP (Proposal Abstracts Provide an Effective Representation for Contrastive Language-Image Pre-training), a method which associates astronomical observations imaged by surveys and telescopes with natural language  using a neural network model. The model is fine-tuned from a pre-trained Contrastive Language–Image Pre-training (CLIP) model using successful observing proposal abstracts, optionally summarized via guided generation using large language models (LLMs), and corresponding downstream observations. Using observations from the \hubble Space Telescope (HST) as an example, we show that the fine-tuned model embodies a meaningful joint representation between observations and text through tests targeting image retrieval (i.e., finding the most relevant observations using natural language queries) and description retrieval (i.e., querying for astrophysical object classes and science use cases most relevant to a given observation). Our study demonstrates the potential for using generalist \changes{foundation models} rather than task-specific models for \changes{interacting with} astronomical data by leveraging text as an interface. \githubmaster
 \end{abstract}
 
 \tableofcontents
@@ -264,6 +257,27 @@ This further motivates the need for fine tuning on domain-specific data.
   \label{tab:dataset}
 \end{table}
 
+\begin{table}[h!]
+  \renewcommand{\arraystretch}{2}
+    \centering
+    \begin{tabular}{m{1.8cm} m{6.6cm} m{6.6cm}}
+        \toprule
+        \bfseries Prop. ID & \multicolumn{2}{c}{\bfseries LLM-extracted summary} \tabularnewline
+        \cmidrule(r){2-3}
+        & \centering\arraybackslash \bfseries Objects and phenomena & \centering\arraybackslash \bfseries Science use cases \tabularnewline
+        \midrule
+        \input{\thedatafolder/id1_2.txt} & {\scriptsize \input{\thedatafolder/obj1_2.txt}} & {\scriptsize \input{\thedatafolder/sci1_2.txt}} \tabularnewline
+        \midrule
+        \input{\thedatafolder/id1_1.txt} & {\scriptsize \input{\thedatafolder/obj1_1.txt}} & {\scriptsize \input{\thedatafolder/sci1_1.txt}} \tabularnewline
+        \midrule
+        \input{\thedatafolder/id1_3.txt} & {\scriptsize \input{\thedatafolder/obj1_3.txt}} & {\scriptsize \input{\thedatafolder/sci1_3.txt}} \tabularnewline
+        \midrule
+        \input{\thedatafolder/id1_0.txt} & {\scriptsize \input{\thedatafolder/obj1_0.txt}} & {\scriptsize \input{\thedatafolder/sci1_0.txt}} \tabularnewline
+        \bottomrule
+    \end{tabular}
+    \caption{\changes{For the \hubble proposal abstracts shown in Tab.~\ref{tab:dataset},} the LLM (\textsc{Mixtral-8x7B})-extracted summaries showing objects and phenomena (middle column) as well as potential downstream science use cases (last column) separately.}
+    \label{tab:datasetsumm}
+\end{table}
 
 \subsection{\hubble Data Selection and Pre-processing}
 
@@ -352,31 +366,29 @@ We note that, even after summarization, the association signal is expected to be
 % The prompts and schemata for generating these discrete categories and assigning observations to them are described in Apps.~\ref{app:singleconcept} and \ref{app:singleconceptassignments} respectively. \SM{Each abstract is assigned one summary. The generation of the single concepts is different }
 
 
-\begin{landscape}
-  \begin{table}[h!]
-    \renewcommand{\arraystretch}{2}
-      \centering
-      \begin{tabular}{m{1.8cm} m{8cm} m{5cm} m{6.5cm}}
-          \toprule
-          \bfseries Prop. ID & \centering\arraybackslash \bfseries Proposal abstract & \multicolumn{2}{c}{\bfseries LLM-extracted summary} \tabularnewline
-          \cmidrule(r){3-4}
-          & & \centering\arraybackslash \bfseries Objects and phenomena & \centering\arraybackslash \bfseries Science use cases \tabularnewline
-          \midrule
-          \input{\thedatafolder/id1_2.txt} & {\scriptsize \input{\thedatafolder/abs1_2.txt}} & {\scriptsize \input{\thedatafolder/obj1_2.txt}} & {\scriptsize \input{\thedatafolder/sci1_2.txt}} \tabularnewline
-          \midrule
-          \input{\thedatafolder/id1_1.txt} & {\scriptsize \input{\thedatafolder/abs1_1.txt}} & {\scriptsize \input{\thedatafolder/obj1_1.txt}} & {\scriptsize \input{\thedatafolder/sci1_1.txt}} \tabularnewline
-          \midrule
-          \input{\thedatafolder/id1_3.txt} & {\scriptsize \input{\thedatafolder/abs1_3.txt}} & {\scriptsize \input{\thedatafolder/obj1_3.txt}} & {\scriptsize \input{\thedatafolder/sci1_3.txt}} \tabularnewline
-          \midrule
-          \input{\thedatafolder/id1_0.txt} & {\scriptsize \input{\thedatafolder/abs1_0.txt}} & {\scriptsize \input{\thedatafolder/obj1_0.txt}} & {\scriptsize \input{\thedatafolder/sci1_0.txt}} \tabularnewline
-          \bottomrule
-      \end{tabular}
-      \caption{Examples of the clipped \hubble proposal abstracts (second column) and LLM (\textsc{Mixtral-8x7B})-extracted summaries (right-most two columns), separately extracting objects and phenomena as well as potential downstream science use cases.}
-      \label{tab:datasetsumm}
-  \end{table}
-  \end{landscape}
-
-
+% \begin{landscape}
+%   \begin{table}[h!]
+%     \renewcommand{\arraystretch}{2}
+%       \centering
+%       \begin{tabular}{m{1.8cm} m{8cm} m{5cm} m{6.5cm}}
+%           \toprule
+%           \bfseries Prop. ID & \centering\arraybackslash \bfseries Proposal abstract & \multicolumn{2}{c}{\bfseries LLM-extracted summary} \tabularnewline
+%           \cmidrule(r){3-4}
+%           & & \centering\arraybackslash \bfseries Objects and phenomena & \centering\arraybackslash \bfseries Science use cases \tabularnewline
+%           \midrule
+%           \input{\thedatafolder/id1_2.txt} & {\scriptsize \input{\thedatafolder/abs1_2.txt}} & {\scriptsize \input{\thedatafolder/obj1_2.txt}} & {\scriptsize \input{\thedatafolder/sci1_2.txt}} \tabularnewline
+%           \midrule
+%           \input{\thedatafolder/id1_1.txt} & {\scriptsize \input{\thedatafolder/abs1_1.txt}} & {\scriptsize \input{\thedatafolder/obj1_1.txt}} & {\scriptsize \input{\thedatafolder/sci1_1.txt}} \tabularnewline
+%           \midrule
+%           \input{\thedatafolder/id1_3.txt} & {\scriptsize \input{\thedatafolder/abs1_3.txt}} & {\scriptsize \input{\thedatafolder/obj1_3.txt}} & {\scriptsize \input{\thedatafolder/sci1_3.txt}} \tabularnewline
+%           \midrule
+%           \input{\thedatafolder/id1_0.txt} & {\scriptsize \input{\thedatafolder/abs1_0.txt}} & {\scriptsize \input{\thedatafolder/obj1_0.txt}} & {\scriptsize \input{\thedatafolder/sci1_0.txt}} \tabularnewline
+%           \bottomrule
+%       \end{tabular}
+%       \caption{Examples of the clipped \hubble proposal abstracts (second column) and LLM (\textsc{Mixtral-8x7B})-extracted summaries (right-most two columns), separately extracting objects and phenomena as well as potential downstream science use cases.}
+%       \label{tab:datasetsumm}
+%   \end{table}
+%   \end{landscape}
 
 \section{Methodology}
 \label{sec:methodology}
@@ -404,7 +416,7 @@ where ${x}_i={f\left(I_i\right)}/{\left\|f\left(I_i\right)\right\|}$ and ${y}_i=
 %
 Note that this loss treats the image and text representations symmetrically, ensuring that the two modalities are considered on the same footing.
 
-We use the CLIP-ViT-B/16\footnote{\url{https://huggingface.co/openai/clip-vit-base-patch16}} \citep{radford2021learning} variant as the base pre-trained CLIP model.
+We use the \texttt{CLIP-ViT-B/16} \citep{radford2021learning} variant as the base pre-trained CLIP model.
 %
 This model uses a 12-layer, 12-head, 768-embedding dimension vision transformer as the image encoder and a 12-layer, 8-head, 512-embedding dimension text sequence transformer as the text backbone.
 %
@@ -412,7 +424,7 @@ The text encoder has a maximum length of 77 tokens and the image encoder a nativ
 %
 Linear projection layers map the outputs of the image and text encoders to a common embedding space of dimension $n_\text{emb}=512$.
 %
-In total, the model has 149,620,737 trainable parameters.
+In total, the model contains $\sim 149$ million trainable parameters.
 %
 This model was originally pre-trained on 400 million image-text pairs from internet data \citep{radford2021learning}.
 %
@@ -512,15 +524,17 @@ Figure~\ref{fig:sim_valtrain} (right) shows the retrieval accuracy, as defined i
 %
 In this case, we evaluate all four models (fine tuned on raw abstracts (blue), fine-tuned on LLM-summarized abstracts (red), trained on LLM-summarized abstracts from scratch (yellow), and the base model (purple)) on the same captions dataset -- the summarized abstracts -- for a direct comparison.
 %
-Remarkably, the model trained on raw abstracts shows very similar performance when evaluated on the summarized abstracts compared to that trained on the summarized abstracts themselves, indicating that \emph{(1)} the image-text association signal is preserved in the summarization process, and \emph{(2)} the model is able to effectively leverage meaningful concepts in the noisy raw abstracts through weak supervision.
+Remarkably, the model trained on raw abstracts shows very similar performance when evaluated on the summarized abstracts compared to that trained on the summarized abstracts themselves, indicating that \emph{(1)} the image-text association signal is preserved in the summarization process, and \emph{(2)} the model is able to effectively leverage meaningful concepts in the noisy raw abstracts through weak supervision. \changes{The significantly worse performance of the model trained from scratch, compared to the fine-tuned models, highlights the crucial role of the inductive bias inherent in the base pretrained model, which effectively captures the rich associations between images and language.}
 
 \begin{figure*}[!h]
   \includegraphics[width=0.49\textwidth]{plots/sim_val.pdf}
-  % \includegraphics[width=0.45\textwidth]{plots/sim_summ1.pdf}
   \includegraphics[width=0.49\textwidth]{plots/retrieval.pdf}
   \caption{(Left) Distribution of cosine similarities between corresponding image and text embeddings, $x_i$ and $y_i$, shown when using the base CLIP model (purple lines), and the summary fine-tuned CLIP model (red line). Dashed lines correspond to models evaluated on image-text pairs with associations shuffled. (Right) Retrieval accuracy as a function of the retrieval fraction $k$ for the fine-tuned model on the summarized abstracts (red), fine-tuned on raw abstracts (blue), trained on summarized abstracts from scratch (yellow), and the base model (purple).}
   \label{fig:sim_valtrain}
   \end{figure*}
+
+\changes{We show retrieval accuracy performance for additional variations on the model and training configuration in App.~\ref{app:ablations}.}
+
 
 \subsection{Image Retrieval}
 
@@ -910,5 +924,20 @@ In the main text, we illustrated qualitative evaluation (image and text retrieva
   \caption{Text associations from a curated list most closely matching four image queries (first column, the same as in Tab.~\ref{tab:itt}), for the \textcolor{deeppurple}{base} (CLIP-ViT-B/16), \textcolor{deepblue}{abstract fine-tuned}, and \textcolor{deepred}{summary fine-tuned} models.}
   \label{tab:itt_abs}
 \end{table}
+
+\section{\changes{Variations on Model and Training}}
+\label{app:ablations}
+
+Figure~\ref{fig:sim_app} shows the retrieval accuracy as defined in Eq.~\eqrefb{eq:retrieval_accuracy} as a function of the retrieval fraction for further variations of the model or training, evaluated and trained on summarized abstracts. The red line corresponds to the model trained on summarized abstract described in the main text (fine-tuned on \texttt{CLIP-ViT-B/16} with constant learning rate $\mathrm{LR}=10^{-5}$ after linear warmup). The purple line corresponds to the base \texttt{CLIP-ViT-B/16} model.
+
+Curves for the model fine-tuned on the larger base CLIP model \texttt{CLIP-ViT-L/14} (dotted red), with a smaller learning rate $\mathrm{LR}=10^{-6}$ (dashed green), and with a cosine learning rate schedule (green) are also shown. All these models are seen to perform similarly, with the exception of the model trained with smaller learning rate showing degraded performance. Given the similar performance between \texttt{CLIP-ViT-L/14} ($\sim 428$ million parameters) and \texttt{CLIP-ViT-B/16} ($\sim 149$ million parameters), we chose the latter as the base model in the main text for computational efficiency.
+
+
+\begin{figure*}[!h]
+  \centering
+  \includegraphics[width=0.62\textwidth]{plots/retrieval_app.pdf}
+  \caption{Same as Fig.~\ref{fig:sim_valtrain} (right) -- retrieval accuracy as a function of the retrieval fraction -- for further variations on the model or training. The red and purple lines correspond to the model trained on summarized abstract, described in the main text, and the base \texttt{CLIP-ViT-B/16} model, respectively. Curves for the model fine-tuned on the larger base CLIP model \texttt{CLIP-ViT-L/14} (dotted red), with a smaller learning rate $\mathrm{LR}=10^{-6}$ (dashed green), and with a cosine learning rate schedule (green) are also shown.}
+  \label{fig:sim_app}
+  \end{figure*}
   
 \end{document}
