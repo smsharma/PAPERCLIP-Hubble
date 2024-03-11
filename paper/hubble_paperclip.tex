@@ -46,7 +46,7 @@
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
 
-\newcommand{\githubmaster}{\href{https://github.com/smsharma/HubbleCLIP}{\faGithub}\xspace}
+\newcommand{\githubmaster}{\href{https://www.github.com/smsharma/PAPERCLIP-Hubble}{\faGithub}\xspace}
 
 \newcommand{\package}[1]{\textsl{#1}\xspace}
 \newcommand{\eg}{{e.\,g.}\xspace}
@@ -77,27 +77,27 @@ final=true,
 
 \lstdefinestyle{mystyle}{ 
   backgroundcolor=\color{backcolour}, 
-  commentstyle=\color{codegreen},
-   keywordstyle=\color{codegreen}, 
-   numberstyle=\tiny\color{codegray}, 
-   stringstyle=\color{codegreen},
-   basicstyle=\ttfamily\footnotesize\linespread{1.1},
-   breakatwhitespace=false, 
-   breaklines=true, captionpos=b, 
-   keepspaces=true, numbers=left, 
-   numbersep=8pt, showspaces=false, 
-   showstringspaces=false, showtabs=false, 
-   frame=single, 
-   framerule=0.2pt, 
-   rulecolor=\color{codegray}, 
-   tabsize=2, 
-   aboveskip=1.5ex, 
-   belowskip=1.5ex,
-   xleftmargin=15pt, 
-   xrightmargin=15pt, 
-   extendedchars=true, 
-   columns=flexible, 
-   linewidth=\textwidth 
+  commentstyle=\color{deepgreen},
+  keywordstyle=\color{deepred}, 
+  numberstyle=\tiny\color{codegray}, 
+  stringstyle=\color{deepgreen},
+  basicstyle=\ttfamily\footnotesize\linespread{1.1},
+  breakatwhitespace=false, 
+  breaklines=true, captionpos=b, 
+  keepspaces=true, numbers=left, 
+  numbersep=8pt, showspaces=false, 
+  showstringspaces=false, showtabs=false, 
+  frame=single, 
+  framerule=0.2pt, 
+  rulecolor=\color{codegray}, 
+  tabsize=2, 
+  aboveskip=1.5ex, 
+  belowskip=1.5ex,
+  xleftmargin=15pt, 
+  xrightmargin=15pt, 
+  extendedchars=true, 
+  columns=flexible, 
+  linewidth=\textwidth 
   }
 
 \lstset{style=mystyle}
@@ -168,10 +168,6 @@ Until recently, most applications of ML within astrophysics have focused on augm
 %
 The {Foundation Model} paradigm, in contrast, seeks to develop generalist models which can be deployed to simultaneously tackle a wide range of tasks \citep{bommasani2021opportunities}.
 %
-% The paradigm has been highly successful in domains like computer vision and natural language processing, as demonstrated by the widespread use and adoption of tools like ChatGPT, Dall-E, Stable Diffusion, and CLIP.
-%
-% At the heart of the paradigm lies the triumph of scale -- scaling up model size, dataset size, and compute.
-% %
 These models are typically pre-trained on massive amounts of unlabeled data using self-supervised or weakly-supervised learning techniques, enabling them to learn powerful representations which can then be used downstream in different ways.
 %
 Foundation models can often benefit from additional training ({fine tuning}) using a relatively small amounts of domain-specific data in order to increase their usefulness when applied to specialized domains.
@@ -186,7 +182,7 @@ This multi-modality was recently exploited in \textsc{AstroCLIP}~\citep{lanusse2
 
 In this paper, we describe \text{PAPERCLIP} (Proposal Abstracts Provide an Effective Representation for Contrastive Language-Image Pre-training\footnote{Technically, we fine tune rather than pre train, but ``PAPERCLIFT'' was rejected by the senior author of this paper.}), a method that connects astronomical image observations with natural language by leveraging the association between abstracts of successful observing proposals and images corresponding to downstream observations. 
 %
-Concretely, here we showcase the method using observations imaged by the \hubble Space Telescope (HST).
+Concretely, we showcase the method using observations imaged by the \hubble Space Telescope (HST).
 %
 We show that fine-tuning a pre-trained CLIP ~\citep[Contrastive Language-Image Pre-training; ][]{radford2021learning} image-text model on observation-abstract pairs results in meaningful joint representations through quantitative and qualitative evaluation tests.
 %
@@ -197,8 +193,6 @@ The CLIP family of foundation models, which in their original form embed images 
 %
 The concept of associating diverse modalities via contrastive training has been employed in other scientific domains~\citep[e.g.,][]{liu2023text,Sanchez-Fernandez2022.11.17.516915,lanusse2023astroclip,cepeda2023geoclip}, and has been shown to be effective in learning semantically meaningful joint representations. Here, we present for the first time an application associating astronomical data with the text modality.
 
-% \SM{Put in this work we at the start of the paragraph. Also put the paragraph right after AstroLlama, reworking some of the logic.} \SM{Define PAPERCLIP, funny footnote about PAPERCLIFT.}
-
 The rest of this paper is organized as follows.
 %
 In Sec.~\ref{sec:dataset}, we describe the \hubble dataset used in this work, including the curation and processing of observations as well as text captions.
@@ -208,6 +202,13 @@ In Sec.~\ref{sec:methodology}, we describe the methodology used to train and eva
 In Sec.~\ref{sec:results}, we present quantitative and qualitative results of our experiments on retrieval tasks.
 %
 We discuss future prospects and conclude in Sec.~\ref{sec:conclusion}.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.99\textwidth]{plots/figure.pdf}
+\caption{\changes{Overview of the PAPERCLIP method. (Left) A pre-trained CLIP model is fine-tuned using a dataset of \hubble observations and corresponding proposal abstracts. (Right) The fine-tuned model can then be used for downstream tasks such as observation retrieval (i.e., finding the observations most relevant to a given text query). The proposal abstract snippet here corresponds to proposal ID \href{https://archive.stsci.edu/proposal_search.php?id=16914&mission=hst}{16914}}}
+\label{fig:overview}
+\end{figure*}
 
 \section{Dataset Construction}
 \label{sec:dataset}
@@ -224,17 +225,6 @@ Table \ref{tab:dataset} shows examples of images and their corresponding (clippe
 It can be seen that the images in this dataset exhibit specific characteristics as well as artifacts particular to HST data-taking and processing which distinguishes them from the distribution of natural images typically used for large-scale pre-training of foundation models \citep{deng2009imagenet}.
 %
 This further motivates the need for fine tuning on domain-specific data.
-
-% \section{Dataset Construction}
-% \label{sec:dataset}
-
-% We curate a dataset of \hubble Space Telescope (HST) observations and corresponding text descriptions from publicly available sources. The dataset consists of images from the HST and associated proposal abstracts from the Hubble Space Telescope Proposal Abstracts Catalog\footnote{\url{https://archive.stsci.edu/hst/proposal_abstracts.html}}, which contains all accepted HST proposals since the telescope's launch on April 24, 1990. Our dataset covers observations up to Cycle 30, which began collecting data in 2022.
-
-% To generate captions for the observations, we use the proposal abstracts directly or optionally summarize them using guided language model generation (described in Sec.\ref{sec:summarization}). 
-
-% The images in this dataset exhibit specific characteristics and artifacts inherent to the HST's data acquisition and processing pipeline, setting them apart from typical natural image datasets used for large-scale pre-training of foundation models \citep{deng2009imagenet}. This difference highlights the necessity of fine-tuning models on domain-specific data.
-
-% We emphasize that all data used in this work is publicly available, ensuring transparency and enabling reproducibility. The HST images can be accessed through the Hubble Legacy Archive\footnote{\url{https://hla.stsci.edu/}}, while the proposal abstracts are available in the Hubble Space Telescope Proposal Abstracts Catalog.
 
 \datafolder{./plots/data/}
 
@@ -335,13 +325,6 @@ Further details on the summarization procedure, including the prompts and schema
 
 
 The guided generation process ensures that, in this case, the output of the LLM strictly conforms to the format of the following example:
-% \SM{Have it be centered}
-% \begin{lstlisting}[language=Python]
-% {
-%   'objects_and_phenomena': ['star forming galaxy', 'lensed galaxy', ...], 
-%   'science_use_cases': ['measure lensing magnification', 'probe spectral energy distributions', ...]
-% }
-% \end{lstlisting}
 \begin{center}
   \begin{jsoncode}
     \centering
@@ -355,40 +338,9 @@ which is then used to construct the summarized caption by combining the two key 
 %
 Examples of raw abstract snippets and corresponding LLM-generated summaries are shown in Tab.~\ref{tab:datasetsumm}.
 %
-% We emphasize that the intended goal of summarization-via-guided-generation is to increase the signal between text and images by standardizing the captions used for fine-tuning the CLIP model, and compare the quantitative performance of the model vs using the raw abstracts in Sec.~\ref{sec:results}.
-%
 We train separate models using the raw abstracts and the LLM-generated summaries, and compare their performance on downstream tasks in Sec.~\ref{sec:results}.
 %
 We note that, even after summarization, the association signal is expected to be noisy, since parts of the summarized caption may not be directly descriptive of the observed images. The goal of the fine-tuning process is to leverage the signal contained in this noisy association.
-
-% Finally, in order to test a further compression of the proposal abstracts, we use LLM-guided generation to also produce a list of single-concept summaries (e.g., `irregular galaxy', `quasars', `Galactic bulge', \ldots), and test whether this can lead to meaningful, generalizable learned associations with observations.
-% %
-% The prompts and schemata for generating these discrete categories and assigning observations to them are described in Apps.~\ref{app:singleconcept} and \ref{app:singleconceptassignments} respectively. \SM{Each abstract is assigned one summary. The generation of the single concepts is different }
-
-
-% \begin{landscape}
-%   \begin{table}[h!]
-%     \renewcommand{\arraystretch}{2}
-%       \centering
-%       \begin{tabular}{m{1.8cm} m{8cm} m{5cm} m{6.5cm}}
-%           \toprule
-%           \bfseries Prop. ID & \centering\arraybackslash \bfseries Proposal abstract & \multicolumn{2}{c}{\bfseries LLM-extracted summary} \tabularnewline
-%           \cmidrule(r){3-4}
-%           & & \centering\arraybackslash \bfseries Objects and phenomena & \centering\arraybackslash \bfseries Science use cases \tabularnewline
-%           \midrule
-%           \input{\thedatafolder/id1_2.txt} & {\scriptsize \input{\thedatafolder/abs1_2.txt}} & {\scriptsize \input{\thedatafolder/obj1_2.txt}} & {\scriptsize \input{\thedatafolder/sci1_2.txt}} \tabularnewline
-%           \midrule
-%           \input{\thedatafolder/id1_1.txt} & {\scriptsize \input{\thedatafolder/abs1_1.txt}} & {\scriptsize \input{\thedatafolder/obj1_1.txt}} & {\scriptsize \input{\thedatafolder/sci1_1.txt}} \tabularnewline
-%           \midrule
-%           \input{\thedatafolder/id1_3.txt} & {\scriptsize \input{\thedatafolder/abs1_3.txt}} & {\scriptsize \input{\thedatafolder/obj1_3.txt}} & {\scriptsize \input{\thedatafolder/sci1_3.txt}} \tabularnewline
-%           \midrule
-%           \input{\thedatafolder/id1_0.txt} & {\scriptsize \input{\thedatafolder/abs1_0.txt}} & {\scriptsize \input{\thedatafolder/obj1_0.txt}} & {\scriptsize \input{\thedatafolder/sci1_0.txt}} \tabularnewline
-%           \bottomrule
-%       \end{tabular}
-%       \caption{Examples of the clipped \hubble proposal abstracts (second column) and LLM (\textsc{Mixtral-8x7B})-extracted summaries (right-most two columns), separately extracting objects and phenomena as well as potential downstream science use cases.}
-%       \label{tab:datasetsumm}
-%   \end{table}
-%   \end{landscape}
 
 \section{Methodology}
 \label{sec:methodology}
@@ -456,7 +408,6 @@ Training takes approximately 3 hours on 4 Nvidia A100 GPUs.
 Models were instantiated using the \package{Transformers} \citep{wolf2019huggingface} library and trained using packages from the \package{Jax} \citep{jax2018github} ecosystem.
 %
 
-
 \subsection{Evaluation Metrics}
 \label{sec:eval}
 
@@ -510,14 +461,6 @@ The distributions for the base model is seen to be sharply peaked at a specific 
 %
 Distributions for the fine-tuned model, on the other hand, show a clear separation when evaluated on shuffled (dashed red) and corresponding (solid red) text-image pairs.
 
-% Similarly, Fig.~\ref{fig:sim_valtrain} (top right) shows the distribution of cosine similarities between corresponding image-text pairs for the single-concept captions (solid red) and the shuffled versions (dashed red).
-% %
-% The distribution for corresponding pairs is only modestly shifted compared to the shuffled version, indicating that assigning $\mathcal O(400)$ labels to the images using an LLM results in a weaker association signal compared to using noisy captions.
-% %
-% The purple line shows the distribution of cosine similarities between corresponding pairs with single-concept summaries, but evaluated using a model trained on the LLM-summarized abstracts.
-% %
-% This distribution is more skewed towards higher similarity values, indicating that the model trained on diverse caption can still better capture the association signal in the single-concept summaries compared to one trained specifically using the single-concept summaries.
-
 \paragraph*{Retrieval accuracy}
 
 Figure~\ref{fig:sim_valtrain} (right) shows the retrieval accuracy, as defined in Eq.~\eqrefb{eq:retrieval_accuracy}, as a function of the retrieval fraction $k\%$.
@@ -546,8 +489,6 @@ While the base model shows some signs of meaningful retrieval (e.g., the image o
 
 The model fine-tuned with summarized abstracts, meanwhile, shows strikingly different behavior (Tab.~\ref{tab:tti}).
 %
-% For example, it is able to return images with processing and assembly artifacts particular to HST (e.g., the lines through the middle in some images), which typically receive low similarity scores when using the base model.
-%
 The \texttt{dwarf galaxy}-queried images correspond to proposals aiming to measure the kinematics of the stellar cores of dwarf galaxies.
 %
 Images of Jupiter are returned for the \texttt{Jupiter} query, with the planet clearly visible in all four images.
@@ -561,8 +502,7 @@ Cluster-scale as well as galaxy-scale gravitational lenses are returned by the \
 We can use images from the validation set as queries and retrieve the most relevant text chunks (e.g., objects and use cases) from a curated list as described in Sec.~\ref{sec:eval}.
 %
 We show the result of image-to-text retrieval in Tab.~\ref{tab:itt}, for the base (second column) as well as summary fine-tuned (third column) models, using four observations (left-most column) from the validation set.
-% %
-% We curate a list of possible text associations by querying the \textsc{Claude}\footnote{\url{https://claude.ai/}} large language model for such a list, which we show in App.~\ref{app:categories}.
+% 
 
 The top four text associations are shown for each image query.
 %
@@ -591,21 +531,9 @@ Note that we chose to illustrate qualitative performance on text and image retri
       \texttt{\input{\thedatafolder/query_tti_base_3.txt}} \vspace{20mm} & \centering \includegraphics[width=0.18\textwidth]{\thedatafolder/img_tti_base_3_0.pdf} \\ \input{\thedatafolder/propid_tti_base_3_0.txt} & \centering \includegraphics[width=0.18\textwidth]{\thedatafolder/img_tti_base_3_1.pdf} \\ \input{\thedatafolder/propid_tti_base_3_1.txt} & \centering \includegraphics[width=0.18\textwidth]{\thedatafolder/img_tti_base_3_2.pdf} \\ \input{\thedatafolder/propid_tti_base_3_2.txt} & \centering \includegraphics[width=0.18\textwidth]{\thedatafolder/img_tti_base_3_3.pdf} \\ \input{\thedatafolder/propid_tti_base_3_3.txt}  \tabularnewline
       \bottomrule
   \end{tabular}
-  \caption{For four text queries (left-most column), the four most similar images from the validation dataset by cosine similarity when using the \textbf{\textcolor{deeppurple}{base CLIP model}} (CLIP-ViT-B/16). The proposal ID associated with each image is given below the image and contains a hyperlink to the MAST page corresponding to the proposal.}
+  \caption{For four text queries (left-most column), the four most similar images from the validation dataset by cosine similarity when using the \textbf{\textcolor{deeppurple}{base CLIP model}} (\texttt{CLIP-ViT-B/16}). The proposal ID associated with each image is given below the image and contains a hyperlink to the MAST page corresponding to the proposal.}
   \label{tab:tti_base}
 \end{table}
-
-% \begin{figure*}[!h]
-% \includegraphics[width=0.95\textwidth]{plots/tti_base.pdf}
-% \caption{Image retrieval using the base CLIP model on four curated queries. \SM{Horizontal lines} \SM{Query not rotated} \SM{Same for next Figure.} \SM{Put text ``Base Model'' in consistent colour to legend.} \SM{Say top 4} \SM{Say that for science we care about the distributions of things.}}
-% \label{fig:tti_base}
-% \end{figure*}
-
-% \begin{figure*}[!h]
-% \includegraphics[width=0.95\textwidth]{plots/tti.pdf}
-% \caption{Image retrieval using the fine-tuned CLIP model on four curated queries.}
-% \label{fig:tti}
-% \end{figure*}
 
 \begin{table}[h!]
   \centering
@@ -626,14 +554,6 @@ Note that we chose to illustrate qualitative performance on text and image retri
   \label{tab:tti}
 \end{table}
 
-% \begin{figure*}[!h]
-% \includegraphics[width=0.95\textwidth]{plots/itt.pdf}
-% \caption{Text associations from a curated list most closely matching a given image query, for both the fine-tuned and base models. The `ground truth' LLM-summarized abstract is shown in the right column. \SM{Say ground truth summarized abstract in the column}\SM{Swap order of cols 2 and 3.}}
-% \label{fig:itt}
-% \end{figure*}
-
-% Set line spacing to 0.5
-
 \begin{table}[h!]
   \centering
   \renewcommand{\arraystretch}{0.1}
@@ -650,7 +570,7 @@ Note that we chose to illustrate qualitative performance on text and image retri
       \centering \includegraphics[width=0.15\textwidth]{\thedatafolder/img_itt_3.pdf} & \centering \scriptsize \verbatiminput{\thedatafolder/sci_itt_base_3.txt} & \centering  \scriptsize \verbatiminput{\thedatafolder/sci_itt_3.txt} &  {\scriptsize \input{\thedatafolder/abs_itt_3.txt}} \tabularnewline
       \bottomrule
   \end{tabular}
-  \caption{Text snippets from a curated list most closely matching a given image query (left-most column) by cosine similarity of respective embeddings, shown for the \textcolor{deeppurple}{base} (CLIP-ViT-B/16) and \textcolor{deepred}{summary fine-tuned} models. The `ground truth' LLM-summarized abstract (only objects/phenomena) is shown in the right-most column.}
+  \caption{Text snippets from a curated list most closely matching a given image query (left-most column) by cosine similarity of respective embeddings, shown for the \textcolor{deeppurple}{base} (\texttt{CLIP-ViT-B/16}) and \textcolor{deepred}{summary fine-tuned} models. The `ground truth' LLM-summarized abstract (only objects/phenomena) is shown in the right-most column.}
   \label{tab:itt}
 \end{table}
 
@@ -678,7 +598,7 @@ Finally, while the CLIP model is restricted to retrieving nearest-neighbour asso
 
 \subsubsection*{Code and Data Availability}
 
-The code, dataset, and fine-tuned models used in this work are available at \url{https://www.github.com/smsharma/HubbleCLIP}.
+The code, dataset, and fine-tuned models used in this work are available at \url{https://www.github.com/smsharma/PAPERCLIP-Hubble}.
 
 \subsubsection*{Software}
 
@@ -730,11 +650,6 @@ Formally, let $\mathcal{M} = (Q, \Sigma, \delta, q_0, F)$ be the FSM representin
 
 During the token-by-token generation process, we keep track of the current FSM state $q_t$ after sampling each token $v_t$. At each step $t$, we mask the LLM's output logits based on the valid next tokens $\sigma(q_t)$, setting the logits of invalid tokens to $-\infty$. The next token is then sampled from the categorical distribution defined by the unmasked logits, and the FSM transitions to the next state $q_{t+1} = \delta(q_t, v_{t+1})$, where $v_{t+1} \in \Sigma$ is the token in the regular expression alphabet corresponding to the sampled token. This process continues until an accept state with no outgoing transitions is reached, indicating a valid completion of the pattern.
 
-% The regex-guided generation method ensures that the LLM's output always adheres to the specified regular expression pattern, without incurring the computational overhead of checking the validity of each possible next token at every generation step. This approach can be extended to more complex patterns, such as context-free grammars, by using augmented pushdown automata to track the generation state and valid next tokens.
-
-% In our application, we use the regex-guided generation method to constrain LLM outputs to follow specific JSON schemas, which are automatically converted into regular expressions. This ensures that the generated summaries of astronomy observation proposals adhere to the desired format, enabling more reliable extraction of key information.
-% The pre-computed index $\sigma$ allows for efficient determination of valid next tokens at each generation step, making the regex-guided method computationally feasible for large-scale applications. 
-
 \subsection{Prompts and Schema Used for Summarization}
 \label{app:summarization}
 
@@ -784,86 +699,6 @@ Answer in JSON format. The JSON should be a dictionary with keys "objects_and_ph
 [/INST]
 """
 \end{lstlisting}
-
-% \subsection{Generation of single-concept summaries}
-% \label{app:singleconcept}
-
-% The following prompt is used to generate a list of diverse single-concept summaries informed by a list of summarized abstracts:
-
-% \begin{lstlisting}[language=Python]
-% import outlines   
-
-% @outlines.prompt
-% def prompt_fn(objects):
-%     """<s>[INST] Please produce a list of around concepts characterizing prominent objects, phenomena, and science use cases of images observed by the Hubble Space Telescope.
-
-% Here are some examples of objects:
-
-% {{objects}}
-
-% Follow these instructions exactly in your answer:
-% - Do not output empty strings as elements.
-% - Make sure that the list covers a diverse range of astronomical concepts, with items as different from each other as possible. 
-% - Do not give specific names of objects, to make sure you span the widest possible range of concepts (e.g., "dwarf galaxy" is allowed, but NOT "Fornax", "Terzan 5", or  "NGC6440").
-% - Do not return terms undescriptive of observations, e.g. "sloshing", "adiabatic", "interactions". Returning concrete physics objects, concepts, or phenomena.
-% - Only output scientifically meaningful terms. E.g., NO "Cosmic Dance".
-% - Do not duplicate entries. Do not reference any telescopes, observatories, or surveys.
-% - Do not include units like "angular diameter distance", "parsec", or any other concepts that will not correlate with images of observations.
-% - Use the above example list of objects only as inspiration to infer broad classes of objects.
-% - Make sure each concept is succint, never more than 5 words.
-% - Answer in JSON format.
-% - The JSON should have the following keys {"galaxies", "stellar_physics", "exoplanets_planet_formation", "stellar_populations", "supermassive_black_holes", "solar_system", "integalactic_medium", "large_scale_structure"} reflecting rough observation categories.
-% - Each category will have a list of objects and/or astronomical concepts.
-% - Output up to 20 items and no more in each category
-% [/INST]
-% """
-% \end{lstlisting}
-
-% The following schema guides generation, intended to produce 100 concepts reflecting the science categories of successful proposals\footnote{\url{https://www.stsci.edu/contents/newsletters/2023-volume-40-issue-02/hubble-cycle-31-proposal-selection}}.
-% %
-
-
-% \begin{lstlisting}[language=Python]
-% from pydantic import BaseModel, conlist
-  
-% class ScienceCategoriesHST(BaseModel):
-%     galaxies: conlist(str, min_length=15, max_length=15)
-%     stellar_physics: conlist(str, min_length=15, max_length=15)
-%     exoplanets_planet_formation: conlist(str, min_length=15, max_length=15)
-%     stellar_populations: conlist(str, min_length=10, max_length=10)
-%     supermassive_black_holes: conlist(str, min_length=15, max_length=15)
-%     solar_system: conlist(str, min_length=10, max_length=10)
-%     integalactic_medium: conlist(str, min_length=10, max_length=10)
-%     large_scale_structure: conlist(str, min_length=10, max_length=10)
-%   \end{lstlisting}
-
-% The output is then constrained to be one of the fixed number of concepts.
-  
-% \subsection{Assignment of abstracts to single-concept categories}
-% \label{app:singleconceptassignments}
-
-% Finally, the following prompt is used to assign concepts inferred in \ref{app:singleconcept} to each abstract:
-
-% \begin{lstlisting}[language=Python]
-% import outlines 
-
-% @outlines.prompt
-% def prompt_fn(abs, cats):
-%     """<s>[INST] The following is a successful proposal abstract for the Hubble Space Telescope: "{{abs}}"
-
-% The following is a list of categories (astronomical concepts) that this abstract could correspond to.
-
-% {{cats}}
-
-% Please answer which of these listed concepts best describes this proposal, based on the objects and phenomena mentioned in the abstract.
-% The concept should meaningfully be present in the abstract and the eventual observation.
-
-% - For example, "The locations of supernovae {SNe} in the local stellar and gaseous environment in galaxies, as measured in high spatial resolution WFPC2 and ACS images, contain important clues to their progenitor stars." should return "supernova".
-% - If the abstract centers calibration and/or instrumentation efforts, return calibration or instrumention".
-
-% If no concept make sense, return "None". [/INST]
-% """
-% \end{lstlisting}
 
 \section{List of Categories for Text Retrieval Task}
 \label{app:categories}
@@ -921,11 +756,11 @@ In the main text, we illustrated qualitative evaluation (image and text retrieva
       \centering \includegraphics[width=0.15\textwidth]{\thedatafolder/img_itt_abs_3.pdf} & \centering \scriptsize \verbatiminput{\thedatafolder/sci_itt_base_3.txt} & \centering  \scriptsize \verbatiminput{\thedatafolder/sci_itt_abs_3.txt} &  {\scriptsize \verbatiminput{\thedatafolder/sci_itt_3.txt}} \tabularnewline
       \bottomrule
   \end{tabular}
-  \caption{Text associations from a curated list most closely matching four image queries (first column, the same as in Tab.~\ref{tab:itt}), for the \textcolor{deeppurple}{base} (CLIP-ViT-B/16), \textcolor{deepblue}{abstract fine-tuned}, and \textcolor{deepred}{summary fine-tuned} models.}
+  \caption{Text associations from a curated list most closely matching four image queries (first column, the same as in Tab.~\ref{tab:itt}), for the \textcolor{deeppurple}{base} (\texttt{CLIP-ViT-B/16}), \textcolor{deepblue}{abstract fine-tuned}, and \textcolor{deepred}{summary fine-tuned} models.}
   \label{tab:itt_abs}
 \end{table}
 
-\section{\changes{Variations on Model and Training}}
+\section{\changes{Additional Variations on Model and Training}}
 \label{app:ablations}
 
 Figure~\ref{fig:sim_app} shows the retrieval accuracy as defined in Eq.~\eqrefb{eq:retrieval_accuracy} as a function of the retrieval fraction for further variations of the model or training, evaluated and trained on summarized abstracts. The red line corresponds to the model trained on summarized abstract described in the main text (fine-tuned on \texttt{CLIP-ViT-B/16} with constant learning rate $\mathrm{LR}=10^{-5}$ after linear warmup). The purple line corresponds to the base \texttt{CLIP-ViT-B/16} model.
