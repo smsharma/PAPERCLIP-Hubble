@@ -7,5 +7,5 @@
 
 ## Paper draft
 
-[Link to paper draft](https://github.com/smsharma/HubbleCLIP/blob/main-pdf/paper/main.pdf). The PDF is compiled automatically from the `main` branch into the `main-pdf` branch on push.
+[Link to paper draft](https://github.com/smsharma/HubbleCLIP/blob/main-pdf/paper/hubble_paperclip.pdf). The PDF is compiled automatically from the `main` branch into the `main-pdf` branch on push.
 
