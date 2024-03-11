@@ -58,8 +58,6 @@
 % Changes
 \newcommand{\changes}[1]{\textcolor{blue}{#1}}
 
-\def\preprintno{XXXX} % Insert correct preprint number
-
 \usepackage[
 pdfnewwindow=true,      % links in new window
 colorlinks=true,    % false: boxed links; true: colored links
@@ -71,6 +69,8 @@ final=true,
 ]{hyperref}
 
 % Define a new fancy page style
+% Insert correct preprint number
+\def\preprintno{5690} 
 \fancypagestyle{firstpage}{
     \rhead{MIT-CTP/\preprintno}
 }
@@ -158,8 +158,6 @@ We present PAPERCLIP (Proposal Abstracts Provide an Effective Representation for
 \section{Introduction}
 \label{sec:intro}
 
-% \SM{Add some qualitative evals with the abstract model.}
-
 Machine learning (ML) is starting to have a significant impact in the sciences, with astrophysics being no exception.
 %
 ML methods have demonstrated promise at every stage of the research pipeline, from instrument design, to data acquisition, to its analysis \citep{huertas2022dawes}.
@@ -178,7 +176,6 @@ The multi-modality inherent to astrophysical observations, with different types 
 %
 This multi-modality was recently exploited in \textsc{AstroCLIP}~\citep{lanusse2023astroclip} to construct a joint embedding space between multi-band images and optical spectra from the Dark Energy Spectroscopic Instrument (DESI).
 %
-\textsc{AstroLLaMA}~\citep{nguyen2023astrollama,perkowski2024astrollama} is another recent effort to fine-tune a publicly-available model (\textsc{Llama-2}) on astrophysics-specific textual data from the arXiv.
 
 In this paper, we describe \text{PAPERCLIP} (Proposal Abstracts Provide an Effective Representation for Contrastive Language-Image Pre-training\footnote{Technically, we fine tune rather than pre train, but ``PAPERCLIFT'' was rejected by the senior author of this paper.}), a method that connects astronomical image observations with natural language by leveraging the association between abstracts of successful observing proposals and images corresponding to downstream observations. 
 %
@@ -188,18 +185,6 @@ We show that fine-tuning a pre-trained CLIP ~\citep[Contrastive Language-Image P
 %
 Our method opens up the possibility of interacting with astronomical survey data using free-form natural language as an interface, which is a cornerstone of the success of the modern foundation model paradigm.
 %
-
-\paragraph*{Related work}
-
-% The CLIP family of foundation models, which in their original form embed images and associated captions into a common representation space via contrastive learning, have shown strong performance and generalization capabilities on a variety of downstream tasks including zero-shot classification and image retrieval~\citep{radford2021learning}.
-%
-The concept of learning task-agnostic representations via self-supervised learning has been applied within astrophysics \cite{slijepcevic2024radio,stein2021self,hayat2021self,slijepcevic2022learning} and used for downstream tasks like object similar search \citep{stein2021self}, gravitational lens finding \citep{stein2022mining}, estimation of Galactic distances \citep{hayat2021estimating}, and identification of rare galaxies \citep{walmsley2023rare}.
-%
-Associating different modalities via contrastive training has been employed in many other scientific domains~\citep[e.g.,][]{liu2023text,Sanchez-Fernandez2022.11.17.516915,lanusse2023astroclip,cepeda2023geoclip}, and has been shown to be effective in learning semantically meaningful joint representations. Here, we present for the first time an application associating diverse astronomical data with the text modality.
-%
-For a recent review of contrastive learning in astrophysics, see \citet{huertas2023brief}. 
-%
-% \citet{bowles2023radio,bowles2022new}
 
 The rest of this paper is organized as follows.
 %
@@ -214,9 +199,30 @@ We discuss future prospects and conclude in Sec.~\ref{sec:conclusion}.
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=0.99\textwidth]{plots/figure.pdf}
-\caption{\changes{Overview of the PAPERCLIP method. (Left) A pre-trained CLIP model is fine-tuned using a dataset of \hubble observations and corresponding proposal abstracts. (Right) The fine-tuned model can then be used for downstream tasks such as observation retrieval (i.e., finding the observations most relevant to a given text query). The proposal abstract snippet here corresponds to proposal ID \href{https://archive.stsci.edu/proposal_search.php?id=16914&mission=hst}{16914}}.}
+\caption{\changes{Overview of the PAPERCLIP method. (Left) A pre-trained CLIP model is fine-tuned using a dataset of \hubble observations and corresponding proposal abstracts. The proposal abstracts are optionally summarized using guided large language model generation. (Right) The fine-tuned model can then be used for downstream tasks such as observation retrieval (i.e., finding the observations most relevant to a given text query). The proposal abstract snippet shown here corresponds to proposal ID \href{https://archive.stsci.edu/proposal_search.php?id=16914&mission=hst}{16914}}.}
 \label{fig:overview}
 \end{figure*}
+
+\section{\changes{Related work}}
+
+% The CLIP family of foundation models, which in their original form embed images and associated captions into a common representation space via contrastive learning, have shown strong performance and generalization capabilities on a variety of downstream tasks including zero-shot classification and image retrieval~\citep{radford2021learning}.
+%
+The concept of learning task-agnostic representations via self-supervised and contrastive learning has been applied within astrophysics \citep{slijepcevic2024radio,stein2021self,hayat2021self,slijepcevic2022learning} and used for downstream tasks like object similarity search \citep{stein2021self}, gravitational lens finding \citep{stein2022mining}, estimation of Galactic distances \citep{hayat2021estimating}, identification of rare galaxies \citep{walmsley2023rare}, and data compression \citep{akhmetzhanova2024data}. For a recent review of contrastive learning in astrophysics, see \citet{huertas2023brief}. 
+%
+
+Beyond applications to a single modality, \textsc{AstroCLIP}~\citep{lanusse2023astroclip} recently used contrastive learning to learn a joint representation between galaxy images and associated spectra, showing that the learned representation embodies relevant physical properties and can be effectively used for downstream tasks like redshift and mass estimation.
+%
+
+\citet{bowles2023radio,bowles2022new} introduced a method to associate radio galaxy images with a natural language description of their morphology by using human-generated descriptions, with the goal of deriving semantic morphology classes and using them for classification.
+
+%
+Associating diverse modalities via contrastive learning has been employed in many other scientific domains~\citep[e.g.,][]{liu2023text,Sanchez-Fernandez2022.11.17.516915,lanusse2023astroclip,cepeda2023geoclip}, and has been shown to be effective in learning semantically meaningful joint representations.
+
+% While the interaction of astrophysical data with large language models is fairly nascent, \textsc{AstroLLaMA}~\citep{nguyen2023astrollama,perkowski2024astrollama} is a recent effort to fine-tune a publicly-available model (\textsc{Llama-2}) on astrophysics-specific textual data from the arXiv.
+
+In this paper, we present for the first time an application associating target-agnostic astronomical data with the text modality, showing that this can be effectively accomplished through contrastive learning by leveraging observational proposals to inform text captions.
+%
+
 
 \section{Dataset Construction}
 \label{sec:dataset}
