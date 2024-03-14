@@ -13,8 +13,8 @@
 - [Paper draft](#paper-draft)
 - [Requirements](#requirements)
 - [Code overview](#code-overview)
+- [Fine-tuned CLIP model and _Hubble_ data](#fine-tuned-clip-model-and-hubble-data)
 - [Citation](#citation)
-
 
 ## Abstract
 
@@ -26,13 +26,22 @@ We present PAPERCLIP (Proposal Abstracts Provide an Effective Representation for
 
 ## Requirements
 
-The Python environment is defined in `environment.yml`. To create the environment run e.g.,
+Since PyTorch and Jax can be [tricky to have under the same roof](https://github.com/google/jax/issues/18032), the Python environment for downloading data and guided LLM summarization using `Outlines` is defined in `environment_outlines.yml`, and the one for training and evaluating the CLIP model in `environment.py`. To create the environment run e.g.,
 ``` sh
 mamba env create --file environment.yaml
 ```
 
 ## Code overview
 
+
+- The script for downloading the data is [download_data.py](download_data.py), the summarization script is [summarize.py](summarize.py), and training script is [train.py](train.py).
+- [notebooks/01_create_dataset.ipynb](notebooks/01_create_dataset.ipynb) is used to create the `tfrecords` data used for training.
+- [notebooks/03_eval.ipynb](notebooks/03_eval.ipynb) creates the qualitative and quantitative evaluation plots.
+- [notebooks/09_dot_product_eval.ipynb](notebooks/09_dot_product_eval.ipynb) generates additional quantitative evaluation.
+
+## Fine-tuned CLIP model and _Hubble_ data
+
+_Coming soon._
 
 ## Citation
 
