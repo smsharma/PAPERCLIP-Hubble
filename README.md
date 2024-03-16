@@ -3,7 +3,7 @@
 [Siddharth Mishra-Sharma](mailto:smsharma@mit.edu), Yiding Song, and Jesse Thaler
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-red.svg)](https://opensource.org/licenses/MIT)
-[![arXiv](https://img.shields.io/badge/arXiv-24xx.xxxxx%20-green.svg)](https://arxiv.org/abs/24xx.xxxxx)
+[![arXiv](https://img.shields.io/badge/arXiv-2403.08851%20-green.svg)](https://arxiv.org/abs/2403.08851)
 [![draft](https://img.shields.io/badge/Draft-PDF-blue)](https://github.com/smsharma/HubbleCLIP/blob/main-pdf/paper/hubble_paperclip.pdf)
 
 ![Figure](paper/plots/figure.png)
@@ -49,10 +49,12 @@ _Coming soon._
 If you use this code, please cite our paper:
 
 ```
-@article{mishra2024paperclip,
-  title={PAPERCLIP: Associating Astronomical Observations and Natural Language with Multi-Modal Models},
-  author={Mishra-Sharma, Siddhart and Song, Yiding and Thaler, Jesse},
-  journal={arXiv preprint arXiv:24xx.xxxxx},
-  year={2024}
+@misc{mishrasharma2024paperclip,
+      title={PAPERCLIP: Associating Astronomical Observations and Natural Language with Multi-Modal Models}, 
+      author={Siddharth Mishra-Sharma and Yiding Song and Jesse Thaler},
+      year={2024},
+      eprint={2403.08851},
+      archivePrefix={arXiv},
+      primaryClass={astro-ph.IM}
 }
 ```
