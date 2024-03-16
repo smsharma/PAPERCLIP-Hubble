@@ -34,6 +34,7 @@ mamba env create --file environment.yaml
 
 ## Code overview
 
+The code primarily uses Jax. The main components are:
 
 - The script for downloading the data is [download_data.py](download_data.py), the summarization script is [summarize.py](summarize.py), and training script is [train.py](train.py).
 - [notebooks/01_create_dataset.ipynb](notebooks/01_create_dataset.ipynb) is used to create the `tfrecords` data used for training.
