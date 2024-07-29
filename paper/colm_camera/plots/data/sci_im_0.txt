@@ -1,0 +1,1 @@
+measure Hubble constant H0 to 2.2% precision with doubles alone, test for modelling systematics by separately considering doubles and quads, demonstrate potential of doubles for time-delay cosmography, measure H0 to 1.6% in combination with quads, competitive to type-Ia supernovae measurements
