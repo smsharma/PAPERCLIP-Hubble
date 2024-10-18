@@ -41,10 +41,6 @@ The code primarily uses Jax. The main components are:
 - [notebooks/03_eval.ipynb](notebooks/03_eval.ipynb) creates the qualitative and quantitative evaluation plots.
 - [notebooks/09_dot_product_eval.ipynb](notebooks/09_dot_product_eval.ipynb) generates additional quantitative evaluation.
 
-## Fine-tuned CLIP model and _Hubble_ data
-
-_Coming soon._
-
 ## Citation
 
 If you use this code, please cite our paper:
